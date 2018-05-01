@@ -15,7 +15,9 @@
         "issues": "http://github.com/Innmind/UrlTemplate/issues"
     },
     "require": {
-        "php": "~7.2"
+        "php": "~7.2",
+        "innmind/url": "^2.0",
+        "innmind/immutable": "^2.8"
     },
     "autoload": {
         "psr-4": {
