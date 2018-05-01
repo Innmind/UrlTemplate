@@ -21,13 +21,6 @@ class FragmentTest extends TestCase
         );
     }
 
-    public function testName()
-    {
-        $expression = new Fragment($name = new Name('foo'));
-
-        $this->assertSame($name, $expression->name());
-    }
-
     public function testStringCast()
     {
         $this->assertSame('{#foo}', (string) new Fragment(new Name('foo')));

@@ -21,13 +21,6 @@ class ReservedTest extends TestCase
         );
     }
 
-    public function testName()
-    {
-        $expression = new Reserved($name = new Name('foo'));
-
-        $this->assertSame($name, $expression->name());
-    }
-
     public function testStringCast()
     {
         $this->assertSame('{+foo}', (string) new Reserved(new Name('foo')));

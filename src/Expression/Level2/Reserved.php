@@ -21,11 +21,6 @@ final class Reserved implements Expression
         $this->encode = UrlEncode::allowReservedCharacters();
     }
 
-    public function name(): Name
-    {
-        return $this->name;
-    }
-
     /**
      * {@inheritdoc}
      */

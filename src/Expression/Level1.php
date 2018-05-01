@@ -20,11 +20,6 @@ final class Level1 implements Expression
         $this->encode = new UrlEncode;
     }
 
-    public function name(): Name
-    {
-        return $this->name;
-    }
-
     /**
      * {@inheritdoc}
      */

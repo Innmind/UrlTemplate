@@ -21,13 +21,6 @@ class Level1Test extends TestCase
         );
     }
 
-    public function testName()
-    {
-        $expression = new Level1($name = new Name('foo'));
-
-        $this->assertSame($name, $expression->name());
-    }
-
     public function testStringCast()
     {
         $this->assertSame('{foo}', (string) new Level1(new Name('foo')));

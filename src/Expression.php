@@ -8,8 +8,6 @@ use Innmind\Immutable\MapInterface;
 
 interface Expression
 {
-    public function name(): Name;
-
     /**
      * @param MapInterface<string, variable> $variables
      */
