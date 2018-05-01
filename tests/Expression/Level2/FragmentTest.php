@@ -39,7 +39,7 @@ class FragmentTest extends TestCase
         $this->assertSame('#/foo/bar', $expression->expand(
             (new Map('string', 'variable'))->put('foo', '/foo/bar')
         ));
-        $this->assertSame('#', $expression->expand(
+        $this->assertSame('', $expression->expand(
             new Map('string', 'variable')
         ));
     }

@@ -27,7 +27,7 @@ final class Fragment implements Expression
     public function expand(MapInterface $variables): string
     {
         if (!$variables->contains((string) $this->name)) {
-            return '#';
+            return '';
         }
 
         return '#'.($this->encode)($variables->get((string) $this->name));
