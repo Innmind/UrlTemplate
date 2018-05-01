@@ -49,7 +49,7 @@ class UrlEncodeTest extends TestCase
                 '='
             ))
             ->then(function(string $char): void {
-                $encode = new UrlEncode($char);
+                $encode = UrlEncode::allowReservedCharacters();
 
                 $this->assertSame($char, $encode($char));
             });
@@ -57,11 +57,11 @@ class UrlEncodeTest extends TestCase
 
     public function testSafeCharactersAreNotEncodedEvenWhenInMiddleOfString()
     {
-        $encode = new UrlEncode(':)');
+        $encode = UrlEncode::allowReservedCharacters();
 
         $this->assertSame(
-            ':%2F%3F%23%5B%5D%40%21%24%26%27%28)%2A%2B%2C%3B%3D',
-            $encode(':/?#[]@!$&\'()*+,;=')
+            ':%20)',
+            $encode(': )')
         );
     }
 }

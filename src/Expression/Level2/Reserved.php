@@ -18,7 +18,7 @@ final class Reserved implements Expression
     public function __construct(Name $name)
     {
         $this->name = $name;
-        $this->encode = new UrlEncode(':/?#[]@!$&\'()*+,;=');
+        $this->encode = UrlEncode::allowReservedCharacters();
     }
 
     public function name(): Name

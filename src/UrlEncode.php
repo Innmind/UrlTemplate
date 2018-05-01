@@ -9,9 +9,17 @@ final class UrlEncode
 {
     private $safeCharacters;
 
-    public function __construct(string $safeCharacters = '')
+    public function __construct()
     {
-        $this->safeCharacters = Str::of($safeCharacters);
+        $this->safeCharacters = Str::of('');
+    }
+
+    public static function allowReservedCharacters(): self
+    {
+        $self = new self;
+        $self->safeCharacters = Str::of(':/?#[]@!$&\'()*+,;=');
+
+        return $self;
     }
 
     public function __invoke(string $string): string
