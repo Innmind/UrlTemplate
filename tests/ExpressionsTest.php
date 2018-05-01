@@ -22,6 +22,10 @@ class ExpressionsTest extends TestCase
             $expected,
             Expressions::of(Str::of($string))
         );
+        $this->assertSame(
+            $string,
+            (string) Expressions::of(Str::of($string))
+        );
     }
 
     public function cases(): array
