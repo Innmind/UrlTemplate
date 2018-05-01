@@ -17,14 +17,16 @@ use Innmind\Immutable\{
 final class Level4 implements Expression
 {
     private $name;
+    private $expression;
     private $limit;
     private $explode;
+    private $lead = '';
+    private $separator = ',';
 
     public function __construct(Name $name)
     {
         $this->name = $name;
         $this->expression = new Level1($name);
-
     }
 
     public static function limit(Name $name, int $limit): self
@@ -47,8 +49,40 @@ final class Level4 implements Expression
         return $self;
     }
 
+    public function withLead(string $lead): self
+    {
+        $self = clone $this;
+        $self->lead = $lead;
+
+        return $self;
+    }
+
+    public function withSeparator(string $separator): self
+    {
+        $self = clone $this;
+        $self->separator = $separator;
+
+        return $self;
+    }
+
     /**
-     * @param MapInterface<string, variable> $variables
+     * Not ideal technic but didn't find a better to reduce duplicated code
+     * @internal
+     */
+    public function withExpression(string $expression): self
+    {
+        if (!(new \ReflectionClass($expression))->implementsInterface(Expression::class)) {
+            throw new DomainException($expression);
+        }
+
+        $self = clone $this;
+        $self->expression = new $expression($self->name);
+
+        return $self;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function expand(MapInterface $variables): string
     {
@@ -63,29 +97,31 @@ final class Level4 implements Expression
         }
 
         if ($this->explode) {
-            return $this->expandList($variables, $variable);
+            return $this->explodeList($variables, [$variable]);
         }
 
         $value = Str::of($this->expression->expand($variables));
 
         if ($this->mustLimit()) {
-            return (string) $value->substring(0, $this->limit);
+            return (string) $value
+                ->substring(0, $this->limit)
+                ->prepend($this->lead);
         }
 
-        return (string) $value;
+        return "{$this->lead}$value";
     }
 
     public function __toString(): string
     {
         if ($this->mustLimit()) {
-            return "{{$this->name}:{$this->limit}}";
+            return "{{$this->lead}{$this->name}:{$this->limit}}";
         }
 
         if ($this->explode) {
-            return "{{$this->name}*}";
+            return "{{$this->lead}{$this->name}*}";
         }
 
-        return "{{$this->name}}";
+        return "{{$this->lead}{$this->name}}";
     }
 
     private function mustLimit(): bool
@@ -120,7 +156,8 @@ final class Level4 implements Expression
                     )
                 );
             })
-            ->join(',');
+            ->join($this->separator)
+            ->prepend($this->lead);
     }
 
     private function explodeList(MapInterface $variables, array $elements): string
@@ -148,6 +185,7 @@ final class Level4 implements Expression
 
                 return $value;
             })
-            ->join(',');
+            ->join($this->separator)
+            ->prepend($this->lead);
     }
 }
