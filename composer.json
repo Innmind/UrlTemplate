@@ -1,0 +1,38 @@
+{
+    "name": "innmind/url-template",
+    "type": "library",
+    "description": "Url template expansion processor",
+    "keywords": ["url template", "rfc6570"],
+    "homepage": "http://github.com/Innmind/UrlTemplate",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Baptiste Langlade",
+            "email": "langlade.baptiste@gmail.com"
+        }
+    ],
+    "support": {
+        "issues": "http://github.com/Innmind/UrlTemplate/issues"
+    },
+    "require": {
+        "php": "~7.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Innmind\\UrlTemplate\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\Innmind\\UrlTemplate\\": "tests/",
+            "Fixture\\Innmind\\UrlTemplate\\": "fixtures/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~6.0",
+        "giorgiosironi/eris": "^0.9.0"
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit --colors=always"
+    }
+}
