@@ -6,32 +6,16 @@ namespace Innmind\UrlTemplate\Expression\Level3;
 use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
-    Expression\Level1,
 };
-use Innmind\Immutable\{
-    MapInterface,
-    Map,
-    Sequence,
-    StreamInterface,
-    Stream,
-    Str,
-};
+use Innmind\Immutable\MapInterface;
 
 final class Parameters implements Expression
 {
-    private $names;
+    private $expression;
 
     public function __construct(Name ...$names)
     {
-        $this->names = Sequence::of(...$names);
-        $this->expressions = $this->names->reduce(
-            new Map('string', Expression::class),
-            static function(MapInterface $expressions, Name $name): MapInterface {
-                return $expressions->put(
-                    (string) $name,
-                    new Level1($name)
-                );
-            });
+        $this->expression = NamedValues::keyOnlyWhenEmpty(';', ';', ...$names);
     }
 
     /**
@@ -39,30 +23,11 @@ final class Parameters implements Expression
      */
     public function expand(MapInterface $variables): string
     {
-        return (string) $this
-            ->expressions
-            ->reduce(
-                Stream::of('string'),
-                static function(StreamInterface $values, string $name, Expression $expression) use ($variables): StreamInterface {
-                    $value = Str::of($expression->expand($variables));
-
-                    if ($value->empty()) {
-                        return $values->add($name);
-                    }
-
-                    return $values->add("$name=$value");
-                }
-            )
-            ->join(';')
-            ->prepend(';');
+        return $this->expression->expand($variables);
     }
 
     public function __toString(): string
     {
-        return (string) $this
-            ->names
-            ->join(',')
-            ->prepend('{;')
-            ->append('}');
+        return (string) $this->expression;
     }
 }
