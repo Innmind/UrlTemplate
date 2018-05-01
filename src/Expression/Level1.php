@@ -3,16 +3,21 @@ declare(strict_types = 1);
 
 namespace Innmind\UrlTemplate\Expression;
 
-use Innmind\UrlTemplate\Expression;
+use Innmind\UrlTemplate\{
+    Expression,
+    UrlEncode,
+};
 use Innmind\Immutable\MapInterface;
 
 final class Level1 implements Expression
 {
     private $name;
+    private $encode;
 
     public function __construct(Name $name)
     {
         $this->name = $name;
+        $this->encode = new UrlEncode;
     }
 
     public function name(): Name
@@ -29,7 +34,7 @@ final class Level1 implements Expression
             return '';
         }
 
-        return rawurlencode($variables->get((string) $this->name));
+        return ($this->encode)($variables->get((string) $this->name));
     }
 
     public function __toString(): string
