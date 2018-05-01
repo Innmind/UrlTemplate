@@ -12,6 +12,7 @@ use Innmind\UrlTemplate\{
 use Innmind\Immutable\{
     MapInterface,
     Str,
+    SequenceInterface,
     Sequence,
 };
 
@@ -96,6 +97,37 @@ final class Fragment implements Expression
     }
 
     private function expandList(MapInterface $variables, ...$elements): string
+    {
+        if ($this->explode) {
+            return $this->explodeList($variables, $elements);
+        }
+
+        return (string) Sequence::of(...$elements)
+            ->reduce(
+                new Sequence,
+                static function(SequenceInterface $values, $element): SequenceInterface {
+                    if (is_array($element)) {
+                        [$name, $element] = $element;
+
+                        return $values->add($name)->add($element);
+                    }
+
+                    return $values->add($element);
+                }
+            )
+            ->map(function(string $element) use ($variables): string {
+                return $this->expression->expand(
+                    $variables->put(
+                        (string) $this->name,
+                        $element
+                    )
+                );
+            })
+            ->join(',')
+            ->prepend('#');
+    }
+
+    private function explodeList(MapInterface $variables, array $elements): string
     {
         return (string) Sequence::of(...$elements)
             ->map(function($element) use ($variables): string {

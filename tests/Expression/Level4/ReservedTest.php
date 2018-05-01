@@ -76,7 +76,7 @@ class ReservedTest extends TestCase
             Reserved::explode(new Name('list'))->expand($variables)
         );
         $this->assertSame(
-            'semi=;,dot=.,comma=,',
+            'semi,;,dot,.,comma,,',
             (new Reserved(new Name('keys')))->expand($variables)
         );
         $this->assertSame(

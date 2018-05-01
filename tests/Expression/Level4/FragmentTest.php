@@ -76,7 +76,7 @@ class FragmentTest extends TestCase
             Fragment::explode(new Name('list'))->expand($variables)
         );
         $this->assertSame(
-            '#semi=;,dot=.,comma=,',
+            '#semi,;,dot,.,comma,,',
             (new Fragment(new Name('keys')))->expand($variables)
         );
         $this->assertSame(

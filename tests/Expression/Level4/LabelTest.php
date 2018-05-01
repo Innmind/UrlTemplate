@@ -76,7 +76,7 @@ class LabelTest extends TestCase
             Label::explode(new Name('list'))->expand($variables)
         );
         $this->assertSame(
-            '.semi=%3B,dot=.,comma=%2C',
+            '.semi,%3B,dot,.,comma,%2C',
             (new Label(new Name('keys')))->expand($variables)
         );
         $this->assertSame(

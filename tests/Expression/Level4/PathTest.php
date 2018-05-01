@@ -72,7 +72,7 @@ class PathTest extends TestCase
             Path::explode(new Name('list'))->expand($variables)
         );
         $this->assertSame(
-            '/semi=%3B,dot=.,comma=%2C',
+            '/semi,%3B,dot,.,comma,%2C',
             (new Path(new Name('keys')))->expand($variables)
         );
         $this->assertSame(
