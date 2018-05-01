@@ -7,8 +7,12 @@ use Innmind\UrlTemplate\{
     Expression\Level3\Reserved,
     Expression\Name,
     Expression,
+    Exception\DomainException,
 };
-use Innmind\Immutable\Map;
+use Innmind\Immutable\{
+    Map,
+    Str,
+};
 use PHPUnit\Framework\TestCase;
 
 class ReservedTest extends TestCase
@@ -47,5 +51,22 @@ class ReservedTest extends TestCase
             '/foo/bar,1024',
             (new Reserved(new Name('path'), new Name('x')))->expand($variables)
         );
+    }
+
+    public function testOf()
+    {
+        $this->assertInstanceOf(
+            Reserved::class,
+            $expression = Reserved::of(Str::of('{+foo,bar}'))
+        );
+        $this->assertSame('{+foo,bar}', (string) $expression);
+    }
+
+    public function testThrowWhenInvalidPattern()
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('{+foo}');
+
+        Reserved::of(Str::of('{+foo}'));
     }
 }

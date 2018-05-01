@@ -7,8 +7,12 @@ use Innmind\UrlTemplate\{
     Expression\Level3\Path,
     Expression\Name,
     Expression,
+    Exception\DomainException,
 };
-use Innmind\Immutable\Map;
+use Innmind\Immutable\{
+    Map,
+    Str,
+};
 use PHPUnit\Framework\TestCase;
 
 class PathTest extends TestCase
@@ -47,5 +51,22 @@ class PathTest extends TestCase
             '/value/1024',
             (new Path(new Name('var'), new Name('x')))->expand($variables)
         );
+    }
+
+    public function testOf()
+    {
+        $this->assertInstanceOf(
+            Path::class,
+            $expression = Path::of(Str::of('{/foo,bar}'))
+        );
+        $this->assertSame('{/foo,bar}', (string) $expression);
+    }
+
+    public function testThrowWhenInvalidPattern()
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('{/foo}');
+
+        Path::of(Str::of('{/foo}'));
     }
 }

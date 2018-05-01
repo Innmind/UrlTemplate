@@ -6,8 +6,14 @@ namespace Innmind\UrlTemplate\Expression\Level3;
 use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
+    Exception\DomainException,
 };
-use Innmind\Immutable\MapInterface;
+use Innmind\Immutable\{
+    MapInterface,
+    SequenceInterface,
+    Sequence,
+    Str,
+};
 
 final class Parameters implements Expression
 {
@@ -16,6 +22,28 @@ final class Parameters implements Expression
     public function __construct(Name ...$names)
     {
         $this->expression = NamedValues::keyOnlyWhenEmpty(';', ';', ...$names);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function of(Str $string): Expression
+    {
+        if (!$string->matches('~\{;[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)+\}~')) {
+            throw new DomainException((string) $string);
+        }
+
+        return new self(
+            ...$string
+                ->trim('{;}')
+                ->split(',')
+                ->reduce(
+                    new Sequence,
+                    static function(SequenceInterface $names, Str $name): SequenceInterface {
+                        return $names->add(new Name((string) $name));
+                    }
+                )
+        );
     }
 
     /**

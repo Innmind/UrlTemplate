@@ -7,8 +7,12 @@ use Innmind\UrlTemplate\{
     Expression\Level3\Fragment,
     Expression\Name,
     Expression,
+    Exception\DomainException,
 };
-use Innmind\Immutable\Map;
+use Innmind\Immutable\{
+    Map,
+    Str,
+};
 use PHPUnit\Framework\TestCase;
 
 class FragmentTest extends TestCase
@@ -47,5 +51,22 @@ class FragmentTest extends TestCase
             '#/foo/bar,1024',
             (new Fragment(new Name('path'), new Name('x')))->expand($variables)
         );
+    }
+
+    public function testOf()
+    {
+        $this->assertInstanceOf(
+            Fragment::class,
+            $expression = Fragment::of(Str::of('{#foo,bar}'))
+        );
+        $this->assertSame('{#foo,bar}', (string) $expression);
+    }
+
+    public function testThrowWhenInvalidPattern()
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('{#foo}');
+
+        Fragment::of(Str::of('{#foo}'));
     }
 }

@@ -9,7 +9,10 @@ use Innmind\UrlTemplate\{
     Expression,
     Exception\DomainException,
 };
-use Innmind\Immutable\Map;
+use Innmind\Immutable\{
+    Map,
+    Str,
+};
 use PHPUnit\Framework\TestCase;
 use Eris\{
     Generator,
@@ -83,5 +86,32 @@ class QueryContinuationTest extends TestCase
             '&semi=%3B&dot=.&comma=%2C',
             QueryContinuation::explode(new Name('keys'))->expand($variables)
         );
+    }
+
+    public function testOf()
+    {
+        $this->assertInstanceOf(
+            QueryContinuation::class,
+            $expression = QueryContinuation::of(Str::of('{&foo}'))
+        );
+        $this->assertSame('{&foo}', (string) $expression);
+        $this->assertInstanceOf(
+            QueryContinuation::class,
+            $expression = QueryContinuation::of(Str::of('{&foo*}'))
+        );
+        $this->assertSame('{&foo*}', (string) $expression);
+        $this->assertInstanceOf(
+            QueryContinuation::class,
+            $expression = QueryContinuation::of(Str::of('{&foo:42}'))
+        );
+        $this->assertSame('{&foo:42}', (string) $expression);
+    }
+
+    public function testThrowWhenInvalidPattern()
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('{foo}');
+
+        QueryContinuation::of(Str::of('{foo}'));
     }
 }

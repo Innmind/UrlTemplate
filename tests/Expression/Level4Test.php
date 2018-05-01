@@ -9,7 +9,10 @@ use Innmind\UrlTemplate\{
     Expression,
     Exception\DomainException,
 };
-use Innmind\Immutable\Map;
+use Innmind\Immutable\{
+    Map,
+    Str,
+};
 use PHPUnit\Framework\TestCase;
 use Eris\{
     Generator,
@@ -87,5 +90,32 @@ class Level4Test extends TestCase
             'semi=%3B,dot=.,comma=%2C',
             Level4::explode(new Name('keys'))->expand($variables)
         );
+    }
+
+    public function testOf()
+    {
+        $this->assertInstanceOf(
+            Level4::class,
+            $expression = Level4::of(Str::of('{foo}'))
+        );
+        $this->assertSame('{foo}', (string) $expression);
+        $this->assertInstanceOf(
+            Level4::class,
+            $expression = Level4::of(Str::of('{foo*}'))
+        );
+        $this->assertSame('{foo*}', (string) $expression);
+        $this->assertInstanceOf(
+            Level4::class,
+            $expression = Level4::of(Str::of('{foo:42}'))
+        );
+        $this->assertSame('{foo:42}', (string) $expression);
+    }
+
+    public function testThrowWhenInvalidPattern()
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('foo');
+
+        Level4::of(Str::of('foo'));
     }
 }

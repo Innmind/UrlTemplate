@@ -7,8 +7,12 @@ use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
     UrlEncode,
+    Exception\DomainException,
 };
-use Innmind\Immutable\MapInterface;
+use Innmind\Immutable\{
+    MapInterface,
+    Str,
+};
 
 final class Fragment implements Expression
 {
@@ -19,6 +23,18 @@ final class Fragment implements Expression
     {
         $this->name = $name;
         $this->encode = UrlEncode::allowReservedCharacters();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function of(Str $string): Expression
+    {
+        if (!$string->matches('~\{#[a-zA-Z0-9_]+\}~')) {
+            throw new DomainException((string) $string);
+        }
+
+        return new self(new Name((string) $string->trim('{#}')));
     }
 
     /**

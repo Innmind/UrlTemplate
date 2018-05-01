@@ -10,7 +10,10 @@ use Innmind\UrlTemplate\{
     Expression\Level4,
     Exception\DomainException,
 };
-use Innmind\Immutable\MapInterface;
+use Innmind\Immutable\{
+    MapInterface,
+    Str,
+};
 
 final class Fragment implements Expression
 {
@@ -22,6 +25,32 @@ final class Fragment implements Expression
             ->withLead('#')
             ->withExpression(Level2\Reserved::class);
 
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function of(Str $string): Expression
+    {
+        if ($string->matches('~\{#[a-zA-Z0-9_]+\}~')) {
+            return new self(new Name((string) $string->trim('{#}')));
+        }
+
+        if ($string->matches('~\{#[a-zA-Z0-9_]+\*\}~')) {
+            return self::explode(new Name((string) $string->trim('{#*}')));
+        }
+
+        if ($string->matches('~\{#[a-zA-Z0-9_]+:\d+\}~')) {
+            $string = $string->trim('{#}');
+            [$name, $limit] = $string->split(':');
+
+            return self::limit(
+                new Name((string) $name),
+                (int) (string) $limit
+            );
+        }
+
+        throw new DomainException((string) $string);
     }
 
     public static function limit(Name $name, int $limit): self

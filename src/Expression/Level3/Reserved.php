@@ -7,10 +7,13 @@ use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
     Expression\Level2,
+    Exception\DomainException,
 };
 use Innmind\Immutable\{
     MapInterface,
+    SequenceInterface,
     Sequence,
+    Str,
 };
 
 final class Reserved implements Expression
@@ -23,6 +26,28 @@ final class Reserved implements Expression
         $this->expressions = $this->names->map(static function(Name $name): Level2\Reserved {
             return new Level2\Reserved($name);
         });
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function of(Str $string): Expression
+    {
+        if (!$string->matches('~\{\+[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)+\}~')) {
+            throw new DomainException((string) $string);
+        }
+
+        return new self(
+            ...$string
+                ->trim('{+}')
+                ->split(',')
+                ->reduce(
+                    new Sequence,
+                    static function(SequenceInterface $names, Str $name): SequenceInterface {
+                        return $names->add(new Name((string) $name));
+                    }
+                )
+        );
     }
 
     /**

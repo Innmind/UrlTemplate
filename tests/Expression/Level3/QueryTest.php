@@ -7,8 +7,12 @@ use Innmind\UrlTemplate\{
     Expression\Level3\Query,
     Expression\Name,
     Expression,
+    Exception\DomainException,
 };
-use Innmind\Immutable\Map;
+use Innmind\Immutable\{
+    Map,
+    Str,
+};
 use PHPUnit\Framework\TestCase;
 
 class QueryTest extends TestCase
@@ -47,5 +51,22 @@ class QueryTest extends TestCase
             '?x=1024&y=768&empty=',
             (new Query(new Name('x'), new Name('y'), new Name('empty')))->expand($variables)
         );
+    }
+
+    public function testOf()
+    {
+        $this->assertInstanceOf(
+            Query::class,
+            $expression = Query::of(Str::of('{?foo,bar}'))
+        );
+        $this->assertSame('{?foo,bar}', (string) $expression);
+    }
+
+    public function testThrowWhenInvalidPattern()
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('{?foo}');
+
+        Query::of(Str::of('{?foo}'));
     }
 }

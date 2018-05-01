@@ -7,8 +7,12 @@ use Innmind\UrlTemplate\{
     Expression\Level3\Parameters,
     Expression\Name,
     Expression,
+    Exception\DomainException,
 };
-use Innmind\Immutable\Map;
+use Innmind\Immutable\{
+    Map,
+    Str,
+};
 use PHPUnit\Framework\TestCase;
 
 class ParametersTest extends TestCase
@@ -47,5 +51,22 @@ class ParametersTest extends TestCase
             ';x=1024;y=768;empty',
             (new Parameters(new Name('x'), new Name('y'), new Name('empty')))->expand($variables)
         );
+    }
+
+    public function testOf()
+    {
+        $this->assertInstanceOf(
+            Parameters::class,
+            $expression = Parameters::of(Str::of('{;foo,bar}'))
+        );
+        $this->assertSame('{;foo,bar}', (string) $expression);
+    }
+
+    public function testThrowWhenInvalidPattern()
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('{;foo}');
+
+        Parameters::of(Str::of('{;foo}'));
     }
 }

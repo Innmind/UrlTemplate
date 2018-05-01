@@ -39,6 +39,14 @@ final class NamedValues implements Expression
             });
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public static function of(Str $string): Expression
+    {
+        throw new \LogicException('should not be used directly');
+    }
+
     public static function keyOnlyWhenEmpty(string $lead, string $separator, Name ...$names): self
     {
         $self = new self($lead, $separator, ...$names);

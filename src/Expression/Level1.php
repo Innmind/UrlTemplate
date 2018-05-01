@@ -6,8 +6,12 @@ namespace Innmind\UrlTemplate\Expression;
 use Innmind\UrlTemplate\{
     Expression,
     UrlEncode,
+    Exception\DomainException,
 };
-use Innmind\Immutable\MapInterface;
+use Innmind\Immutable\{
+    MapInterface,
+    Str,
+};
 
 final class Level1 implements Expression
 {
@@ -18,6 +22,18 @@ final class Level1 implements Expression
     {
         $this->name = $name;
         $this->encode = new UrlEncode;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function of(Str $string): Expression
+    {
+        if (!$string->matches('~\{[a-zA-Z0-9_]+\}~')) {
+            throw new DomainException((string) $string);
+        }
+
+        return new self(new Name((string) $string->trim('{}')));
     }
 
     /**

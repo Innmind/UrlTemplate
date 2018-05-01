@@ -7,8 +7,12 @@ use Innmind\UrlTemplate\{
     Expression\Level3\Label,
     Expression\Name,
     Expression,
+    Exception\DomainException,
 };
-use Innmind\Immutable\Map;
+use Innmind\Immutable\{
+    Map,
+    Str,
+};
 use PHPUnit\Framework\TestCase;
 
 class LabelTest extends TestCase
@@ -47,5 +51,22 @@ class LabelTest extends TestCase
             '.value',
             (new Label(new Name('var')))->expand($variables)
         );
+    }
+
+    public function testOf()
+    {
+        $this->assertInstanceOf(
+            Label::class,
+            $expression = Label::of(Str::of('{.foo,bar}'))
+        );
+        $this->assertSame('{.foo,bar}', (string) $expression);
+    }
+
+    public function testThrowWhenInvalidPattern()
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('{.foo}');
+
+        Label::of(Str::of('{.foo}'));
     }
 }

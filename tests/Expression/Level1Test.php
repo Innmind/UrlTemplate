@@ -7,8 +7,12 @@ use Innmind\UrlTemplate\{
     Expression\Level1,
     Expression\Name,
     Expression,
+    Exception\DomainException,
 };
-use Innmind\Immutable\Map;
+use Innmind\Immutable\{
+    Map,
+    Str,
+};
 use PHPUnit\Framework\TestCase;
 
 class Level1Test extends TestCase
@@ -39,5 +43,22 @@ class Level1Test extends TestCase
         $this->assertSame('', $expression->expand(
             new Map('string', 'variable')
         ));
+    }
+
+    public function testOf()
+    {
+        $this->assertInstanceOf(
+            Level1::class,
+            $expression = Level1::of(Str::of('{foo}'))
+        );
+        $this->assertSame('{foo}', (string) $expression);
+    }
+
+    public function testThrowWhenInvalidPattern()
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('foo');
+
+        Level1::of(Str::of('foo'));
     }
 }
