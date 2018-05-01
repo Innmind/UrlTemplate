@@ -64,4 +64,9 @@ class UrlEncodeTest extends TestCase
             $encode(': )')
         );
     }
+
+    public function testDoesNothingOnEmptyString()
+    {
+        $this->assertSame('', (new UrlEncode)(''));
+    }
 }

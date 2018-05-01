@@ -39,6 +39,10 @@ final class UrlEncode
                 ->join('');
         }
 
+        if ($string->empty()) {
+            return '';
+        }
+
         if ($this->safeCharacters->contains((string) $string)) {
             return (string) $string;
         }
