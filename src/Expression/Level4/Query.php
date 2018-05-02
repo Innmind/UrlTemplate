@@ -8,6 +8,7 @@ use Innmind\UrlTemplate\{
     Expression\Name,
     Expression\Level1,
     Expression\Level3,
+    Expression\Level4,
     Exception\DomainException,
 };
 use Innmind\Immutable\{
@@ -75,6 +76,15 @@ final class Query implements Expression
         $self->explode = true;
 
         return $self;
+    }
+
+    public function add(Str $pattern): Composite
+    {
+        return new Composite(
+            '',
+            $this,
+            QueryContinuation::of($pattern->prepend('{&')->append('}'))
+        );
     }
 
     /**

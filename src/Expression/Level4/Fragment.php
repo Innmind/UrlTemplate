@@ -67,6 +67,15 @@ final class Fragment implements Expression
         return $self;
     }
 
+    public function add(Str $pattern): Composite
+    {
+        return Composite::removeLead(
+            ',',
+            $this,
+            self::of($pattern->prepend('{#')->append('}'))
+        );
+    }
+
     public static function explode(Name $name): self
     {
         $self = new self($name);

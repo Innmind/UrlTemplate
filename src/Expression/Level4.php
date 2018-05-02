@@ -5,6 +5,7 @@ namespace Innmind\UrlTemplate\Expression;
 
 use Innmind\UrlTemplate\{
     Expression,
+    Expression\Level4\Composite,
     Exception\DomainException,
 };
 use Innmind\Immutable\{
@@ -73,6 +74,15 @@ final class Level4 implements Expression
         $self->explode = true;
 
         return $self;
+    }
+
+    public function add(Str $pattern): Composite
+    {
+        return new Composite(
+            ',',
+            $this,
+            self::of($pattern->prepend('{')->append('}'))
+        );
     }
 
     public function withLead(string $lead): self

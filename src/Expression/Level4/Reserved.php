@@ -83,6 +83,15 @@ final class Reserved implements Expression
         return $self;
     }
 
+    public function add(Str $pattern): Composite
+    {
+        return new Composite(
+            ',',
+            $this,
+            self::of($pattern->prepend('{+')->append('}'))
+        );
+    }
+
     /**
      * {@inheritdoc}
      */
