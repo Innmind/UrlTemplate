@@ -75,6 +75,10 @@ class Level4Test extends TestCase
             Level4::limit(new Name('var'), 30)->expand($variables)
         );
         $this->assertSame(
+            '%2Ffoo',
+            Level4::limit(new Name('path'), 4)->expand($variables)
+        );
+        $this->assertSame(
             'red,green,blue',
             (new Level4(new Name('list')))->expand($variables)
         );

@@ -126,12 +126,16 @@ final class Level4 implements Expression
             return $this->explodeList($variables, [$variable]);
         }
 
-        $value = Str::of($this->expression->expand($variables));
-
         if ($this->mustLimit()) {
-            return (string) $value
-                ->substring(0, $this->limit)
-                ->prepend($this->lead);
+            $value = Str::of((string) $variable)->substring(0, $this->limit);
+            $value = $this->expression->expand(
+                $variables->put(
+                    (string) $this->name,
+                    (string) $value
+                )
+            );
+        } else {
+            $value = $this->expression->expand($variables);
         }
 
         return "{$this->lead}$value";
