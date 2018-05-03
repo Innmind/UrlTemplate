@@ -86,28 +86,15 @@ final class Template
         SetInterface $expressions,
         Str $template
     ): SetInterface {
-        $captured = $template->capture('~(\{[\+#\./;\?&a-zA-Z0-9_:*]+\})~');
+        $captured = $template->capture('~(\{[\+#\./;\?&]?[a-zA-Z0-9_:*]+(,[a-zA-Z0-9_:*]+)*\})~');
 
         if ($captured->size() === 0) {
             return $expressions;
         }
 
-        $expressions = $captured->reduce(
-            $expressions,
-            static function(SetInterface $expressions, int $key, Str $expression): SetInterface {
-                //deduplicated the matched patterns
-                return $expressions->add((string) $expression);
-            }
-        );
-
         return $this->extractExpressions(
-            $expressions,
-            $expressions->reduce(
-                $template,
-                static function(Str $template, string $expression): Str {
-                    return $template->replace($expression, '');
-                }
-            )
+            $expressions->add((string) $captured->current()),
+            $template->replace((string) $captured->current(), '')
         );
     }
 }

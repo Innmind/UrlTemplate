@@ -41,6 +41,14 @@ final class Expressions
             Expression\Level4\Parameters::class,
             Expression\Level4\Query::class,
             Expression\Level4\QueryContinuation::class,
+            Expression\Level3::class,
+            Expression\Level3\Reserved::class,
+            Expression\Level3\Fragment::class,
+            Expression\Level3\Label::class,
+            Expression\Level3\Path::class,
+            Expression\Level3\Parameters::class,
+            Expression\Level3\Query::class,
+            Expression\Level3\QueryContinuation::class,
             Expression\Level4\Composite::class
         );
     }
