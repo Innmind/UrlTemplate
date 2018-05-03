@@ -37,15 +37,15 @@ final class Query implements Expression
      */
     public static function of(Str $string): Expression
     {
-        if ($string->matches('~\{\?[a-zA-Z0-9_]+\}~')) {
+        if ($string->matches('~^\{\?[a-zA-Z0-9_]+\}$~')) {
             return new self(new Name((string) $string->trim('{?}')));
         }
 
-        if ($string->matches('~\{\?[a-zA-Z0-9_]+\*\}~')) {
+        if ($string->matches('~^\{\?[a-zA-Z0-9_]+\*\}$~')) {
             return self::explode(new Name((string) $string->trim('{?*}')));
         }
 
-        if ($string->matches('~\{\?[a-zA-Z0-9_]+:\d+\}~')) {
+        if ($string->matches('~^\{\?[a-zA-Z0-9_]+:\d+\}$~')) {
             $string = $string->trim('{?}');
             [$name, $limit] = $string->split(':');
 

@@ -29,7 +29,7 @@ final class Level1 implements Expression
      */
     public static function of(Str $string): Expression
     {
-        if (!$string->matches('~\{[a-zA-Z0-9_]+\}~')) {
+        if (!$string->matches('~^\{[a-zA-Z0-9_]+\}$~')) {
             throw new DomainException((string) $string);
         }
 

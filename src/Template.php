@@ -86,7 +86,7 @@ final class Template
         SetInterface $expressions,
         Str $template
     ): SetInterface {
-        $captured = $template->capture('~(\{[\+#\./;\?&]?[a-zA-Z0-9_:*]+(,[a-zA-Z0-9_:*]+)*\})~');
+        $captured = $template->capture('~(\{[\+#\./;\?&]?[a-zA-Z0-9_]+(\*|:\d+)?(,[a-zA-Z0-9_]+(\*|:\d+)?)*\})~');
 
         if ($captured->size() === 0) {
             return $expressions;
