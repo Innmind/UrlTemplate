@@ -67,6 +67,6 @@ class UrlEncodeTest extends TestCase
 
     public function testDoesNothingOnEmptyString()
     {
-        $this->assertSame('', (new UrlEncode)(''));
+        $this->assertSame('', UrlEncode::allowReservedCharacters()(''));
     }
 }
