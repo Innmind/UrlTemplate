@@ -51,7 +51,7 @@ final class QueryContinuation implements Expression
      */
     public function expand(MapInterface $variables): string
     {
-        return (string) $this->expression->expand($variables);
+        return $this->expression->expand($variables);
     }
 
     public function __toString(): string
