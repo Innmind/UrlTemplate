@@ -19,6 +19,7 @@ use Innmind\Immutable\{
 final class Label implements Expression
 {
     private $names;
+    private $expressions;
 
     public function __construct(Name ...$names)
     {

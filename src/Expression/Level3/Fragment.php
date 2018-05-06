@@ -19,6 +19,7 @@ use Innmind\Immutable\{
 final class Fragment implements Expression
 {
     private $names;
+    private $expressions;
 
     public function __construct(Name ...$names)
     {

@@ -22,6 +22,7 @@ final class NamedValues implements Expression
     private $lead;
     private $separator;
     private $names;
+    private $expressions;
     private $keyOnlyWhenEmpty = false;
 
     public function __construct(string $lead, string $separator, Name ...$names)
