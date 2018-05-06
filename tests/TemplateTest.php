@@ -57,6 +57,22 @@ class TemplateTest extends TestCase
         $this->assertSame($expected, (string) $url);
     }
 
+    public function testThrowWhenInvalidVariablesKeyType()
+    {
+        $this->expectException(\TypeError::class);
+        $this->expectExceptionMessage('Argument 1 must be of type MapInterface<string, variable>');
+
+        Template::of('foo')->expand(new Map('int', 'variable'));
+    }
+
+    public function testThrowWhenInvalidVariablesValueType()
+    {
+        $this->expectException(\TypeError::class);
+        $this->expectExceptionMessage('Argument 1 must be of type MapInterface<string, variable>');
+
+        Template::of('foo')->expand(new Map('string', 'string'));
+    }
+
     public function cases(): array
     {
         return [
