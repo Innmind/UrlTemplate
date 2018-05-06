@@ -9,6 +9,7 @@ use Innmind\UrlTemplate\{
     Expression\Level4,
     Expression\Name,
     Expression,
+    Exception\DomainException,
 };
 use Innmind\Immutable\{
     Map,
@@ -92,6 +93,14 @@ class CompositeTest extends TestCase
 
         $this->assertSame($pattern, (string) $expression);
         $this->assertSame($expected, $expression->expand($variables));
+    }
+
+    public function testThrowWhenInvalidPattern()
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('foo');
+
+        Composite::of(Str::of('foo'));
     }
 
     public function cases(): array
