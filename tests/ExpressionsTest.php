@@ -7,6 +7,7 @@ use Innmind\UrlTemplate\{
     Expressions,
     Expression\Level4,
     Expression\Level3,
+    Exception\DomainException,
 };
 use Innmind\Immutable\Str;
 use PHPUnit\Framework\TestCase;
@@ -26,6 +27,14 @@ class ExpressionsTest extends TestCase
             $string,
             (string) Expressions::of(Str::of($string))
         );
+    }
+
+    public function testThrowWhenInvalidPattern()
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('foo');
+
+        Expressions::of(Str::of('foo'));
     }
 
     public function cases(): array
