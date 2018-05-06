@@ -24,7 +24,6 @@ final class Fragment implements Expression
         $this->expression = (new Level4($name))
             ->withLead('#')
             ->withExpression(Level2\Reserved::class);
-
     }
 
     /**

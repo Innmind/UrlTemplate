@@ -28,7 +28,6 @@ final class Reserved implements Expression
         $this->expression = (new Level4($name))->withExpression(
             Level2\Reserved::class
         );
-
     }
 
     /**

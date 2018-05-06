@@ -22,7 +22,6 @@ final class Path implements Expression
     public function __construct(Name $name)
     {
         $this->expression = (new Level4($name))->withLead('/');
-
     }
 
     /**

@@ -29,7 +29,6 @@ final class Query implements Expression
     {
         $this->name = $name;
         $this->expression = new Level1($name);
-
     }
 
     /**
