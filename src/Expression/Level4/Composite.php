@@ -63,16 +63,6 @@ final class Composite implements Expression
             );
     }
 
-    public function add(Str $pattern): self
-    {
-        $self = clone $this;
-        $self->expressions = $self->expressions->add(
-            [$self->type, 'of']($pattern)
-        );
-
-        return $self;
-    }
-
     /**
      * {@inheritdoc}
      */
