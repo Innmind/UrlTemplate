@@ -46,7 +46,9 @@ final class Fragment implements Expression
             return '';
         }
 
-        return '#'.($this->encode)($variables->get((string) $this->name));
+        return '#'.($this->encode)(
+            (string) $variables->get((string) $this->name)
+        );
     }
 
     public function __toString(): string
