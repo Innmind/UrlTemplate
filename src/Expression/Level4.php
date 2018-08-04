@@ -7,6 +7,7 @@ use Innmind\UrlTemplate\{
     Expression,
     Expression\Level4\Composite,
     Exception\DomainException,
+    Exception\LogicException,
 };
 use Innmind\Immutable\{
     MapInterface,
@@ -149,6 +150,28 @@ final class Level4 implements Expression
         }
 
         return "{$this->lead}$value";
+    }
+
+    public function regex(): string
+    {
+        if ($this->explode) {
+            throw new LogicException;
+        }
+
+        if (is_int($this->limit)) {
+            // replace '*' match by the actual limit
+            $regex = (string) Str::of($this->expression->regex())
+                ->substring(0, -2)
+                ->append("{{$this->limit}})");
+        } else {
+            $regex = $this->expression->regex();
+        }
+
+        return sprintf(
+            '%s%s',
+            $this->lead ? '\\'.$this->lead : '',
+            $regex
+        );
     }
 
     public function __toString(): string

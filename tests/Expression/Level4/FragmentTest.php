@@ -8,6 +8,7 @@ use Innmind\UrlTemplate\{
     Expression\Name,
     Expression,
     Exception\DomainException,
+    Exception\LogicException,
 };
 use Innmind\Immutable\{
     Map,
@@ -113,5 +114,24 @@ class FragmentTest extends TestCase
         $this->expectExceptionMessage('{foo}');
 
         Fragment::of(Str::of('{foo}'));
+    }
+
+    public function testThrowExplodeRegex()
+    {
+        $this->expectException(LogicException::class);
+
+        Fragment::of(Str::of('{#foo*}'))->regex();
+    }
+
+    public function testRegex()
+    {
+        $this->assertSame(
+            '\#(?<foo>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=]*)',
+            Fragment::of(Str::of('{#foo}'))->regex()
+        );
+        $this->assertSame(
+            '\#(?<foo>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=]{2})',
+            Fragment::of(Str::of('{#foo:2}'))->regex()
+        );
     }
 }

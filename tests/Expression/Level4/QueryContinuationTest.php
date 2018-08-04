@@ -8,6 +8,7 @@ use Innmind\UrlTemplate\{
     Expression\Name,
     Expression,
     Exception\DomainException,
+    Exception\LogicException,
 };
 use Innmind\Immutable\{
     Map,
@@ -113,5 +114,24 @@ class QueryContinuationTest extends TestCase
         $this->expectExceptionMessage('{foo}');
 
         QueryContinuation::of(Str::of('{foo}'));
+    }
+
+    public function testThrowExplodeRegex()
+    {
+        $this->expectException(LogicException::class);
+
+        QueryContinuation::of(Str::of('{&foo*}'))->regex();
+    }
+
+    public function testRegex()
+    {
+        $this->assertSame(
+            '\&foo=(?<foo>[a-zA-Z0-9\%]*)',
+            QueryContinuation::of(Str::of('{&foo}'))->regex()
+        );
+        $this->assertSame(
+            '\&foo=(?<foo>[a-zA-Z0-9\%]{2})',
+            QueryContinuation::of(Str::of('{&foo:2}'))->regex()
+        );
     }
 }

@@ -51,6 +51,11 @@ final class Fragment implements Expression
         );
     }
 
+    public function regex(): string
+    {
+        return "\#(?<{$this->name}>[a-zA-Z0-9\%:/\?#\[\]@!\$&'\(\)\*\+,;=]*)";
+    }
+
     public function __toString(): string
     {
         return "{#{$this->name}}";

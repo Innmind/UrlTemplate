@@ -79,6 +79,22 @@ final class NamedValues implements Expression
             ->prepend($this->lead);
     }
 
+    public function regex(): string
+    {
+        return (string) $this
+            ->names
+            ->map(function(Name $name): string {
+                return sprintf(
+                    '%s=%s%s',
+                    $name,
+                    $this->keyOnlyWhenEmpty ? '?' : '',
+                    (new Level1($name))->regex()
+                );
+            })
+            ->join('\\'.$this->separator)
+            ->prepend('\\'.$this->lead);
+    }
+
     public function __toString(): string
     {
         return (string) $this

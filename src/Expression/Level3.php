@@ -61,6 +61,16 @@ final class Level3 implements Expression
             ->join(',');
     }
 
+    public function regex(): string
+    {
+        return (string) $this
+            ->names
+            ->map(static function(Name $name): string {
+                return "(?<{$name}>[a-zA-Z0-9\%]*)";
+            })
+            ->join(',');
+    }
+
     public function __toString(): string
     {
         return (string) $this

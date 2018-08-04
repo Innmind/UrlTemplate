@@ -23,5 +23,6 @@ interface Expression
      * @param MapInterface<string, variable> $variables
      */
     public function expand(MapInterface $variables): string;
+    public function regex(): string;
     public function __toString(): string;
 }

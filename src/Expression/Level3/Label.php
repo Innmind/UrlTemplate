@@ -65,6 +65,17 @@ final class Label implements Expression
             ->prepend('.');
     }
 
+    public function regex(): string
+    {
+        return (string) $this
+            ->expressions
+            ->map(static function(Expression $expression): string {
+                return $expression->regex();
+            })
+            ->join('.')
+            ->prepend('\.');
+    }
+
     public function __toString(): string
     {
         return (string) $this

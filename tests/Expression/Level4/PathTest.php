@@ -8,6 +8,7 @@ use Innmind\UrlTemplate\{
     Expression\Name,
     Expression,
     Exception\DomainException,
+    Exception\LogicException,
 };
 use Innmind\Immutable\{
     Map,
@@ -109,5 +110,24 @@ class PathTest extends TestCase
         $this->expectExceptionMessage('{foo}');
 
         Path::of(Str::of('{foo}'));
+    }
+
+    public function testThrowExplodeRegex()
+    {
+        $this->expectException(LogicException::class);
+
+        Path::of(Str::of('{/foo*}'))->regex();
+    }
+
+    public function testRegex()
+    {
+        $this->assertSame(
+            '\/(?<foo>[a-zA-Z0-9\%]*)',
+            Path::of(Str::of('{/foo}'))->regex()
+        );
+        $this->assertSame(
+            '\/(?<foo>[a-zA-Z0-9\%]{2})',
+            Path::of(Str::of('{/foo:2}'))->regex()
+        );
     }
 }

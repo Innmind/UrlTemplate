@@ -54,6 +54,11 @@ final class QueryContinuation implements Expression
         return $this->expression->expand($variables);
     }
 
+    public function regex(): string
+    {
+        return $this->expression->regex();
+    }
+
     public function __toString(): string
     {
         return (string) $this->expression;

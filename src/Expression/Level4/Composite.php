@@ -91,6 +91,31 @@ final class Composite implements Expression
             ->join($this->separator);
     }
 
+    public function regex(): string
+    {
+        $remaining = $this
+            ->expressions
+            ->drop(1)
+            ->map(function(Expression $expression): string {
+                if ($this->removeLead) {
+                    return (string) Str::of($expression->regex())->substring(2);
+                }
+
+                return $expression->regex();
+            });
+
+        return (string) $this
+            ->expressions
+            ->take(1)
+            ->map(static function(Expression $expression): string {
+                return $expression->regex();
+            })
+            ->append($remaining)
+            ->join(
+                $this->separator ? '\\'.$this->separator : ''
+            );
+    }
+
     public function __toString(): string
     {
         $expressions = $this

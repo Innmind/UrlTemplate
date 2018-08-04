@@ -64,6 +64,16 @@ final class Reserved implements Expression
             ->join(',');
     }
 
+    public function regex(): string
+    {
+        return (string) $this
+            ->expressions
+            ->map(static function(Expression $expression): string {
+                return $expression->regex();
+            })
+            ->join(',');
+    }
+
     public function __toString(): string
     {
         return (string) $this

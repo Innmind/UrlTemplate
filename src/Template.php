@@ -3,12 +3,18 @@ declare(strict_types = 1);
 
 namespace Innmind\UrlTemplate;
 
+use Innmind\UrlTemplate\Exception\{
+    UrlDoesntMatchTemplate,
+    ExtractionNotSupported,
+    LogicException,
+};
 use Innmind\Url\{
     UrlInterface,
     Url,
 };
 use Innmind\Immutable\{
     MapInterface,
+    Map,
     SetInterface,
     Set,
     Str,
@@ -71,6 +77,48 @@ final class Template
         );
 
         return Url::fromString((string) $url);
+    }
+
+    /**
+     * @return MapInterface<string, string>
+     */
+    public function extract(UrlInterface $url): MapInterface
+    {
+        try {
+            $template = $this->expressions->reduce(
+                $this->template->replace('~', '\~'),
+                static function(Str $template, Expression $expression): Str {
+                    return $template->replace(
+                        (string) $expression,
+                        $expression->regex()
+                    );
+                }
+            );
+        } catch (LogicException $e) {
+            throw new ExtractionNotSupported('', 0, $e);
+        }
+
+        $regex = (string) $template->prepend('~^')->append('$~');
+        $url = Str::of((string) $url);
+
+        if (!$url->matches($regex)) {
+            throw new UrlDoesntMatchTemplate((string) $url);
+        }
+
+        return $url
+            ->capture($regex)
+            ->filter(static function($key): bool {
+                return is_string($key);
+            })
+            ->reduce(
+                new Map('string', 'string'),
+                static function(MapInterface $variables, string $name, Str $variable): MapInterface {
+                    return $variables->put(
+                        $name,
+                        rawurldecode((string) $variable)
+                    );
+                }
+            );
     }
 
     public function __toString(): string
