@@ -9,6 +9,7 @@ use Innmind\UrlTemplate\{
     Expression\Level2,
     Expression\Level4,
     Exception\DomainException,
+    Exception\LogicException,
 };
 use Innmind\Immutable\{
     MapInterface,
@@ -83,6 +84,11 @@ final class Fragment implements Expression
             ->withExpression(Level2\Reserved::class);
 
         return $self;
+    }
+
+    public function regex(): string
+    {
+        return $this->expression->regex();
     }
 
     /**

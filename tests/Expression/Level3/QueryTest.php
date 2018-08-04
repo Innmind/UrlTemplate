@@ -69,4 +69,12 @@ class QueryTest extends TestCase
 
         Query::of(Str::of('{?foo}'));
     }
+
+    public function testRegex()
+    {
+        $this->assertSame(
+            '\?foo=(?<foo>[a-zA-Z0-9\%]*)\&bar=(?<bar>[a-zA-Z0-9\%]*)',
+            Query::of(Str::of('{?foo,bar}'))->regex()
+        );
+    }
 }

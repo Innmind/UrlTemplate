@@ -103,6 +103,46 @@ class CompositeTest extends TestCase
         Composite::of(Str::of('foo'));
     }
 
+    public function testRegex()
+    {
+        $this->assertSame(
+            '(?<var>[a-zA-Z0-9\%]*)\,(?<hello>[a-zA-Z0-9\%]*)',
+            Composite::of(Str::of('{var,hello}'))->regex()
+        );
+        $this->assertSame(
+            '(?<var>[a-zA-Z0-9\%]*)\,(?<hello>[a-zA-Z0-9\%]{5})',
+            Composite::of(Str::of('{var,hello:5}'))->regex()
+        );
+        $this->assertSame(
+            '(?<var>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=]*)\,(?<hello>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=]{5})',
+            Composite::of(Str::of('{+var,hello:5}'))->regex()
+        );
+        $this->assertSame(
+            '\#(?<var>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=]*)\,(?<hello>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=]{5})',
+            Composite::of(Str::of('{#var,hello:5}'))->regex()
+        );
+        $this->assertSame(
+            '\.(?<var>[a-zA-Z0-9\%]*)\.(?<hello>[a-zA-Z0-9\%]{5})',
+            Composite::of(Str::of('{.var,hello:5}'))->regex()
+        );
+        $this->assertSame(
+            '\/(?<var>[a-zA-Z0-9\%]*)\/(?<hello>[a-zA-Z0-9\%]{5})',
+            Composite::of(Str::of('{/var,hello:5}'))->regex()
+        );
+        $this->assertSame(
+            '\;var=(?<var>[a-zA-Z0-9\%]*)\;hello=(?<hello>[a-zA-Z0-9\%]{5})',
+            Composite::of(Str::of('{;var,hello:5}'))->regex()
+        );
+        $this->assertSame(
+            '\?var=(?<var>[a-zA-Z0-9\%]*)\&hello=(?<hello>[a-zA-Z0-9\%]{5})',
+            Composite::of(Str::of('{?var,hello:5}'))->regex()
+        );
+        $this->assertSame(
+            '\&var=(?<var>[a-zA-Z0-9\%]*)\&hello=(?<hello>[a-zA-Z0-9\%]{5})',
+            Composite::of(Str::of('{&var,hello:5}'))->regex()
+        );
+    }
+
     public function cases(): array
     {
         return [

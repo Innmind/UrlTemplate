@@ -9,6 +9,7 @@ use Innmind\UrlTemplate\{
     Expression\Level2,
     Expression\Level4,
     Exception\DomainException,
+    Exception\LogicException,
 };
 use Innmind\Immutable\{
     MapInterface,
@@ -97,6 +98,19 @@ final class Reserved implements Expression
     public function expand(MapInterface $variables): string
     {
         return $this->expression->expand($variables);
+    }
+
+    public function regex(): string
+    {
+        if ($this->explode) {
+            throw new LogicException;
+        }
+
+        if (is_int($this->limit)) {
+            return "(?<{$this->name}>[a-zA-Z0-9\%:/\?#\[\]@!\$&'\(\)\*\+,;=]{{$this->limit}})";
+        }
+
+        return $this->expression->regex();
     }
 
     public function __toString(): string

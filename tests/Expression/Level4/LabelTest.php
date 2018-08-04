@@ -8,6 +8,7 @@ use Innmind\UrlTemplate\{
     Expression\Name,
     Expression,
     Exception\DomainException,
+    Exception\LogicException,
 };
 use Innmind\Immutable\{
     Map,
@@ -113,5 +114,24 @@ class LabelTest extends TestCase
         $this->expectExceptionMessage('{foo}');
 
         Label::of(Str::of('{foo}'));
+    }
+
+    public function testThrowExplodeRegex()
+    {
+        $this->expectException(LogicException::class);
+
+        Label::of(Str::of('{.foo*}'))->regex();
+    }
+
+    public function testRegex()
+    {
+        $this->assertSame(
+            '\.(?<foo>[a-zA-Z0-9\%]*)',
+            Label::of(Str::of('{.foo}'))->regex()
+        );
+        $this->assertSame(
+            '\.(?<foo>[a-zA-Z0-9\%]{2})',
+            Label::of(Str::of('{.foo:2}'))->regex()
+        );
     }
 }

@@ -3,9 +3,17 @@ declare(strict_types = 1);
 
 namespace Tests\Innmind\UrlTemplate;
 
-use Innmind\UrlTemplate\Template;
-use Innmind\Url\UrlInterface;
+use Innmind\UrlTemplate\{
+    Template,
+    Exception\UrlDoesntMatchTemplate,
+    Exception\ExtractionNotSupported,
+};
+use Innmind\Url\{
+    UrlInterface,
+    Url,
+};
 use Innmind\Immutable\{
+    MapInterface,
     Map,
     SetInterface,
 };
@@ -71,6 +79,266 @@ class TemplateTest extends TestCase
         $this->expectExceptionMessage('Argument 1 must be of type MapInterface<string, variable>');
 
         Template::of('foo')->expand(new Map('string', 'string'));
+    }
+
+    public function testThrowWhenUrlDoesntMatchTemplate()
+    {
+        $this->expectException(UrlDoesntMatchTemplate::class);
+        $this->expectExceptionMessage('/hello%20world%21/foo');
+
+        Template::of('/{foo}')->extract(Url::fromString('/hello%20world%21/foo'));
+    }
+
+    public function testLevel1Extraction()
+    {
+        $variables = Template::of('/{foo}/{bar}')->extract(Url::fromString('/hello%20world%21/foo'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(2, $variables);
+        $this->assertSame('hello world!', $variables->get('foo'));
+        $this->assertSame('foo', $variables->get('bar'));
+    }
+
+    public function testLevel2Extraction()
+    {
+        $variables = Template::of('{+path}/here')->extract(Url::fromString('/foo/bar/here'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(1, $variables);
+        $this->assertSame('/foo/bar', $variables->get('path'));
+
+        $variables = Template::of('X{#hello}')->extract(Url::fromString('X#Hello%20World!'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(1, $variables);
+        $this->assertSame('Hello World!', $variables->get('hello'));
+    }
+
+    public function testLevel3Extraction()
+    {
+        $variables = Template::of('/map\?{x,y}')->extract(Url::fromString('/map?1024,768'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(2, $variables);
+        $this->assertSame('1024', $variables->get('x'));
+        $this->assertSame('768', $variables->get('y'));
+
+        $variables = Template::of('/{x,hello,y}')->extract(Url::fromString('/1024,Hello%20World%21,768'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(3, $variables);
+        $this->assertSame('1024', $variables->get('x'));
+        $this->assertSame('Hello World!', $variables->get('hello'));
+        $this->assertSame('768', $variables->get('y'));
+
+        $variables = Template::of('/{+x,hello,y}')->extract(Url::fromString('/1024,Hello%20World!,768'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(3, $variables);
+        $this->assertSame('1024', $variables->get('x'));
+        $this->assertSame('Hello World!', $variables->get('hello'));
+        $this->assertSame('768', $variables->get('y'));
+
+        $variables = Template::of('{+path,x}/here')->extract(Url::fromString('/foo/bar,1024/here'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(2, $variables);
+        $this->assertSame('1024', $variables->get('x'));
+        $this->assertSame('/foo/bar', $variables->get('path'));
+
+        $variables = Template::of('{#x,hello,y}')->extract(Url::fromString('#1024,Hello%20World!,768'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(3, $variables);
+        $this->assertSame('1024', $variables->get('x'));
+        $this->assertSame('Hello World!', $variables->get('hello'));
+        $this->assertSame('768', $variables->get('y'));
+
+        $variables = Template::of('{#path,x}/here')->extract(Url::fromString('#/foo/bar,1024/here'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(2, $variables);
+        $this->assertSame('1024', $variables->get('x'));
+        $this->assertSame('/foo/bar', $variables->get('path'));
+
+        $variables = Template::of('{.x,y}')->extract(Url::fromString('.1024.768'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(2, $variables);
+        $this->assertSame('1024', $variables->get('x'));
+        $this->assertSame('768', $variables->get('y'));
+
+        $variables = Template::of('{/var,x}/here')->extract(Url::fromString('/value/1024/here'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(2, $variables);
+        $this->assertSame('value', $variables->get('var'));
+        $this->assertSame('1024', $variables->get('x'));
+
+        $variables = Template::of('{;x,y}')->extract(Url::fromString(';x=1024;y=768'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(2, $variables);
+        $this->assertSame('1024', $variables->get('x'));
+        $this->assertSame('768', $variables->get('y'));
+
+        $variables = Template::of('{;x,y,empty}')->extract(Url::fromString(';x=1024;y=768;empty'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(3, $variables);
+        $this->assertSame('1024', $variables->get('x'));
+        $this->assertSame('768', $variables->get('y'));
+        $this->assertSame('', $variables->get('empty'));
+
+        $variables = Template::of('{?x,y}')->extract(Url::fromString('?x=1024&y=768'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(2, $variables);
+        $this->assertSame('1024', $variables->get('x'));
+        $this->assertSame('768', $variables->get('y'));
+
+        $variables = Template::of('{?x,y,empty}')->extract(Url::fromString('?x=1024&y=768&empty='));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(3, $variables);
+        $this->assertSame('1024', $variables->get('x'));
+        $this->assertSame('768', $variables->get('y'));
+        $this->assertSame('', $variables->get('empty'));
+
+        $variables = Template::of('\?fixed=yes{&x}')->extract(Url::fromString('?fixed=yes&x=1024'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(1, $variables);
+        $this->assertSame('1024', $variables->get('x'));
+
+        $variables = Template::of('{&x,y,empty}')->extract(Url::fromString('&x=1024&y=768&empty='));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(3, $variables);
+        $this->assertSame('1024', $variables->get('x'));
+        $this->assertSame('768', $variables->get('y'));
+        $this->assertSame('', $variables->get('empty'));
+    }
+
+    public function testLevel4Extraction()
+    {
+        $variables = Template::of('{var:3}')->extract(Url::fromString('val'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(1, $variables);
+        $this->assertSame('val', $variables->get('var'));
+
+        $variables = Template::of('{+path:6}/here')->extract(Url::fromString('/foo/b/here'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(1, $variables);
+        $this->assertSame('/foo/b', $variables->get('path'));
+
+        $variables = Template::of('{#path:6}/here')->extract(Url::fromString('#/foo/b/here'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(1, $variables);
+        $this->assertSame('/foo/b', $variables->get('path'));
+
+        $variables = Template::of('{.var:3}')->extract(Url::fromString('.val'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(1, $variables);
+        $this->assertSame('val', $variables->get('var'));
+
+        $variables = Template::of('{/var:1}')->extract(Url::fromString('/v'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(1, $variables);
+        $this->assertSame('v', $variables->get('var'));
+
+        $variables = Template::of('{;var:5}')->extract(Url::fromString(';var=hello'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(1, $variables);
+        $this->assertSame('hello', $variables->get('var'));
+
+        $variables = Template::of('{?var:3}')->extract(Url::fromString('?var=hel'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(1, $variables);
+        $this->assertSame('hel', $variables->get('var'));
+
+        $variables = Template::of('{&var:3}')->extract(Url::fromString('&var=hel'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(1, $variables);
+        $this->assertSame('hel', $variables->get('var'));
+    }
+
+    public function testExtraction()
+    {
+        $variables = Template::of('http://example.com/search{?q,lang:2}')
+            ->extract(Url::fromString('http://example.com/search?q=chien&lang=fr'));
+
+        $this->assertInstanceOf(MapInterface::class, $variables);
+        $this->assertSame('string', (string) $variables->keyType());
+        $this->assertSame('string', (string) $variables->valueType());
+        $this->assertCount(2, $variables);
+        $this->assertSame('chien', $variables->get('q'));
+        $this->assertSame('fr', $variables->get('lang'));
+    }
+
+    public function testThrowWhenExtractionNotSupportedForTemplate()
+    {
+        $this->expectException(ExtractionNotSupported::class);
+
+        Template::of('{foo*}')->extract(Url::fromString('foo,bar,baz'));
     }
 
     public function cases(): array
