@@ -35,3 +35,5 @@ $variables; // MapInterface<string, string>
 $variables->size(); // 1
 $variables->get('term'); // dog
 ```
+
+*Important*: variable extraction is not supported for list (ie `{foo*}` expression).
