@@ -341,6 +341,14 @@ class TemplateTest extends TestCase
         Template::of('{foo*}')->extract(Url::fromString('foo,bar,baz'));
     }
 
+    public function testMatches()
+    {
+        $template = Template::of('{/foo}');
+
+        $this->assertTrue($template->matches(Url::fromString('/bar')));
+        $this->assertFalse($template->matches(Url::fromString('/bar/foo')));
+    }
+
     public function cases(): array
     {
         return [

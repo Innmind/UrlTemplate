@@ -84,21 +84,7 @@ final class Template
      */
     public function extract(UrlInterface $url): MapInterface
     {
-        try {
-            $template = $this->expressions->reduce(
-                $this->template->replace('~', '\~'),
-                static function(Str $template, Expression $expression): Str {
-                    return $template->replace(
-                        (string) $expression,
-                        $expression->regex()
-                    );
-                }
-            );
-        } catch (LogicException $e) {
-            throw new ExtractionNotSupported('', 0, $e);
-        }
-
-        $regex = (string) $template->prepend('~^')->append('$~');
+        $regex = $this->regex();
         $url = Str::of((string) $url);
 
         if (!$url->matches($regex)) {
@@ -119,6 +105,14 @@ final class Template
                     );
                 }
             );
+    }
+
+    public function matches(UrlInterface $url): bool
+    {
+        $regex = $this->regex();
+        $url = Str::of((string) $url);
+
+        return $url->matches($regex);
     }
 
     public function __toString(): string
@@ -144,5 +138,24 @@ final class Template
             $expressions->add((string) $captured->current()),
             $template->replace((string) $captured->current(), '')
         );
+    }
+
+    private function regex(): string
+    {
+        try {
+            $template = $this->expressions->reduce(
+                $this->template->replace('~', '\~'),
+                static function(Str $template, Expression $expression): Str {
+                    return $template->replace(
+                        (string) $expression,
+                        $expression->regex()
+                    );
+                }
+            );
+        } catch (LogicException $e) {
+            throw new ExtractionNotSupported('', 0, $e);
+        }
+
+        return (string) $template->prepend('~^')->append('$~');
     }
 }
