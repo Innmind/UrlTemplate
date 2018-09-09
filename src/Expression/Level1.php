@@ -52,7 +52,7 @@ final class Level1 implements Expression
 
     public function regex(): string
     {
-        return "(?<{$this->name}>[a-zA-Z0-9\%]*)";
+        return "(?<{$this->name}>[a-zA-Z0-9\%\-\.\_\~]*)";
     }
 
     public function __toString(): string

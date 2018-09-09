@@ -68,7 +68,7 @@ class FragmentTest extends TestCase
     public function testRegex()
     {
         $this->assertSame(
-            '\#(?<foo>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=]*)',
+            '\#(?<foo>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]*)',
             Fragment::of(Str::of('{#foo}'))->regex()
         );
     }

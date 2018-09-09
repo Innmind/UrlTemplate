@@ -73,7 +73,7 @@ class QueryContinuationTest extends TestCase
     public function testRegex()
     {
         $this->assertSame(
-            '\&foo=(?<foo>[a-zA-Z0-9\%]*)\&bar=(?<bar>[a-zA-Z0-9\%]*)',
+            '\&foo=(?<foo>[a-zA-Z0-9\%\-\.\_\~]*)\&bar=(?<bar>[a-zA-Z0-9\%\-\.\_\~]*)',
             QueryContinuation::of(Str::of('{&foo,bar}'))->regex()
         );
     }

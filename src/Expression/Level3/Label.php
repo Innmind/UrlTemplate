@@ -73,6 +73,7 @@ final class Label implements Expression
                 return $expression->regex();
             })
             ->join('.')
+            ->replace('\.', '')
             ->prepend('\.');
     }
 

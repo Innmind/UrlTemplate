@@ -65,7 +65,7 @@ class Level1Test extends TestCase
     public function testRegex()
     {
         $this->assertSame(
-            '(?<foo>[a-zA-Z0-9\%]*)',
+            '(?<foo>[a-zA-Z0-9\%\-\.\_\~]*)',
             Level1::of(Str::of('{foo}'))->regex()
         );
     }

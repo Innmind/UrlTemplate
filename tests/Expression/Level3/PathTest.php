@@ -73,7 +73,7 @@ class PathTest extends TestCase
     public function testRegex()
     {
         $this->assertSame(
-            '/(?<foo>[a-zA-Z0-9\%]*)/(?<bar>[a-zA-Z0-9\%]*)',
+            '/(?<foo>[a-zA-Z0-9\%\-\.\_\~]*)/(?<bar>[a-zA-Z0-9\%\-\.\_\~]*)',
             Path::of(Str::of('{/foo,bar}'))->regex()
         );
     }

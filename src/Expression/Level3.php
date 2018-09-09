@@ -66,7 +66,7 @@ final class Level3 implements Expression
         return (string) $this
             ->names
             ->map(static function(Name $name): string {
-                return "(?<{$name}>[a-zA-Z0-9\%]*)";
+                return "(?<{$name}>[a-zA-Z0-9\%\-\.\_\~]*)";
             })
             ->join(',');
     }

@@ -126,11 +126,11 @@ class QueryTest extends TestCase
     public function testRegex()
     {
         $this->assertSame(
-            '\?foo=(?<foo>[a-zA-Z0-9\%]*)',
+            '\?foo=(?<foo>[a-zA-Z0-9\%\-\.\_\~]*)',
             Query::of(Str::of('{?foo}'))->regex()
         );
         $this->assertSame(
-            '\?foo=(?<foo>[a-zA-Z0-9\%]{2})',
+            '\?foo=(?<foo>[a-zA-Z0-9\%\-\.\_\~]{2})',
             Query::of(Str::of('{?foo:2}'))->regex()
         );
     }
