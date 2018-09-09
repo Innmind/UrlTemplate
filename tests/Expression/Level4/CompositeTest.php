@@ -106,39 +106,39 @@ class CompositeTest extends TestCase
     public function testRegex()
     {
         $this->assertSame(
-            '(?<var>[a-zA-Z0-9\%]*)\,(?<hello>[a-zA-Z0-9\%]*)',
+            '(?<var>[a-zA-Z0-9\%\-\.\_\~]*)\,(?<hello>[a-zA-Z0-9\%\-\.\_\~]*)',
             Composite::of(Str::of('{var,hello}'))->regex()
         );
         $this->assertSame(
-            '(?<var>[a-zA-Z0-9\%]*)\,(?<hello>[a-zA-Z0-9\%]{5})',
+            '(?<var>[a-zA-Z0-9\%\-\.\_\~]*)\,(?<hello>[a-zA-Z0-9\%\-\.\_\~]{5})',
             Composite::of(Str::of('{var,hello:5}'))->regex()
         );
         $this->assertSame(
-            '(?<var>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=]*)\,(?<hello>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=]{5})',
+            '(?<var>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]*)\,(?<hello>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]{5})',
             Composite::of(Str::of('{+var,hello:5}'))->regex()
         );
         $this->assertSame(
-            '\#(?<var>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=]*)\,(?<hello>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=]{5})',
+            '\#(?<var>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]*)\,(?<hello>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]{5})',
             Composite::of(Str::of('{#var,hello:5}'))->regex()
         );
         $this->assertSame(
-            '\.(?<var>[a-zA-Z0-9\%]*)\.(?<hello>[a-zA-Z0-9\%]{5})',
+            '\.(?<var>[a-zA-Z0-9\%\-\.\_\~]*)\.(?<hello>[a-zA-Z0-9\%\-\.\_\~]{5})',
             Composite::of(Str::of('{.var,hello:5}'))->regex()
         );
         $this->assertSame(
-            '\/(?<var>[a-zA-Z0-9\%]*)\/(?<hello>[a-zA-Z0-9\%]{5})',
+            '\/(?<var>[a-zA-Z0-9\%\-\.\_\~]*)\/(?<hello>[a-zA-Z0-9\%\-\.\_\~]{5})',
             Composite::of(Str::of('{/var,hello:5}'))->regex()
         );
         $this->assertSame(
-            '\;var=(?<var>[a-zA-Z0-9\%]*)\;hello=(?<hello>[a-zA-Z0-9\%]{5})',
+            '\;var=(?<var>[a-zA-Z0-9\%\-\.\_\~]*)\;hello=(?<hello>[a-zA-Z0-9\%\-\.\_\~]{5})',
             Composite::of(Str::of('{;var,hello:5}'))->regex()
         );
         $this->assertSame(
-            '\?var=(?<var>[a-zA-Z0-9\%]*)\&hello=(?<hello>[a-zA-Z0-9\%]{5})',
+            '\?var=(?<var>[a-zA-Z0-9\%\-\.\_\~]*)\&hello=(?<hello>[a-zA-Z0-9\%\-\.\_\~]{5})',
             Composite::of(Str::of('{?var,hello:5}'))->regex()
         );
         $this->assertSame(
-            '\&var=(?<var>[a-zA-Z0-9\%]*)\&hello=(?<hello>[a-zA-Z0-9\%]{5})',
+            '\&var=(?<var>[a-zA-Z0-9\%\-\.\_\~]*)\&hello=(?<hello>[a-zA-Z0-9\%\-\.\_\~]{5})',
             Composite::of(Str::of('{&var,hello:5}'))->regex()
         );
     }

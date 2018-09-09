@@ -68,7 +68,7 @@ class ReservedTest extends TestCase
     public function testRegex()
     {
         $this->assertSame(
-            '(?<foo>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=]*)',
+            '(?<foo>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]*)',
             Reserved::of(Str::of('{+foo}'))->regex()
         );
     }

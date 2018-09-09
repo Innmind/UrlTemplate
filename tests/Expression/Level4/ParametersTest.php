@@ -126,11 +126,11 @@ class ParametersTest extends TestCase
     public function testRegex()
     {
         $this->assertSame(
-            '\;foo=(?<foo>[a-zA-Z0-9\%]*)',
+            '\;foo=(?<foo>[a-zA-Z0-9\%\-\.\_\~]*)',
             Parameters::of(Str::of('{;foo}'))->regex()
         );
         $this->assertSame(
-            '\;foo=(?<foo>[a-zA-Z0-9\%]{2})',
+            '\;foo=(?<foo>[a-zA-Z0-9\%\-\.\_\~]{2})',
             Parameters::of(Str::of('{;foo:2}'))->regex()
         );
     }

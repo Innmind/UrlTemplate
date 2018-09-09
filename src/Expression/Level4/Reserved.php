@@ -107,7 +107,7 @@ final class Reserved implements Expression
         }
 
         if (is_int($this->limit)) {
-            return "(?<{$this->name}>[a-zA-Z0-9\%:/\?#\[\]@!\$&'\(\)\*\+,;=]{{$this->limit}})";
+            return "(?<{$this->name}>[a-zA-Z0-9\%:/\?#\[\]@!\$&'\(\)\*\+,;=\-\.\_\~]{{$this->limit}})";
         }
 
         return $this->expression->regex();
