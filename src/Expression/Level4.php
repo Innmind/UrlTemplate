@@ -25,6 +25,7 @@ final class Level4 implements Expression
     private $lead = '';
     private $separator = ',';
     private $regex;
+    private $string;
 
     public function __construct(Name $name)
     {
@@ -181,15 +182,19 @@ final class Level4 implements Expression
 
     public function __toString(): string
     {
+        if (\is_string($this->string)) {
+            return $this->string;
+        }
+
         if ($this->mustLimit()) {
-            return "{{$this->lead}{$this->name}:{$this->limit}}";
+            return $this->string = "{{$this->lead}{$this->name}:{$this->limit}}";
         }
 
         if ($this->explode) {
-            return "{{$this->lead}{$this->name}*}";
+            return $this->string = "{{$this->lead}{$this->name}*}";
         }
 
-        return "{{$this->lead}{$this->name}}";
+        return $this->string = "{{$this->lead}{$this->name}}";
     }
 
     private function mustLimit(): bool

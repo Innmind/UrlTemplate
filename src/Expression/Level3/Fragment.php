@@ -21,6 +21,7 @@ final class Fragment implements Expression
     private $names;
     private $expressions;
     private $regex;
+    private $string;
 
     public function __construct(Name ...$names)
     {
@@ -79,7 +80,7 @@ final class Fragment implements Expression
 
     public function __toString(): string
     {
-        return (string) $this
+        return $this->string ?? $this->string = (string) $this
             ->names
             ->join(',')
             ->prepend('{#')

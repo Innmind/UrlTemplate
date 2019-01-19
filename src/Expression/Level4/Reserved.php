@@ -23,6 +23,7 @@ final class Reserved implements Expression
     private $explode;
     private $expression;
     private $regex;
+    private $string;
 
     public function __construct(Name $name)
     {
@@ -120,14 +121,18 @@ final class Reserved implements Expression
 
     public function __toString(): string
     {
+        if (\is_string($this->string)) {
+            return $this->string;
+        }
+
         if (is_int($this->limit)) {
-            return "{+{$this->name}:{$this->limit}}";
+            return $this->string = "{+{$this->name}:{$this->limit}}";
         }
 
         if ($this->explode) {
-            return "{+{$this->name}*}";
+            return $this->string = "{+{$this->name}*}";
         }
 
-        return "{+{$this->name}}";
+        return $this->string = "{+{$this->name}}";
     }
 }

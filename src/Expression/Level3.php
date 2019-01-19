@@ -18,6 +18,7 @@ final class Level3 implements Expression
 {
     private $names;
     private $regex;
+    private $string;
 
     public function __construct(Name ...$names)
     {
@@ -74,7 +75,7 @@ final class Level3 implements Expression
 
     public function __toString(): string
     {
-        return (string) $this
+        return $this->string ?? $this->string = (string) $this
             ->names
             ->join(',')
             ->prepend('{')

@@ -18,6 +18,7 @@ final class Level1 implements Expression
     private $name;
     private $encode;
     private $regex;
+    private $string;
 
     public function __construct(Name $name)
     {
@@ -58,6 +59,6 @@ final class Level1 implements Expression
 
     public function __toString(): string
     {
-        return "{{$this->name}}";
+        return $this->string ?? $this->string = "{{$this->name}}";
     }
 }

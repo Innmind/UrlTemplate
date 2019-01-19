@@ -22,6 +22,7 @@ final class Composite implements Expression
     private $expressions;
     private $removeLead = false;
     private $regex;
+    private $string;
 
     public function __construct(
         string $separator,
@@ -123,6 +124,10 @@ final class Composite implements Expression
 
     public function __toString(): string
     {
+        if (\is_string($this->string)) {
+            return $this->string;
+        }
+
         $expressions = $this
             ->expressions
             ->map(static function(Expression $expression): Str {
@@ -135,7 +140,7 @@ final class Composite implements Expression
         //only keep the lead character for the first expression and remove it
         //for the following ones
 
-        return (string) $expressions
+        return $this->string = (string) $expressions
             ->take(1)
             ->append(
                 $expressions

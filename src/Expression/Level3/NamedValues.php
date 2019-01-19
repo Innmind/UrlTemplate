@@ -25,6 +25,7 @@ final class NamedValues implements Expression
     private $expressions;
     private $keyOnlyWhenEmpty = false;
     private $regex;
+    private $string;
 
     public function __construct(string $lead, string $separator, Name ...$names)
     {
@@ -98,7 +99,7 @@ final class NamedValues implements Expression
 
     public function __toString(): string
     {
-        return (string) $this
+        return $this->string ?? $this->string = (string) $this
             ->names
             ->join(',')
             ->prepend('{'.$this->lead)
