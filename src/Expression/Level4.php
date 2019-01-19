@@ -24,6 +24,7 @@ final class Level4 implements Expression
     private $explode;
     private $lead = '';
     private $separator = ',';
+    private $regex;
 
     public function __construct(Name $name)
     {
@@ -154,6 +155,10 @@ final class Level4 implements Expression
 
     public function regex(): string
     {
+        if (\is_string($this->regex)) {
+            return $this->regex;
+        }
+
         if ($this->explode) {
             throw new LogicException;
         }
@@ -167,7 +172,7 @@ final class Level4 implements Expression
             $regex = $this->expression->regex();
         }
 
-        return sprintf(
+        return $this->regex = sprintf(
             '%s%s',
             $this->lead ? '\\'.$this->lead : '',
             $regex

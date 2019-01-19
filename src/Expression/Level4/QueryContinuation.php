@@ -25,6 +25,7 @@ final class QueryContinuation implements Expression
     private $limit;
     private $explode;
     private $expression;
+    private $regex;
 
     public function __construct(Name $name)
     {
@@ -117,6 +118,10 @@ final class QueryContinuation implements Expression
 
     public function regex(): string
     {
+        if (\is_string($this->regex)) {
+            return $this->regex;
+        }
+
         if ($this->explode) {
             throw new LogicException;
         }
@@ -130,7 +135,7 @@ final class QueryContinuation implements Expression
             $regex = $this->expression->regex();
         }
 
-        return sprintf(
+        return $this->regex = sprintf(
             '\&%s=%s',
             $this->name,
             $regex

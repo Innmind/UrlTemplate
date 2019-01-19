@@ -21,6 +21,7 @@ final class Composite implements Expression
     private $type;
     private $expressions;
     private $removeLead = false;
+    private $regex;
 
     public function __construct(
         string $separator,
@@ -93,6 +94,10 @@ final class Composite implements Expression
 
     public function regex(): string
     {
+        if (\is_string($this->regex)) {
+            return $this->regex;
+        }
+
         $remaining = $this
             ->expressions
             ->drop(1)
@@ -104,7 +109,7 @@ final class Composite implements Expression
                 return $expression->regex();
             });
 
-        return (string) $this
+        return $this->regex = (string) $this
             ->expressions
             ->take(1)
             ->map(static function(Expression $expression): string {

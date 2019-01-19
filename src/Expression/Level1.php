@@ -17,6 +17,7 @@ final class Level1 implements Expression
 {
     private $name;
     private $encode;
+    private $regex;
 
     public function __construct(Name $name)
     {
@@ -52,7 +53,7 @@ final class Level1 implements Expression
 
     public function regex(): string
     {
-        return "(?<{$this->name}>[a-zA-Z0-9\%\-\.\_\~]*)";
+        return $this->regex ?? $this->regex = "(?<{$this->name}>[a-zA-Z0-9\%\-\.\_\~]*)";
     }
 
     public function __toString(): string

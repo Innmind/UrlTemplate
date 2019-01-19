@@ -20,6 +20,7 @@ final class Fragment implements Expression
 {
     private $names;
     private $expressions;
+    private $regex;
 
     public function __construct(Name ...$names)
     {
@@ -67,7 +68,7 @@ final class Fragment implements Expression
 
     public function regex(): string
     {
-        return (string) $this
+        return $this->regex ?? $this->regex = (string) $this
             ->expressions
             ->map(static function(Expression $expression): string {
                 return $expression->regex();

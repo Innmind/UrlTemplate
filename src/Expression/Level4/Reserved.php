@@ -22,6 +22,7 @@ final class Reserved implements Expression
     private $limit;
     private $explode;
     private $expression;
+    private $regex;
 
     public function __construct(Name $name)
     {
@@ -102,15 +103,19 @@ final class Reserved implements Expression
 
     public function regex(): string
     {
+        if (\is_string($this->regex)) {
+            return $this->regex;
+        }
+
         if ($this->explode) {
             throw new LogicException;
         }
 
         if (is_int($this->limit)) {
-            return "(?<{$this->name}>[a-zA-Z0-9\%:/\?#\[\]@!\$&'\(\)\*\+,;=\-\.\_\~]{{$this->limit}})";
+            return $this->regex = "(?<{$this->name}>[a-zA-Z0-9\%:/\?#\[\]@!\$&'\(\)\*\+,;=\-\.\_\~]{{$this->limit}})";
         }
 
-        return $this->expression->regex();
+        return $this->regex = $this->expression->regex();
     }
 
     public function __toString(): string

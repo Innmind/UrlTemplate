@@ -17,6 +17,7 @@ use Innmind\Immutable\{
 final class Level3 implements Expression
 {
     private $names;
+    private $regex;
 
     public function __construct(Name ...$names)
     {
@@ -63,7 +64,7 @@ final class Level3 implements Expression
 
     public function regex(): string
     {
-        return (string) $this
+        return $this->regex ?? $this->regex = (string) $this
             ->names
             ->map(static function(Name $name): string {
                 return "(?<{$name}>[a-zA-Z0-9\%\-\.\_\~]*)";
