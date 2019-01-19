@@ -86,7 +86,7 @@ final class NamedValues implements Expression
         return $this->regex ?? $this->regex = (string) $this
             ->names
             ->map(function(Name $name): string {
-                return sprintf(
+                return \sprintf(
                     '%s=%s%s',
                     $name,
                     $this->keyOnlyWhenEmpty ? '?' : '',

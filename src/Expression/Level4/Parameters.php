@@ -100,7 +100,7 @@ final class Parameters implements Expression
 
         $variable = $variables->get((string) $this->name);
 
-        if (is_array($variable)) {
+        if (\is_array($variable)) {
             return $this->expandList($variables, ...$variable);
         }
 
@@ -127,7 +127,7 @@ final class Parameters implements Expression
             throw new LogicException;
         }
 
-        if (is_int($this->limit)) {
+        if ($this->mustLimit()) {
             // replace '*' match by the actual limit
             $regex = (string) Str::of($this->expression->regex())
                 ->substring(0, -2)
@@ -136,7 +136,7 @@ final class Parameters implements Expression
             $regex = $this->expression->regex();
         }
 
-        return $this->regex = sprintf(
+        return $this->regex = \sprintf(
             '\;%s=%s',
             $this->name,
             $regex
@@ -162,7 +162,7 @@ final class Parameters implements Expression
 
     private function mustLimit(): bool
     {
-        return is_int($this->limit);
+        return \is_int($this->limit);
     }
 
     private function expandList(MapInterface $variables, ...$elements): string
@@ -175,7 +175,7 @@ final class Parameters implements Expression
             ->reduce(
                 new Sequence,
                 static function(SequenceInterface $values, $element): SequenceInterface {
-                    if (is_array($element)) {
+                    if (\is_array($element)) {
                         [$name, $element] = $element;
 
                         return $values->add($name)->add($element);
@@ -202,7 +202,7 @@ final class Parameters implements Expression
             ->map(function($element) use ($variables): string {
                 $name = $this->name;
 
-                if (is_array($element)) {
+                if (\is_array($element)) {
                     [$name, $element] = $element;
                     $name = new Name($name);
                 }

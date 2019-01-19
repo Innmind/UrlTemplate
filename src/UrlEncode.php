@@ -25,7 +25,7 @@ final class UrlEncode
     public function __invoke(string $string): string
     {
         if ($this->safeCharacters->empty()) {
-            return rawurlencode($string);
+            return \rawurlencode($string);
         }
 
         $string = Str::of($string);
@@ -47,6 +47,6 @@ final class UrlEncode
             return (string) $string;
         }
 
-        return rawurlencode((string) $string);
+        return \rawurlencode((string) $string);
     }
 }

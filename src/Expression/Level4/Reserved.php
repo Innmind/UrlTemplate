@@ -112,7 +112,7 @@ final class Reserved implements Expression
             throw new LogicException;
         }
 
-        if (is_int($this->limit)) {
+        if (\is_int($this->limit)) {
             return $this->regex = "(?<{$this->name}>[a-zA-Z0-9\%:/\?#\[\]@!\$&'\(\)\*\+,;=\-\.\_\~]{{$this->limit}})";
         }
 
@@ -125,7 +125,7 @@ final class Reserved implements Expression
             return $this->string;
         }
 
-        if (is_int($this->limit)) {
+        if (\is_int($this->limit)) {
             return $this->string = "{+{$this->name}:{$this->limit}}";
         }
 
