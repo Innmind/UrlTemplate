@@ -24,6 +24,8 @@ final class Level4 implements Expression
     private $explode;
     private $lead = '';
     private $separator = ',';
+    private $regex;
+    private $string;
 
     public function __construct(Name $name)
     {
@@ -129,7 +131,7 @@ final class Level4 implements Expression
 
         $variable = $variables->get((string) $this->name);
 
-        if (is_array($variable)) {
+        if (\is_array($variable)) {
             return $this->expandList($variables, ...$variable);
         }
 
@@ -154,11 +156,15 @@ final class Level4 implements Expression
 
     public function regex(): string
     {
+        if (\is_string($this->regex)) {
+            return $this->regex;
+        }
+
         if ($this->explode) {
             throw new LogicException;
         }
 
-        if (is_int($this->limit)) {
+        if ($this->mustLimit()) {
             // replace '*' match by the actual limit
             $regex = (string) Str::of($this->expression->regex())
                 ->substring(0, -2)
@@ -167,7 +173,7 @@ final class Level4 implements Expression
             $regex = $this->expression->regex();
         }
 
-        return sprintf(
+        return $this->regex = \sprintf(
             '%s%s',
             $this->lead ? '\\'.$this->lead : '',
             $regex
@@ -176,20 +182,24 @@ final class Level4 implements Expression
 
     public function __toString(): string
     {
+        if (\is_string($this->string)) {
+            return $this->string;
+        }
+
         if ($this->mustLimit()) {
-            return "{{$this->lead}{$this->name}:{$this->limit}}";
+            return $this->string = "{{$this->lead}{$this->name}:{$this->limit}}";
         }
 
         if ($this->explode) {
-            return "{{$this->lead}{$this->name}*}";
+            return $this->string = "{{$this->lead}{$this->name}*}";
         }
 
-        return "{{$this->lead}{$this->name}}";
+        return $this->string = "{{$this->lead}{$this->name}}";
     }
 
     private function mustLimit(): bool
     {
-        return is_int($this->limit);
+        return \is_int($this->limit);
     }
 
     private function expandList(MapInterface $variables, ...$elements): string
@@ -202,7 +212,7 @@ final class Level4 implements Expression
             ->reduce(
                 new Sequence,
                 static function(SequenceInterface $values, $element): SequenceInterface {
-                    if (is_array($element)) {
+                    if (\is_array($element)) {
                         [$name, $element] = $element;
 
                         return $values->add($name)->add($element);
@@ -227,7 +237,7 @@ final class Level4 implements Expression
     {
         return (string) Sequence::of(...$elements)
             ->map(function($element) use ($variables): string {
-                if (is_array($element)) {
+                if (\is_array($element)) {
                     [$name, $element] = $element;
                 }
 
@@ -239,7 +249,7 @@ final class Level4 implements Expression
                 );
 
                 if (isset($name)) {
-                    $value = sprintf(
+                    $value = \sprintf(
                         '%s=%s',
                         new Name($name),
                         $value

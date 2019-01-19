@@ -20,6 +20,8 @@ final class Reserved implements Expression
 {
     private $names;
     private $expressions;
+    private $regex;
+    private $string;
 
     public function __construct(Name ...$names)
     {
@@ -66,7 +68,7 @@ final class Reserved implements Expression
 
     public function regex(): string
     {
-        return (string) $this
+        return $this->regex ?? $this->regex = (string) $this
             ->expressions
             ->map(static function(Expression $expression): string {
                 return $expression->regex();
@@ -76,7 +78,7 @@ final class Reserved implements Expression
 
     public function __toString(): string
     {
-        return (string) $this
+        return $this->string ?? $this->string = (string) $this
             ->names
             ->join(',')
             ->prepend('{+')

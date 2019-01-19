@@ -24,6 +24,8 @@ final class NamedValues implements Expression
     private $names;
     private $expressions;
     private $keyOnlyWhenEmpty = false;
+    private $regex;
+    private $string;
 
     public function __construct(string $lead, string $separator, Name ...$names)
     {
@@ -81,10 +83,10 @@ final class NamedValues implements Expression
 
     public function regex(): string
     {
-        return (string) $this
+        return $this->regex ?? $this->regex = (string) $this
             ->names
             ->map(function(Name $name): string {
-                return sprintf(
+                return \sprintf(
                     '%s=%s%s',
                     $name,
                     $this->keyOnlyWhenEmpty ? '?' : '',
@@ -97,7 +99,7 @@ final class NamedValues implements Expression
 
     public function __toString(): string
     {
-        return (string) $this
+        return $this->string ?? $this->string = (string) $this
             ->names
             ->join(',')
             ->prepend('{'.$this->lead)

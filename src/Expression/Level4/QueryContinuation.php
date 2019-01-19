@@ -25,6 +25,8 @@ final class QueryContinuation implements Expression
     private $limit;
     private $explode;
     private $expression;
+    private $regex;
+    private $string;
 
     public function __construct(Name $name)
     {
@@ -98,7 +100,7 @@ final class QueryContinuation implements Expression
 
         $variable = $variables->get((string) $this->name);
 
-        if (is_array($variable)) {
+        if (\is_array($variable)) {
             return $this->expandList($variables, ...$variable);
         }
 
@@ -117,11 +119,15 @@ final class QueryContinuation implements Expression
 
     public function regex(): string
     {
+        if (\is_string($this->regex)) {
+            return $this->regex;
+        }
+
         if ($this->explode) {
             throw new LogicException;
         }
 
-        if (is_int($this->limit)) {
+        if ($this->mustLimit()) {
             // replace '*' match by the actual limit
             $regex = (string) Str::of($this->expression->regex())
                 ->substring(0, -2)
@@ -130,7 +136,7 @@ final class QueryContinuation implements Expression
             $regex = $this->expression->regex();
         }
 
-        return sprintf(
+        return $this->regex = \sprintf(
             '\&%s=%s',
             $this->name,
             $regex
@@ -139,20 +145,24 @@ final class QueryContinuation implements Expression
 
     public function __toString(): string
     {
+        if (\is_string($this->string)) {
+            return $this->string;
+        }
+
         if ($this->mustLimit()) {
-            return "{&{$this->name}:{$this->limit}}";
+            return $this->string = "{&{$this->name}:{$this->limit}}";
         }
 
         if ($this->explode) {
-            return "{&{$this->name}*}";
+            return $this->string = "{&{$this->name}*}";
         }
 
-        return "{&{$this->name}}";
+        return $this->string = "{&{$this->name}}";
     }
 
     private function mustLimit(): bool
     {
-        return is_int($this->limit);
+        return \is_int($this->limit);
     }
 
     private function expandList(MapInterface $variables, ...$elements): string
@@ -165,7 +175,7 @@ final class QueryContinuation implements Expression
             ->reduce(
                 new Sequence,
                 static function(SequenceInterface $values, $element): SequenceInterface {
-                    if (is_array($element)) {
+                    if (\is_array($element)) {
                         [$name, $element] = $element;
 
                         return $values->add($name)->add($element);
@@ -192,7 +202,7 @@ final class QueryContinuation implements Expression
             ->map(function($element) use ($variables): string {
                 $name = $this->name;
 
-                if (is_array($element)) {
+                if (\is_array($element)) {
                     [$name, $element] = $element;
                     $name = new Name($name);
                 }

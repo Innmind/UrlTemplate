@@ -94,14 +94,14 @@ final class Template
         return $url
             ->capture($regex)
             ->filter(static function($key): bool {
-                return is_string($key);
+                return \is_string($key);
             })
             ->reduce(
                 new Map('string', 'string'),
                 static function(MapInterface $variables, string $name, Str $variable): MapInterface {
                     return $variables->put(
                         $name,
-                        rawurldecode((string) $variable)
+                        \rawurldecode((string) $variable)
                     );
                 }
             );
