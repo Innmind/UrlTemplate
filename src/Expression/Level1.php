@@ -15,10 +15,10 @@ use Innmind\Immutable\{
 
 final class Level1 implements Expression
 {
-    private $name;
-    private $encode;
-    private $regex;
-    private $string;
+    private Name $name;
+    private UrlEncode $encode;
+    private ?string $regex = null;
+    private ?string $string = null;
 
     public function __construct(Name $name)
     {

@@ -11,7 +11,7 @@ use Innmind\Immutable\{
 
 final class Expressions
 {
-    private static $expressions;
+    private static ?Stream $expressions = null;
 
     public static function of(Str $string): Expression
     {

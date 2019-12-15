@@ -21,12 +21,12 @@ use Innmind\Immutable\{
 
 final class Query implements Expression
 {
-    private $name;
-    private $limit;
-    private $explode;
-    private $expression;
-    private $regex;
-    private $string;
+    private Name $name;
+    private ?int $limit = null;
+    private bool $explode = false;
+    private Expression $expression;
+    private ?string $regex = null;
+    private ?string $string = null;
 
     public function __construct(Name $name)
     {

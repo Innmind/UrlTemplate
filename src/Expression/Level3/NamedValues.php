@@ -19,13 +19,13 @@ use Innmind\Immutable\{
 
 final class NamedValues implements Expression
 {
-    private $lead;
-    private $separator;
-    private $names;
-    private $expressions;
-    private $keyOnlyWhenEmpty = false;
-    private $regex;
-    private $string;
+    private string $lead;
+    private string $separator;
+    private Sequence $names;
+    private Map $expressions;
+    private bool $keyOnlyWhenEmpty = false;
+    private ?string $regex = null;
+    private ?string $string = null;
 
     public function __construct(string $lead, string $separator, Name ...$names)
     {

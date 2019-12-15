@@ -17,7 +17,7 @@ use Innmind\Immutable\{
 
 final class Path implements Expression
 {
-    private $expression;
+    private Expression $expression;
 
     public function __construct(Name $name)
     {

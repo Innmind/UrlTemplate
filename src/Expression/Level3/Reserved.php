@@ -18,10 +18,10 @@ use Innmind\Immutable\{
 
 final class Reserved implements Expression
 {
-    private $names;
-    private $expressions;
-    private $regex;
-    private $string;
+    private Sequence $names;
+    private Sequence $expressions;
+    private ?string $regex = null;
+    private ?string $string = null;
 
     public function __construct(Name ...$names)
     {

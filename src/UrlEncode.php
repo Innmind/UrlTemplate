@@ -7,7 +7,7 @@ use Innmind\Immutable\Str;
 
 final class UrlEncode
 {
-    private $safeCharacters;
+    private Str $safeCharacters;
 
     public function __construct()
     {

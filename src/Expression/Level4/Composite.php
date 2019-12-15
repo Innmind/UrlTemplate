@@ -17,12 +17,12 @@ use Innmind\Immutable\{
 
 final class Composite implements Expression
 {
-    private $separator;
-    private $type;
-    private $expressions;
-    private $removeLead = false;
-    private $regex;
-    private $string;
+    private string $separator;
+    private string $type;
+    private Sequence $expressions;
+    private bool $removeLead = false;
+    private ?string $regex = null;
+    private ?string $string = null;
 
     public function __construct(
         string $separator,

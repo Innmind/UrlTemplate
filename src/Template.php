@@ -22,8 +22,8 @@ use Innmind\Immutable\{
 
 final class Template
 {
-    private $template;
-    private $expressions;
+    private Str $template;
+    private Set $expressions;
 
     public function __construct(string $template)
     {

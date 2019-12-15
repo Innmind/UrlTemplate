@@ -18,14 +18,14 @@ use Innmind\Immutable\{
 
 final class Level4 implements Expression
 {
-    private $name;
-    private $expression;
-    private $limit;
-    private $explode;
-    private $lead = '';
-    private $separator = ',';
-    private $regex;
-    private $string;
+    private Name $name;
+    private Expression $expression;
+    private ?int $limit = null;
+    private bool $explode = false;
+    private string $lead = '';
+    private string $separator = ',';
+    private ?string $regex = null;
+    private ?string $string = null;
 
     public function __construct(Name $name)
     {
