@@ -9,13 +9,11 @@ use Innmind\UrlTemplate\{
     Expression\Level1,
 };
 use Innmind\Immutable\{
-    MapInterface,
     Map,
     Sequence,
-    StreamInterface,
-    Stream,
     Str,
 };
+use function Innmind\Immutable\join;
 
 final class NamedValues implements Expression
 {
@@ -31,10 +29,10 @@ final class NamedValues implements Expression
     {
         $this->lead = $lead;
         $this->separator = $separator;
-        $this->names = Sequence::of(...$names);
+        $this->names = Sequence::mixed(...$names);
         $this->expressions = $this->names->reduce(
-            new Map('string', Expression::class),
-            static function(MapInterface $expressions, Name $name): MapInterface {
+            Map::of('string', Expression::class),
+            static function(Map $expressions, Name $name): Map {
                 return $expressions->put(
                     (string) $name,
                     new Level1($name)
@@ -61,48 +59,61 @@ final class NamedValues implements Expression
     /**
      * {@inheritdoc}
      */
-    public function expand(MapInterface $variables): string
+    public function expand(Map $variables): string
     {
-        return (string) $this
+        $elements = $this
             ->expressions
             ->reduce(
-                Stream::of('string'),
-                function(StreamInterface $values, string $name, Expression $expression) use ($variables): StreamInterface {
+                Sequence::of('string'),
+                function(Sequence $values, string $name, Expression $expression) use ($variables): Sequence {
                     $value = Str::of($expression->expand($variables));
 
                     if ($value->empty() && $this->keyOnlyWhenEmpty) {
                         return $values->add($name);
                     }
 
-                    return $values->add("$name=$value");
+                    return $values->add("$name={$value->toString()}");
                 }
-            )
-            ->join($this->separator)
-            ->prepend($this->lead);
+            );
+
+        return join($this->separator, $elements)
+            ->prepend($this->lead)
+            ->toString();
     }
 
     public function regex(): string
     {
-        return $this->regex ?? $this->regex = (string) $this
-            ->names
-            ->map(function(Name $name): string {
-                return \sprintf(
-                    '%s=%s%s',
-                    $name,
-                    $this->keyOnlyWhenEmpty ? '?' : '',
-                    (new Level1($name))->regex()
-                );
-            })
-            ->join('\\'.$this->separator)
-            ->prepend('\\'.$this->lead);
+        return $this->regex ?? $this->regex = join(
+            '\\'.$this->separator,
+            $this
+                ->names
+                ->map(function(Name $name): string {
+                    return \sprintf(
+                        '%s=%s%s',
+                        $name,
+                        $this->keyOnlyWhenEmpty ? '?' : '',
+                        (new Level1($name))->regex()
+                    );
+                })
+                ->toSequenceOf('string'),
+        )
+            ->prepend('\\'.$this->lead)
+            ->toString();
     }
 
     public function __toString(): string
     {
-        return $this->string ?? $this->string = (string) $this
-            ->names
-            ->join(',')
+        return $this->string ?? $this->string = join(
+            ',',
+            $this
+                ->names
+                ->toSequenceOf(
+                    'string',
+                    static fn($element): \Generator => yield (string) $element,
+                ),
+        )
             ->prepend('{'.$this->lead)
-            ->append('}');
+            ->append('}')
+            ->toString();
     }
 }

@@ -9,11 +9,11 @@ use Innmind\UrlTemplate\{
     Exception\DomainException,
 };
 use Innmind\Immutable\{
-    MapInterface,
-    SequenceInterface,
+    Map,
     Sequence,
     Str,
 };
+use function Innmind\Immutable\unwrap;
 
 final class QueryContinuation implements Expression
 {
@@ -30,26 +30,26 @@ final class QueryContinuation implements Expression
     public static function of(Str $string): Expression
     {
         if (!$string->matches('~^\{\&[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)+\}$~')) {
-            throw new DomainException((string) $string);
+            throw new DomainException($string->toString());
         }
 
         return new self(
-            ...$string
+            ...unwrap($string
                 ->trim('{&}')
                 ->split(',')
                 ->reduce(
-                    new Sequence,
-                    static function(SequenceInterface $names, Str $name): SequenceInterface {
-                        return $names->add(new Name((string) $name));
+                    Sequence::mixed(),
+                    static function(Sequence $names, Str $name): Sequence {
+                        return $names->add(new Name($name->toString()));
                     }
-                )
+                ))
         );
     }
 
     /**
      * {@inheritdoc}
      */
-    public function expand(MapInterface $variables): string
+    public function expand(Map $variables): string
     {
         return $this->expression->expand($variables);
     }

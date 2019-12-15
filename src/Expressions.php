@@ -5,13 +5,13 @@ namespace Innmind\UrlTemplate;
 
 use Innmind\UrlTemplate\Exception\DomainException;
 use Innmind\Immutable\{
-    Stream,
+    Sequence,
     Str,
 };
 
 final class Expressions
 {
-    private static ?Stream $expressions = null;
+    private static ?array $expressions = null;
 
     public static function of(Str $string): Expression
     {
@@ -23,16 +23,15 @@ final class Expressions
             }
         }
 
-        throw new DomainException((string) $string);
+        throw new DomainException($string->toString());
     }
 
     /**
-     * @return Stream<string>
+     * @return list<string>
      */
-    private static function expressions(): Stream
+    private static function expressions(): array
     {
-        return self::$expressions ?? self::$expressions = Stream::of(
-            'string',
+        return self::$expressions ?? self::$expressions = [
             Expression\Level4::class,
             Expression\Level4\Reserved::class,
             Expression\Level4\Fragment::class,
@@ -50,6 +49,6 @@ final class Expressions
             Expression\Level3\Query::class,
             Expression\Level3\QueryContinuation::class,
             Expression\Level4\Composite::class
-        );
+        ];
     }
 }

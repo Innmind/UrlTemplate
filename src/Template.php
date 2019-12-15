@@ -8,17 +8,13 @@ use Innmind\UrlTemplate\Exception\{
     ExtractionNotSupported,
     LogicException,
 };
-use Innmind\Url\{
-    UrlInterface,
-    Url,
-};
+use Innmind\Url\Url;
 use Innmind\Immutable\{
-    MapInterface,
     Map,
-    SetInterface,
     Set,
     Str,
 };
+use function Innmind\Immutable\assertMap;
 
 final class Template
 {
@@ -31,13 +27,13 @@ final class Template
         $this->expressions = $this
             ->extractExpressions(
                 Set::of('string'),
-                $this->template
+                $this->template,
             )
             ->reduce(
                 Set::of(Expression::class),
-                static function(SetInterface $expressions, string $expression): SetInterface {
+                static function(Set $expressions, string $expression): Set {
                     return $expressions->add(Expressions::of(Str::of($expression)));
-                }
+                },
             );
     }
 
@@ -47,24 +43,19 @@ final class Template
     }
 
     /**
-     * @return SetInterface<Expression>
+     * @return Set<Expression>
      */
-    public function expressions(): SetInterface
+    public function expressions(): Set
     {
         return $this->expressions;
     }
 
     /**
-     * @param MapInterface<string, variable> $variables
+     * @param Map<string, variable> $variables
      */
-    public function expand(MapInterface $variables): UrlInterface
+    public function expand(Map $variables): Url
     {
-        if (
-            (string) $variables->keyType() !== 'string' ||
-            (string) $variables->valueType() !== 'variable'
-        ) {
-            throw new \TypeError('Argument 1 must be of type MapInterface<string, variable>');
-        }
+        assertMap('string', 'variable', $variables, 1);
 
         $url = $this->expressions->reduce(
             $this->template,
@@ -76,19 +67,19 @@ final class Template
             }
         );
 
-        return Url::fromString((string) $url);
+        return Url::of($url->toString());
     }
 
     /**
-     * @return MapInterface<string, string>
+     * @return Map<string, string>
      */
-    public function extract(UrlInterface $url): MapInterface
+    public function extract(Url $url): Map
     {
         $regex = $this->regex();
-        $url = Str::of((string) $url);
+        $url = Str::of($url->toString());
 
         if (!$url->matches($regex)) {
-            throw new UrlDoesntMatchTemplate((string) $url);
+            throw new UrlDoesntMatchTemplate($url->toString());
         }
 
         return $url
@@ -97,27 +88,27 @@ final class Template
                 return \is_string($key);
             })
             ->reduce(
-                new Map('string', 'string'),
-                static function(MapInterface $variables, string $name, Str $variable): MapInterface {
+                Map::of('string', 'string'),
+                static function(Map $variables, string $name, Str $variable): Map {
                     return $variables->put(
                         $name,
-                        \rawurldecode((string) $variable)
+                        \rawurldecode($variable->toString())
                     );
                 }
             );
     }
 
-    public function matches(UrlInterface $url): bool
+    public function matches(Url $url): bool
     {
         $regex = $this->regex();
-        $url = Str::of((string) $url);
+        $url = Str::of($url->toString());
 
         return $url->matches($regex);
     }
 
     public function __toString(): string
     {
-        return (string) $this->template;
+        return $this->template->toString();
     }
 
     /**
@@ -125,9 +116,9 @@ final class Template
      * them at the same time
      */
     private function extractExpressions(
-        SetInterface $expressions,
+        Set $expressions,
         Str $template
-    ): SetInterface {
+    ): Set {
         $captured = $template->capture('~(\{[\+#\./;\?&]?[a-zA-Z0-9_]+(\*|:\d+)?(,[a-zA-Z0-9_]+(\*|:\d+)?)*\})~');
 
         if ($captured->size() === 0) {
@@ -135,8 +126,8 @@ final class Template
         }
 
         return $this->extractExpressions(
-            $expressions->add((string) $captured->current()),
-            $template->replace((string) $captured->current(), '')
+            $expressions->add($captured->values()->first()->toString()),
+            $template->replace($captured->values()->first()->toString(), '')
         );
     }
 
@@ -156,6 +147,6 @@ final class Template
             throw new ExtractionNotSupported('', 0, $e);
         }
 
-        return (string) $template->prepend('~^')->append('$~');
+        return $template->prepend('~^')->append('$~')->toString();
     }
 }

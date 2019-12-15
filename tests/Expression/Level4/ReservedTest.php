@@ -60,12 +60,12 @@ class ReservedTest extends TestCase
 
     public function testExpand()
     {
-        $variables = (new Map('string', 'variable'))
-            ->put('var', 'value')
-            ->put('hello', 'Hello World!')
-            ->put('path', '/foo/bar')
-            ->put('list', ['red', 'green', 'blue'])
-            ->put('keys', [['semi', ';'], ['dot', '.'], ['comma', ',']]);
+        $variables = Map::of('string', 'variable')
+            ('var', 'value')
+            ('hello', 'Hello World!')
+            ('path', '/foo/bar')
+            ('list', ['red', 'green', 'blue'])
+            ('keys', [['semi', ';'], ['dot', '.'], ['comma', ',']]);
 
         $this->assertSame(
             '/foo/b',

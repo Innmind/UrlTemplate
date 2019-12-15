@@ -10,10 +10,13 @@ use Innmind\UrlTemplate\{
     Exception\DomainException,
 };
 use Innmind\Immutable\{
-    MapInterface,
-    SequenceInterface,
+    Map,
     Sequence,
     Str,
+};
+use function Innmind\Immutable\{
+    join,
+    unwrap,
 };
 
 final class Reserved implements Expression
@@ -25,7 +28,7 @@ final class Reserved implements Expression
 
     public function __construct(Name ...$names)
     {
-        $this->names = Sequence::of(...$names);
+        $this->names = Sequence::mixed(...$names);
         $this->expressions = $this->names->map(static function(Name $name): Level2\Reserved {
             return new Level2\Reserved($name);
         });
@@ -37,51 +40,64 @@ final class Reserved implements Expression
     public static function of(Str $string): Expression
     {
         if (!$string->matches('~^\{\+[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)+\}$~')) {
-            throw new DomainException((string) $string);
+            throw new DomainException($string->toString());
         }
 
         return new self(
-            ...$string
+            ...unwrap($string
                 ->trim('{+}')
                 ->split(',')
                 ->reduce(
-                    new Sequence,
-                    static function(SequenceInterface $names, Str $name): SequenceInterface {
-                        return $names->add(new Name((string) $name));
+                    Sequence::mixed(),
+                    static function(Sequence $names, Str $name): Sequence {
+                        return $names->add(new Name($name->toString()));
                     }
-                )
+                ))
         );
     }
 
     /**
      * {@inheritdoc}
      */
-    public function expand(MapInterface $variables): string
+    public function expand(Map $variables): string
     {
-        return (string) $this
-            ->expressions
-            ->map(static function(Expression $expression) use ($variables): string {
-                return $expression->expand($variables);
-            })
-            ->join(',');
+        return join(
+            ',',
+            $this
+                ->expressions
+                ->map(static function(Expression $expression) use ($variables): string {
+                    return $expression->expand($variables);
+                })
+                ->toSequenceOf('string'),
+        )->toString();
     }
 
     public function regex(): string
     {
-        return $this->regex ?? $this->regex = (string) $this
-            ->expressions
-            ->map(static function(Expression $expression): string {
-                return $expression->regex();
-            })
-            ->join(',');
+        return $this->regex ?? $this->regex = join(
+            ',',
+            $this
+                ->expressions
+                ->map(static function(Expression $expression): string {
+                    return $expression->regex();
+                })
+                ->toSequenceOf('string'),
+        )->toString();
     }
 
     public function __toString(): string
     {
-        return $this->string ?? $this->string = (string) $this
-            ->names
-            ->join(',')
+        return $this->string ?? $this->string = join(
+            ',',
+            $this
+                ->names
+                ->toSequenceOf(
+                    'string',
+                    static fn($element): \Generator => yield (string) $element,
+                ),
+        )
             ->prepend('{+')
-            ->append('}');
+            ->append('}')
+            ->toString();
     }
 }

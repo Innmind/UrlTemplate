@@ -35,16 +35,16 @@ class FragmentTest extends TestCase
         $expression = new Fragment(new Name('foo'));
 
         $this->assertSame('#value', $expression->expand(
-            (new Map('string', 'variable'))->put('foo', 'value')
+            Map::of('string', 'variable')('foo', 'value')
         ));
         $this->assertSame('#Hello%20World!', $expression->expand(
-            (new Map('string', 'variable'))->put('foo', 'Hello World!')
+            Map::of('string', 'variable')('foo', 'Hello World!')
         ));
         $this->assertSame('#/foo/bar', $expression->expand(
-            (new Map('string', 'variable'))->put('foo', '/foo/bar')
+            Map::of('string', 'variable')('foo', '/foo/bar')
         ));
         $this->assertSame('', $expression->expand(
-            new Map('string', 'variable')
+            Map::of('string', 'variable')
         ));
     }
 

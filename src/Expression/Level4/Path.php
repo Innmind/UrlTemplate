@@ -11,9 +11,10 @@ use Innmind\UrlTemplate\{
     Exception\DomainException,
 };
 use Innmind\Immutable\{
-    MapInterface,
+    Map,
     Str,
 };
+use function Innmind\Immutable\unwrap;
 
 final class Path implements Expression
 {
@@ -30,24 +31,24 @@ final class Path implements Expression
     public static function of(Str $string): Expression
     {
         if ($string->matches('~^\{/[a-zA-Z0-9_]+\}$~')) {
-            return new self(new Name((string) $string->trim('{/}')));
+            return new self(new Name($string->trim('{/}')->toString()));
         }
 
         if ($string->matches('~^\{/[a-zA-Z0-9_]+\*\}$~')) {
-            return self::explode(new Name((string) $string->trim('{/*}')));
+            return self::explode(new Name($string->trim('{/*}')->toString()));
         }
 
         if ($string->matches('~^\{/[a-zA-Z0-9_]+:\d+\}$~')) {
             $string = $string->trim('{/}');
-            [$name, $limit] = $string->split(':');
+            [$name, $limit] = unwrap($string->split(':'));
 
             return self::limit(
-                new Name((string) $name),
-                (int) (string) $limit
+                new Name($name->toString()),
+                (int) $limit->toString()
             );
         }
 
-        throw new DomainException((string) $string);
+        throw new DomainException($string->toString());
     }
 
     public static function limit(Name $name, int $limit): self
@@ -84,7 +85,7 @@ final class Path implements Expression
     /**
      * {@inheritdoc}
      */
-    public function expand(MapInterface $variables): string
+    public function expand(Map $variables): string
     {
         return $this->expression->expand($variables);
     }

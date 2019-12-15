@@ -9,7 +9,7 @@ use Innmind\UrlTemplate\{
     Exception\DomainException,
 };
 use Innmind\Immutable\{
-    MapInterface,
+    Map,
     Str,
 };
 
@@ -32,16 +32,16 @@ final class Level1 implements Expression
     public static function of(Str $string): Expression
     {
         if (!$string->matches('~^\{[a-zA-Z0-9_]+\}$~')) {
-            throw new DomainException((string) $string);
+            throw new DomainException($string->toString());
         }
 
-        return new self(new Name((string) $string->trim('{}')));
+        return new self(new Name($string->trim('{}')->toString()));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function expand(MapInterface $variables): string
+    public function expand(Map $variables): string
     {
         if (!$variables->contains((string) $this->name)) {
             return '';

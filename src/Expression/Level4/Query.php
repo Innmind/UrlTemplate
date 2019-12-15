@@ -13,10 +13,13 @@ use Innmind\UrlTemplate\{
     Exception\LogicException,
 };
 use Innmind\Immutable\{
-    MapInterface,
+    Map,
     Str,
-    SequenceInterface,
     Sequence,
+};
+use function Innmind\Immutable\{
+    join,
+    unwrap,
 };
 
 final class Query implements Expression
@@ -40,24 +43,24 @@ final class Query implements Expression
     public static function of(Str $string): Expression
     {
         if ($string->matches('~^\{\?[a-zA-Z0-9_]+\}$~')) {
-            return new self(new Name((string) $string->trim('{?}')));
+            return new self(new Name($string->trim('{?}')->toString()));
         }
 
         if ($string->matches('~^\{\?[a-zA-Z0-9_]+\*\}$~')) {
-            return self::explode(new Name((string) $string->trim('{?*}')));
+            return self::explode(new Name($string->trim('{?*}')->toString()));
         }
 
         if ($string->matches('~^\{\?[a-zA-Z0-9_]+:\d+\}$~')) {
             $string = $string->trim('{?}');
-            [$name, $limit] = $string->split(':');
+            [$name, $limit] = unwrap($string->split(':'));
 
             return self::limit(
-                new Name((string) $name),
-                (int) (string) $limit
+                new Name($name->toString()),
+                (int) $limit->toString()
             );
         }
 
-        throw new DomainException((string) $string);
+        throw new DomainException($string->toString());
     }
 
     public static function limit(Name $name, int $limit): self
@@ -90,9 +93,9 @@ final class Query implements Expression
     }
 
     /**
-     * @param MapInterface<string, variable> $variables
+     * @param Map<string, variable> $variables
      */
-    public function expand(MapInterface $variables): string
+    public function expand(Map $variables): string
     {
         if (!$variables->contains((string) $this->name)) {
             return '';
@@ -111,10 +114,10 @@ final class Query implements Expression
         $value = Str::of($this->expression->expand($variables));
 
         if ($this->mustLimit()) {
-            return "?{$this->name}={$value->substring(0, $this->limit)}";
+            return "?{$this->name}={$value->substring(0, $this->limit)->toString()}";
         }
 
-        return "?{$this->name}=$value";
+        return "?{$this->name}={$value->toString()}";
     }
 
     public function regex(): string
@@ -129,9 +132,10 @@ final class Query implements Expression
 
         if ($this->mustLimit()) {
             // replace '*' match by the actual limit
-            $regex = (string) Str::of($this->expression->regex())
+            $regex = Str::of($this->expression->regex())
                 ->substring(0, -2)
-                ->append("{{$this->limit}})");
+                ->append("{{$this->limit}})")
+                ->toString();
         } else {
             $regex = $this->expression->regex();
         }
@@ -165,16 +169,16 @@ final class Query implements Expression
         return \is_int($this->limit);
     }
 
-    private function expandList(MapInterface $variables, ...$elements): string
+    private function expandList(Map $variables, ...$elements): string
     {
         if ($this->explode) {
             return $this->explodeList($variables, $elements);
         }
 
-        return (string) Sequence::of(...$elements)
+        $elements = Sequence::mixed(...$elements)
             ->reduce(
-                new Sequence,
-                static function(SequenceInterface $values, $element): SequenceInterface {
+                Sequence::mixed(),
+                static function(Sequence $values, $element): Sequence {
                     if (\is_array($element)) {
                         [$name, $element] = $element;
 
@@ -192,13 +196,19 @@ final class Query implements Expression
                     )
                 );
             })
-            ->join(',')
-            ->prepend("?$this->name=");
+            ->toSequenceOf(
+                'string',
+                static fn($element): \Generator => yield (string) $element,
+            );
+
+        return join(',', $elements)
+            ->prepend("?$this->name=")
+            ->toString();
     }
 
-    private function explodeList(MapInterface $variables, array $elements): string
+    private function explodeList(Map $variables, array $elements): string
     {
-        return (string) Sequence::of(...$elements)
+        $elements = Sequence::mixed(...$elements)
             ->map(function($element) use ($variables): string {
                 $name = $this->name;
 
@@ -211,9 +221,15 @@ final class Query implements Expression
                     $variables->put((string) $name, $element)
                 );
 
-                return (string) Str::of($value)->substring(1);
+                return Str::of($value)->substring(1)->toString();
             })
-            ->join('&')
-            ->prepend('?');
+            ->toSequenceOf(
+                'string',
+                static fn($element): \Generator => yield (string) $element,
+            );
+
+        return join('&', $elements)
+            ->prepend('?')
+            ->toString();
     }
 }

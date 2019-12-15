@@ -10,10 +10,11 @@ use Innmind\UrlTemplate\{
     Exception\DomainException,
 };
 use Innmind\Immutable\{
-    MapInterface,
+    Map,
     Sequence,
     Str,
 };
+use function Innmind\Immutable\join;
 
 final class Composite implements Expression
 {
@@ -31,7 +32,7 @@ final class Composite implements Expression
     ) {
         $this->separator = $separator;
         $this->type = \get_class($level4);
-        $this->expressions = Sequence::of($level4, ...$expressions);
+        $this->expressions = Sequence::mixed($level4, ...$expressions);
     }
 
     public static function removeLead(
@@ -48,7 +49,7 @@ final class Composite implements Expression
     public static function of(Str $string): Expression
     {
         if (!$string->matches('~^\{[\+#\./;\?&]?[a-zA-Z0-9_]+(\*|:\d*)?(,[a-zA-Z0-9_]+(\*|:\d*)?)+\}$~')) {
-            throw new DomainException((string) $string);
+            throw new DomainException($string->toString());
         }
 
         $pieces = $string
@@ -68,7 +69,7 @@ final class Composite implements Expression
     /**
      * {@inheritdoc}
      */
-    public function expand(MapInterface $variables): string
+    public function expand(Map $variables): string
     {
         $values = $this
             ->expressions
@@ -79,18 +80,23 @@ final class Composite implements Expression
         //potentially remove the lead characters from the expressions except for
         //the first one, needed for the fragment composite
 
-        return (string) $values
+        $values = $values
             ->take(1)
             ->append(
                 $values->drop(1)->map(function(string $value): string {
                     if ($this->removeLead) {
-                        return (string) Str::of($value)->substring(1);
+                        return Str::of($value)->substring(1)->toString();
                     }
 
                     return $value;
                 })
             )
-            ->join($this->separator);
+            ->toSequenceOf(
+                'string',
+                static fn($element): \Generator => yield (string) $element,
+            );
+
+        return join($this->separator, $values)->toString();
     }
 
     public function regex(): string
@@ -104,22 +110,26 @@ final class Composite implements Expression
             ->drop(1)
             ->map(function(Expression $expression): string {
                 if ($this->removeLead) {
-                    return (string) Str::of($expression->regex())->substring(2);
+                    return Str::of($expression->regex())->substring(2)->toString();
                 }
 
                 return $expression->regex();
             });
 
-        return $this->regex = (string) $this
-            ->expressions
-            ->take(1)
-            ->map(static function(Expression $expression): string {
-                return $expression->regex();
-            })
-            ->append($remaining)
-            ->join(
-                $this->separator ? '\\'.$this->separator : ''
-            );
+        return $this->regex = join(
+            $this->separator ? '\\'.$this->separator : '',
+            $this
+                ->expressions
+                ->take(1)
+                ->map(static function(Expression $expression): string {
+                    return $expression->regex();
+                })
+                ->append($remaining)
+                ->toSequenceOf(
+                    'string',
+                    static fn($element): \Generator => yield (string) $element,
+                )
+        )->toString();
     }
 
     public function __toString(): string
@@ -140,7 +150,7 @@ final class Composite implements Expression
         //only keep the lead character for the first expression and remove it
         //for the following ones
 
-        return $this->string = (string) $expressions
+        $expressions = $expressions
             ->take(1)
             ->append(
                 $expressions
@@ -149,8 +159,14 @@ final class Composite implements Expression
                         return $expression->leftTrim('+#/.;?&');
                     })
             )
-            ->join(',')
+            ->toSequenceOf(
+                'string',
+                static fn($element): \Generator => yield $element->toString(),
+            );
+
+        return $this->string = join(',', $expressions)
             ->prepend('{')
-            ->append('}');
+            ->append('}')
+            ->toString();
     }
 }
