@@ -26,8 +26,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\Innmind\\UrlTemplate\\": "tests/",
-            "Fixture\\Innmind\\UrlTemplate\\": "fixtures/"
+            "Tests\\Innmind\\UrlTemplate\\": "tests/"
         }
     },
     "require-dev": {
