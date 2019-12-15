@@ -196,9 +196,9 @@ final class Parameters implements Expression
                     )
                 );
             })
-            ->toSequenceOf(
+            ->mapTo(
                 'string',
-                static fn($element): \Generator => yield (string) $element,
+                static fn($element) => (string) $element,
             );
 
         return join(',', $elements)
@@ -221,9 +221,9 @@ final class Parameters implements Expression
                     $variables->put((string) $name, $element)
                 );
             })
-            ->toSequenceOf(
+            ->mapTo(
                 'string',
-                static fn($element): \Generator => yield (string) $element,
+                static fn($element) => (string) $element,
             );
 
         return join('', $elements)->toString();

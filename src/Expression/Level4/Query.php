@@ -196,9 +196,9 @@ final class Query implements Expression
                     )
                 );
             })
-            ->toSequenceOf(
+            ->mapTo(
                 'string',
-                static fn($element): \Generator => yield (string) $element,
+                static fn($element) => (string) $element,
             );
 
         return join(',', $elements)
@@ -223,9 +223,9 @@ final class Query implements Expression
 
                 return Str::of($value)->substring(1)->toString();
             })
-            ->toSequenceOf(
+            ->mapTo(
                 'string',
-                static fn($element): \Generator => yield (string) $element,
+                static fn($element) => (string) $element,
             );
 
         return join('&', $elements)

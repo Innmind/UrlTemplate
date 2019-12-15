@@ -72,9 +72,9 @@ final class Composite implements Expression
      */
     public function expand(Map $variables): string
     {
-        $values = $this->expressions->toSequenceOf(
+        $values = $this->expressions->mapTo(
             'string',
-            static fn($expression): \Generator => yield $expression->expand($variables),
+            static fn($expression) => $expression->expand($variables),
         );
 
         //potentially remove the lead characters from the expressions except for
@@ -104,14 +104,14 @@ final class Composite implements Expression
         $remaining = $this
             ->expressions
             ->drop(1)
-            ->toSequenceOf(
+            ->mapTo(
                 'string',
-                function(Expression $expression): \Generator {
+                function(Expression $expression): string {
                     if ($this->removeLead) {
-                        yield Str::of($expression->regex())->substring(2)->toString();
-                    } else {
-                        yield $expression->regex();
+                        return Str::of($expression->regex())->substring(2)->toString();
                     }
+
+                    return $expression->regex();
                 },
             );
 
@@ -120,9 +120,9 @@ final class Composite implements Expression
             $this
                 ->expressions
                 ->take(1)
-                ->toSequenceOf(
+                ->mapTo(
                     'string',
-                    static fn($expression): \Generator => yield $expression->regex(),
+                    static fn($expression) => $expression->regex(),
                 )
                 ->append($remaining)
         )->toString();
@@ -134,9 +134,9 @@ final class Composite implements Expression
             return $this->string;
         }
 
-        $expressions = $this->expressions->toSequenceOf(
+        $expressions = $this->expressions->mapTo(
             Str::class,
-            static fn($expression): \Generator => yield Str::of((string) $expression)->trim('{}'),
+            static fn($expression) => Str::of((string) $expression)->trim('{}'),
         );
 
         //only keep the lead character for the first expression and remove it
@@ -151,9 +151,9 @@ final class Composite implements Expression
                         return $expression->leftTrim('+#/.;?&');
                     })
             )
-            ->toSequenceOf(
+            ->mapTo(
                 'string',
-                static fn($element): \Generator => yield $element->toString(),
+                static fn($element) => $element->toString(),
             );
 
         return $this->string = join(',', $expressions)

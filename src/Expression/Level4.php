@@ -270,9 +270,9 @@ final class Level4 implements Expression
 
                 return $value;
             })
-            ->toSequenceOf(
+            ->mapTo(
                 'string',
-                static fn($element): \Generator => yield (string) $element,
+                static fn($element) => (string) $element,
             );
 
         return join($this->separator, $elements)

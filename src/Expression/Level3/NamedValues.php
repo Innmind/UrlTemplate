@@ -82,9 +82,9 @@ final class NamedValues implements Expression
     {
         return $this->regex ?? $this->regex = join(
             '\\'.$this->separator,
-            $this->names->toSequenceOf(
+            $this->names->mapTo(
                 'string',
-                fn($name): \Generator => yield \sprintf(
+                fn($name) => \sprintf(
                     '%s=%s%s',
                     $name,
                     $this->keyOnlyWhenEmpty ? '?' : '',
@@ -100,9 +100,9 @@ final class NamedValues implements Expression
     {
         return $this->string ?? $this->string = join(
             ',',
-            $this->names->toSequenceOf(
+            $this->names->mapTo(
                 'string',
-                static fn($element): \Generator => yield (string) $element,
+                static fn($element) => (string) $element,
             ),
         )
             ->prepend('{'.$this->lead)

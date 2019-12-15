@@ -30,11 +30,9 @@ final class Template
                 Set::of('string'),
                 $this->template,
             )
-            ->reduce(
-                Set::of(Expression::class),
-                static function(Set $expressions, string $expression): Set {
-                    return $expressions->add(Expressions::of(Str::of($expression)));
-                },
+            ->mapTo(
+                Expression::class,
+                static fn(string $expression) => Expressions::of(Str::of($expression)),
             );
     }
 

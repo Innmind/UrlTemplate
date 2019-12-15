@@ -31,9 +31,9 @@ final class Reserved implements Expression
     public function __construct(Name ...$names)
     {
         $this->names = Sequence::of(Name::class, ...$names);
-        $this->expressions = $this->names->toSequenceOf(
+        $this->expressions = $this->names->mapTo(
             Expression::class,
-            static fn($name): \Generator => yield new Level2\Reserved($name),
+            static fn($name) => new Level2\Reserved($name),
         );
     }
 
@@ -64,9 +64,9 @@ final class Reserved implements Expression
      */
     public function expand(Map $variables): string
     {
-        $expanded = $this->expressions->toSequenceOf(
+        $expanded = $this->expressions->mapTo(
             'string',
-            static fn($expression): \Generator => yield $expression->expand($variables),
+            static fn($expression) => $expression->expand($variables),
         );
 
         return join(',', $expanded)->toString();
@@ -76,9 +76,9 @@ final class Reserved implements Expression
     {
         return $this->regex ?? $this->regex = join(
             ',',
-            $this->expressions->toSequenceOf(
+            $this->expressions->mapTo(
                 'string',
-                static fn($expression): \Generator => yield $expression->regex(),
+                static fn($expression) => $expression->regex(),
             ),
         )->toString();
     }
@@ -87,9 +87,9 @@ final class Reserved implements Expression
     {
         return $this->string ?? $this->string = join(
             ',',
-            $this->names->toSequenceOf(
+            $this->names->mapTo(
                 'string',
-                static fn($element): \Generator => yield (string) $element,
+                static fn($element) => (string) $element,
             ),
         )
             ->prepend('{+')
