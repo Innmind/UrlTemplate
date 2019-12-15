@@ -21,17 +21,20 @@ use function Innmind\Immutable\{
 
 final class Reserved implements Expression
 {
+    /** @var Sequence<Name> */
     private Sequence $names;
+    /** @var Sequence<Expression> */
     private Sequence $expressions;
     private ?string $regex = null;
     private ?string $string = null;
 
     public function __construct(Name ...$names)
     {
-        $this->names = Sequence::mixed(...$names);
-        $this->expressions = $this->names->map(static function(Name $name): Level2\Reserved {
-            return new Level2\Reserved($name);
-        });
+        $this->names = Sequence::of(Name::class, ...$names);
+        $this->expressions = $this->names->toSequenceOf(
+            Expression::class,
+            static fn($name): \Generator => yield new Level2\Reserved($name),
+        );
     }
 
     /**
@@ -43,16 +46,16 @@ final class Reserved implements Expression
             throw new DomainException($string->toString());
         }
 
+        $names = $string
+            ->trim('{+}')
+            ->split(',')
+            ->reduce(
+                Sequence::of(Name::class),
+                static fn(Sequence $names, Str $name): Sequence => ($names)(new Name($name->toString())),
+            );
+
         return new self(
-            ...unwrap($string
-                ->trim('{+}')
-                ->split(',')
-                ->reduce(
-                    Sequence::mixed(),
-                    static function(Sequence $names, Str $name): Sequence {
-                        return $names->add(new Name($name->toString()));
-                    }
-                ))
+            ...unwrap($names),
         );
     }
 
@@ -61,27 +64,22 @@ final class Reserved implements Expression
      */
     public function expand(Map $variables): string
     {
-        return join(
-            ',',
-            $this
-                ->expressions
-                ->map(static function(Expression $expression) use ($variables): string {
-                    return $expression->expand($variables);
-                })
-                ->toSequenceOf('string'),
-        )->toString();
+        $expanded = $this->expressions->toSequenceOf(
+            'string',
+            static fn($expression): \Generator => yield $expression->expand($variables),
+        );
+
+        return join(',', $expanded)->toString();
     }
 
     public function regex(): string
     {
         return $this->regex ?? $this->regex = join(
             ',',
-            $this
-                ->expressions
-                ->map(static function(Expression $expression): string {
-                    return $expression->regex();
-                })
-                ->toSequenceOf('string'),
+            $this->expressions->toSequenceOf(
+                'string',
+                static fn($expression): \Generator => yield $expression->regex(),
+            ),
         )->toString();
     }
 
@@ -89,12 +87,10 @@ final class Reserved implements Expression
     {
         return $this->string ?? $this->string = join(
             ',',
-            $this
-                ->names
-                ->toSequenceOf(
-                    'string',
-                    static fn($element): \Generator => yield (string) $element,
-                ),
+            $this->names->toSequenceOf(
+                'string',
+                static fn($element): \Generator => yield (string) $element,
+            ),
         )
             ->prepend('{+')
             ->append('}')

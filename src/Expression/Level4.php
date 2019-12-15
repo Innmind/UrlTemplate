@@ -206,6 +206,9 @@ final class Level4 implements Expression
         return \is_int($this->limit);
     }
 
+    /**
+     * @param Map<string, variable> $variables
+     */
     private function expandList(Map $variables, ...$elements): string
     {
         if ($this->explode) {
@@ -239,6 +242,9 @@ final class Level4 implements Expression
             ->toString();
     }
 
+    /**
+     * @param Map<string,variable> $variables
+     */
     private function explodeList(Map $variables, array $elements): string
     {
         $elements = Sequence::mixed(...$elements)

@@ -19,7 +19,9 @@ final class NamedValues implements Expression
 {
     private string $lead;
     private string $separator;
+    /** @var Sequence<Name> */
     private Sequence $names;
+    /** @var Map<string, Expression> */
     private Map $expressions;
     private bool $keyOnlyWhenEmpty = false;
     private ?string $regex = null;
@@ -29,15 +31,12 @@ final class NamedValues implements Expression
     {
         $this->lead = $lead;
         $this->separator = $separator;
-        $this->names = Sequence::mixed(...$names);
-        $this->expressions = $this->names->reduce(
-            Map::of('string', Expression::class),
-            static function(Map $expressions, Name $name): Map {
-                return $expressions->put(
-                    (string) $name,
-                    new Level1($name)
-                );
-            });
+        $this->names = Sequence::of(Name::class, ...$names);
+        $this->expressions = $this->names->toMapOf(
+            'string',
+            Expression::class,
+            static fn($name): \Generator => yield (string) $name => new Level1($name),
+        );
     }
 
     /**
@@ -61,20 +60,18 @@ final class NamedValues implements Expression
      */
     public function expand(Map $variables): string
     {
-        $elements = $this
-            ->expressions
-            ->reduce(
-                Sequence::of('string'),
-                function(Sequence $values, string $name, Expression $expression) use ($variables): Sequence {
-                    $value = Str::of($expression->expand($variables));
+        $elements = $this->expressions->reduce(
+            Sequence::of('string'),
+            function(Sequence $values, string $name, Expression $expression) use ($variables): Sequence {
+                $value = Str::of($expression->expand($variables));
 
-                    if ($value->empty() && $this->keyOnlyWhenEmpty) {
-                        return $values->add($name);
-                    }
-
-                    return $values->add("$name={$value->toString()}");
+                if ($value->empty() && $this->keyOnlyWhenEmpty) {
+                    return $values->add($name);
                 }
-            );
+
+                return $values->add("$name={$value->toString()}");
+            }
+        );
 
         return join($this->separator, $elements)
             ->prepend($this->lead)
@@ -85,17 +82,15 @@ final class NamedValues implements Expression
     {
         return $this->regex ?? $this->regex = join(
             '\\'.$this->separator,
-            $this
-                ->names
-                ->map(function(Name $name): string {
-                    return \sprintf(
-                        '%s=%s%s',
-                        $name,
-                        $this->keyOnlyWhenEmpty ? '?' : '',
-                        (new Level1($name))->regex()
-                    );
-                })
-                ->toSequenceOf('string'),
+            $this->names->toSequenceOf(
+                'string',
+                fn($name): \Generator => yield \sprintf(
+                    '%s=%s%s',
+                    $name,
+                    $this->keyOnlyWhenEmpty ? '?' : '',
+                    (new Level1($name))->regex(),
+                ),
+            ),
         )
             ->prepend('\\'.$this->lead)
             ->toString();
@@ -105,12 +100,10 @@ final class NamedValues implements Expression
     {
         return $this->string ?? $this->string = join(
             ',',
-            $this
-                ->names
-                ->toSequenceOf(
-                    'string',
-                    static fn($element): \Generator => yield (string) $element,
-                ),
+            $this->names->toSequenceOf(
+                'string',
+                static fn($element): \Generator => yield (string) $element,
+            ),
         )
             ->prepend('{'.$this->lead)
             ->append('}')

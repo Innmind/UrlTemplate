@@ -19,6 +19,7 @@ use function Innmind\Immutable\assertMap;
 final class Template
 {
     private Str $template;
+    /** @var Set<Expression> */
     private Set $expressions;
 
     public function __construct(string $template)

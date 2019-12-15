@@ -20,6 +20,7 @@ final class Composite implements Expression
 {
     private string $separator;
     private string $type;
+    /** @var Sequence<Expression> */
     private Sequence $expressions;
     private bool $removeLead = false;
     private ?string $regex = null;
@@ -32,7 +33,7 @@ final class Composite implements Expression
     ) {
         $this->separator = $separator;
         $this->type = \get_class($level4);
-        $this->expressions = Sequence::mixed($level4, ...$expressions);
+        $this->expressions = Sequence::of(Expression::class, $level4, ...$expressions);
     }
 
     public static function removeLead(
@@ -71,11 +72,10 @@ final class Composite implements Expression
      */
     public function expand(Map $variables): string
     {
-        $values = $this
-            ->expressions
-            ->map(static function(Expression $expression) use ($variables): string {
-                return $expression->expand($variables);
-            });
+        $values = $this->expressions->toSequenceOf(
+            'string',
+            static fn($expression): \Generator => yield $expression->expand($variables),
+        );
 
         //potentially remove the lead characters from the expressions except for
         //the first one, needed for the fragment composite
@@ -90,10 +90,6 @@ final class Composite implements Expression
 
                     return $value;
                 })
-            )
-            ->toSequenceOf(
-                'string',
-                static fn($element): \Generator => yield (string) $element,
             );
 
         return join($this->separator, $values)->toString();
@@ -108,27 +104,27 @@ final class Composite implements Expression
         $remaining = $this
             ->expressions
             ->drop(1)
-            ->map(function(Expression $expression): string {
-                if ($this->removeLead) {
-                    return Str::of($expression->regex())->substring(2)->toString();
-                }
-
-                return $expression->regex();
-            });
+            ->toSequenceOf(
+                'string',
+                function(Expression $expression): \Generator {
+                    if ($this->removeLead) {
+                        yield Str::of($expression->regex())->substring(2)->toString();
+                    } else {
+                        yield $expression->regex();
+                    }
+                },
+            );
 
         return $this->regex = join(
             $this->separator ? '\\'.$this->separator : '',
             $this
                 ->expressions
                 ->take(1)
-                ->map(static function(Expression $expression): string {
-                    return $expression->regex();
-                })
-                ->append($remaining)
                 ->toSequenceOf(
                     'string',
-                    static fn($element): \Generator => yield (string) $element,
+                    static fn($expression): \Generator => yield $expression->regex(),
                 )
+                ->append($remaining)
         )->toString();
     }
 
@@ -138,14 +134,10 @@ final class Composite implements Expression
             return $this->string;
         }
 
-        $expressions = $this
-            ->expressions
-            ->map(static function(Expression $expression): Str {
-                return Str::of((string) $expression);
-            })
-            ->map(static function(Str $expression): Str {
-                return $expression->trim('{}');
-            });
+        $expressions = $this->expressions->toSequenceOf(
+            Str::class,
+            static fn($expression): \Generator => yield Str::of((string) $expression)->trim('{}'),
+        );
 
         //only keep the lead character for the first expression and remove it
         //for the following ones

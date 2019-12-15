@@ -21,17 +21,20 @@ use function Innmind\Immutable\{
 
 final class Path implements Expression
 {
+    /** @var Sequence<Name> */
     private Sequence $names;
+    /** @var Sequence<Expression> */
     private Sequence $expressions;
     private ?string $regex = null;
     private ?string $string = null;
 
     public function __construct(Name ...$names)
     {
-        $this->names = Sequence::mixed(...$names);
-        $this->expressions = $this->names->map(static function(Name $name): Level1 {
-            return new Level1($name);
-        });
+        $this->names = Sequence::of(Name::class, ...$names);
+        $this->expressions = $this->names->toSequenceOf(
+            Expression::class,
+            static fn($name): \Generator => yield new Level1($name),
+        );
     }
 
     /**
@@ -43,16 +46,16 @@ final class Path implements Expression
             throw new DomainException($string->toString());
         }
 
+        $names = $string
+            ->trim('{/}')
+            ->split(',')
+            ->reduce(
+                Sequence::of(Name::class),
+                static fn(Sequence $names, Str $name): Sequence => ($names)(new Name($name->toString())),
+            );
+
         return new self(
-            ...unwrap($string
-                ->trim('{/}')
-                ->split(',')
-                ->reduce(
-                    Sequence::mixed(),
-                    static function(Sequence $names, Str $name): Sequence {
-                        return $names->add(new Name($name->toString()));
-                    }
-                ))
+            ...unwrap($names),
         );
     }
 
@@ -63,12 +66,10 @@ final class Path implements Expression
     {
         return join(
             '/',
-            $this
-                ->expressions
-                ->map(static function(Expression $expression) use ($variables): string {
-                    return $expression->expand($variables);
-                })
-                ->toSequenceOf('string'),
+            $this->expressions->toSequenceOf(
+                'string',
+                static fn($expression): \Generator => yield $expression->expand($variables),
+            ),
         )
             ->prepend('/')
             ->toString();
@@ -78,12 +79,10 @@ final class Path implements Expression
     {
         return $this->regex ?? $this->regex = join(
             '/',
-            $this
-                ->expressions
-                ->map(static function(Expression $expression): string {
-                    return $expression->regex();
-                })
-                ->toSequenceOf('string')
+            $this->expressions->toSequenceOf(
+                'string',
+                static fn($expression): \Generator => yield $expression->regex(),
+            ),
         )
             ->prepend('/')
             ->toString();
@@ -93,12 +92,10 @@ final class Path implements Expression
     {
         return $this->string ?? $this->string = join(
             ',',
-            $this
-                ->names
-                ->toSequenceOf(
-                    'string',
-                    static fn($element): \Generator => yield (string) $element,
-                ),
+            $this->names->toSequenceOf(
+                'string',
+                static fn($element): \Generator => yield (string) $element,
+            ),
         )
             ->prepend('{/')
             ->append('}')

@@ -33,16 +33,16 @@ final class Query implements Expression
             throw new DomainException($string->toString());
         }
 
+        $names = $string
+            ->trim('{?}')
+            ->split(',')
+            ->reduce(
+                Sequence::of(Name::class),
+                static fn(Sequence $names, Str $name): Sequence => ($names)(new Name($name->toString())),
+            );
+
         return new self(
-            ...unwrap($string
-                ->trim('{?}')
-                ->split(',')
-                ->reduce(
-                    Sequence::mixed(),
-                    static function(Sequence $names, Str $name): Sequence {
-                        return $names->add(new Name($name->toString()));
-                    }
-                ))
+            ...unwrap($names),
         );
     }
 
