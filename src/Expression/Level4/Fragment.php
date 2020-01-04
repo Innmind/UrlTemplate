@@ -10,6 +10,7 @@ use Innmind\UrlTemplate\{
     Expression\Level4,
     Exception\DomainException,
     Exception\LogicException,
+    Exception\ExpressionLimitCantBeNegative,
 };
 use Innmind\Immutable\{
     Map,
@@ -57,7 +58,7 @@ final class Fragment implements Expression
     public static function limit(Name $name, int $limit): self
     {
         if ($limit < 0) {
-            throw new DomainException;
+            throw new ExpressionLimitCantBeNegative($limit);
         }
 
         $self = new self($name);
