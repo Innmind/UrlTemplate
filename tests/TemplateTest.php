@@ -23,9 +23,6 @@ class TemplateTest extends TestCase
         $template = Template::of('http://example.com/{/folders}');
 
         $this->assertSame('http://example.com/{/folders}', $template->toString());
-        $this->assertInstanceOf(Sequence::class, $template->expressions());
-        $this->assertCount(1, $template->expressions());
-        $this->assertSame('{/folders}', $template->expressions()->first()->toString());
     }
 
     public function testOf()

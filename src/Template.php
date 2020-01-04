@@ -42,14 +42,6 @@ final class Template
     }
 
     /**
-     * @return Sequence<Expression>
-     */
-    public function expressions(): Sequence
-    {
-        return $this->expressions;
-    }
-
-    /**
      * @param Map<string, scalar|array> $variables
      */
     public function expand(Map $variables): Url
