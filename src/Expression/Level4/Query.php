@@ -93,7 +93,7 @@ final class Query implements Expression
     }
 
     /**
-     * @param Map<string, variable> $variables
+     * @param Map<string, scalar|array> $variables
      */
     public function expand(Map $variables): string
     {
@@ -169,6 +169,9 @@ final class Query implements Expression
         return \is_int($this->limit);
     }
 
+    /**
+     * @param Map<string, scalar|array> $variables
+     */
     private function expandList(Map $variables, ...$elements): string
     {
         if ($this->explode) {
@@ -206,6 +209,9 @@ final class Query implements Expression
             ->toString();
     }
 
+    /**
+     * @param Map<string, scalar|array> $variables
+     */
     private function explodeList(Map $variables, array $elements): string
     {
         $elements = Sequence::mixed(...$elements)

@@ -207,7 +207,7 @@ final class Level4 implements Expression
     }
 
     /**
-     * @param Map<string, variable> $variables
+     * @param Map<string, scalar|array> $variables
      */
     private function expandList(Map $variables, ...$elements): string
     {
@@ -243,7 +243,7 @@ final class Level4 implements Expression
     }
 
     /**
-     * @param Map<string,variable> $variables
+     * @param Map<string, scalar|array> $variables
      */
     private function explodeList(Map $variables, array $elements): string
     {

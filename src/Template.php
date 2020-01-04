@@ -50,11 +50,11 @@ final class Template
     }
 
     /**
-     * @param Map<string, variable> $variables
+     * @param Map<string, scalar|array> $variables
      */
     public function expand(Map $variables): Url
     {
-        assertMap('string', 'variable', $variables, 1);
+        assertMap('string', 'scalar|array', $variables, 1);
 
         $url = $this->expressions->reduce(
             $this->template,

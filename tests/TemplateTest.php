@@ -41,7 +41,7 @@ class TemplateTest extends TestCase
      */
     public function testExpand($pattern, $expected)
     {
-        $variables = Map::of('string', 'variable')
+        $variables = Map::of('string', 'scalar|array')
             ('var', 'value')
             ('hello', 'Hello World!')
             ('path', '/foo/bar')
@@ -65,15 +65,15 @@ class TemplateTest extends TestCase
     public function testThrowWhenInvalidVariablesKeyType()
     {
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 1 must be of type Map<string, variable>');
+        $this->expectExceptionMessage('Argument 1 must be of type Map<string, scalar|array>');
 
-        Template::of('foo')->expand(Map::of('int', 'variable'));
+        Template::of('foo')->expand(Map::of('int', 'scalar|array'));
     }
 
     public function testThrowWhenInvalidVariablesValueType()
     {
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 1 must be of type Map<string, variable>');
+        $this->expectExceptionMessage('Argument 1 must be of type Map<string, scalar|array>');
 
         Template::of('foo')->expand(Map::of('string', 'string'));
     }

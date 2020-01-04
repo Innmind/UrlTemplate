@@ -20,7 +20,7 @@ interface Expression
     public static function of(Str $string): self;
 
     /**
-     * @param Map<string, variable> $variables
+     * @param Map<string, scalar|array> $variables
      */
     public function expand(Map $variables): string;
     public function regex(): string;
