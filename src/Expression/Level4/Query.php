@@ -10,7 +10,7 @@ use Innmind\UrlTemplate\{
     Expression\Level3,
     Expression\Level4,
     Exception\DomainException,
-    Exception\LogicException,
+    Exception\ExplodeExpressionCantBeMatched,
     Exception\ExpressionLimitCantBeNegative,
 };
 use Innmind\Immutable\{
@@ -128,7 +128,7 @@ final class Query implements Expression
         }
 
         if ($this->explode) {
-            throw new LogicException;
+            throw new ExplodeExpressionCantBeMatched;
         }
 
         if ($this->mustLimit()) {
