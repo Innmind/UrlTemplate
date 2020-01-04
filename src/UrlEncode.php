@@ -37,9 +37,9 @@ final class UrlEncode
                 ->map(function(Str $character): Str {
                     return Str::of($this($character->toString()));
                 })
-                ->toSequenceOf(
+                ->mapTo(
                     'string',
-                    static fn(Str $character): \Generator => yield $character->toString(),
+                    static fn(Str $character): string => $character->toString(),
                 );
 
             return join('', $characters)->toString();
