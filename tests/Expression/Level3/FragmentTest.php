@@ -29,7 +29,7 @@ class FragmentTest extends TestCase
     {
         $this->assertSame(
             '{#foo,bar}',
-            (string) new Fragment(new Name('foo'), new Name('bar'))
+            (new Fragment(new Name('foo'), new Name('bar')))->toString(),
         );
     }
 
@@ -59,7 +59,7 @@ class FragmentTest extends TestCase
             Fragment::class,
             $expression = Fragment::of(Str::of('{#foo,bar}'))
         );
-        $this->assertSame('{#foo,bar}', (string) $expression);
+        $this->assertSame('{#foo,bar}', $expression->toString());
     }
 
     public function testThrowWhenInvalidPattern()

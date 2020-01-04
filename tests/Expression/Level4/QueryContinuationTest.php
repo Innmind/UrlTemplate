@@ -42,9 +42,9 @@ class QueryContinuationTest extends TestCase
 
     public function testStringCast()
     {
-        $this->assertSame('{&foo}', (string) new QueryContinuation(new Name('foo')));
-        $this->assertSame('{&foo*}', (string) QueryContinuation::explode(new Name('foo')));
-        $this->assertSame('{&foo:42}', (string) QueryContinuation::limit(new Name('foo'), 42));
+        $this->assertSame('{&foo}', (new QueryContinuation(new Name('foo')))->toString());
+        $this->assertSame('{&foo*}', QueryContinuation::explode(new Name('foo'))->toString());
+        $this->assertSame('{&foo:42}', QueryContinuation::limit(new Name('foo'), 42)->toString());
     }
 
     public function testThrowWhenNegativeLimit()
@@ -95,17 +95,17 @@ class QueryContinuationTest extends TestCase
             QueryContinuation::class,
             $expression = QueryContinuation::of(Str::of('{&foo}'))
         );
-        $this->assertSame('{&foo}', (string) $expression);
+        $this->assertSame('{&foo}', $expression->toString());
         $this->assertInstanceOf(
             QueryContinuation::class,
             $expression = QueryContinuation::of(Str::of('{&foo*}'))
         );
-        $this->assertSame('{&foo*}', (string) $expression);
+        $this->assertSame('{&foo*}', $expression->toString());
         $this->assertInstanceOf(
             QueryContinuation::class,
             $expression = QueryContinuation::of(Str::of('{&foo:42}'))
         );
-        $this->assertSame('{&foo:42}', (string) $expression);
+        $this->assertSame('{&foo:42}', $expression->toString());
     }
 
     public function testThrowWhenInvalidPattern()

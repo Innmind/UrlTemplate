@@ -29,7 +29,7 @@ class ReservedTest extends TestCase
     {
         $this->assertSame(
             '{+foo,bar}',
-            (string) new Reserved(new Name('foo'), new Name('bar'))
+            (new Reserved(new Name('foo'), new Name('bar')))->toString(),
         );
     }
 
@@ -59,7 +59,7 @@ class ReservedTest extends TestCase
             Reserved::class,
             $expression = Reserved::of(Str::of('{+foo,bar}'))
         );
-        $this->assertSame('{+foo,bar}', (string) $expression);
+        $this->assertSame('{+foo,bar}', $expression->toString());
     }
 
     public function testThrowWhenInvalidPattern()

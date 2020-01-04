@@ -128,11 +128,11 @@ final class Level4 implements Expression
      */
     public function expand(Map $variables): string
     {
-        if (!$variables->contains((string) $this->name)) {
+        if (!$variables->contains($this->name->toString())) {
             return '';
         }
 
-        $variable = $variables->get((string) $this->name);
+        $variable = $variables->get($this->name->toString());
 
         if (\is_array($variable)) {
             return $this->expandList($variables, ...$variable);
@@ -146,7 +146,7 @@ final class Level4 implements Expression
             $value = Str::of((string) $variable)->substring(0, $this->limit);
             $value = $this->expression->expand(
                 $variables->put(
-                    (string) $this->name,
+                    $this->name->toString(),
                     $value->toString()
                 )
             );
@@ -184,21 +184,21 @@ final class Level4 implements Expression
         );
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         if (\is_string($this->string)) {
             return $this->string;
         }
 
         if ($this->mustLimit()) {
-            return $this->string = "{{$this->lead}{$this->name}:{$this->limit}}";
+            return $this->string = "{{$this->lead}{$this->name->toString()}:{$this->limit}}";
         }
 
         if ($this->explode) {
-            return $this->string = "{{$this->lead}{$this->name}*}";
+            return $this->string = "{{$this->lead}{$this->name->toString()}*}";
         }
 
-        return $this->string = "{{$this->lead}{$this->name}}";
+        return $this->string = "{{$this->lead}{$this->name->toString()}}";
     }
 
     private function mustLimit(): bool
@@ -231,7 +231,7 @@ final class Level4 implements Expression
             ->map(function(string $element) use ($variables): string {
                 return $this->expression->expand(
                     $variables->put(
-                        (string) $this->name,
+                        $this->name->toString(),
                         $element
                     )
                 );
@@ -255,7 +255,7 @@ final class Level4 implements Expression
 
                 $value = $this->expression->expand(
                     $variables->put(
-                        (string) $this->name,
+                        $this->name->toString(),
                         $element
                     )
                 );
@@ -263,7 +263,7 @@ final class Level4 implements Expression
                 if (isset($name)) {
                     $value = \sprintf(
                         '%s=%s',
-                        new Name($name),
+                        (new Name($name))->toString(),
                         $value
                     );
                 }

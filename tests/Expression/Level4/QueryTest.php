@@ -42,9 +42,9 @@ class QueryTest extends TestCase
 
     public function testStringCast()
     {
-        $this->assertSame('{?foo}', (string) new Query(new Name('foo')));
-        $this->assertSame('{?foo*}', (string) Query::explode(new Name('foo')));
-        $this->assertSame('{?foo:42}', (string) Query::limit(new Name('foo'), 42));
+        $this->assertSame('{?foo}', (new Query(new Name('foo')))->toString());
+        $this->assertSame('{?foo*}', Query::explode(new Name('foo'))->toString());
+        $this->assertSame('{?foo:42}', Query::limit(new Name('foo'), 42)->toString());
     }
 
     public function testThrowWhenNegativeLimit()
@@ -95,17 +95,17 @@ class QueryTest extends TestCase
             Query::class,
             $expression = Query::of(Str::of('{?foo}'))
         );
-        $this->assertSame('{?foo}', (string) $expression);
+        $this->assertSame('{?foo}', $expression->toString());
         $this->assertInstanceOf(
             Query::class,
             $expression = Query::of(Str::of('{?foo*}'))
         );
-        $this->assertSame('{?foo*}', (string) $expression);
+        $this->assertSame('{?foo*}', $expression->toString());
         $this->assertInstanceOf(
             Query::class,
             $expression = Query::of(Str::of('{?foo:42}'))
         );
-        $this->assertSame('{?foo:42}', (string) $expression);
+        $this->assertSame('{?foo:42}', $expression->toString());
     }
 
     public function testThrowWhenInvalidPattern()

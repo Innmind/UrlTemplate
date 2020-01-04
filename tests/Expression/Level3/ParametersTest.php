@@ -29,7 +29,7 @@ class ParametersTest extends TestCase
     {
         $this->assertSame(
             '{;foo,bar}',
-            (string) new Parameters(new Name('foo'), new Name('bar'))
+            (new Parameters(new Name('foo'), new Name('bar')))->toString(),
         );
     }
 
@@ -59,7 +59,7 @@ class ParametersTest extends TestCase
             Parameters::class,
             $expression = Parameters::of(Str::of('{;foo,bar}'))
         );
-        $this->assertSame('{;foo,bar}', (string) $expression);
+        $this->assertSame('{;foo,bar}', $expression->toString());
     }
 
     public function testThrowWhenInvalidPattern()

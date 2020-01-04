@@ -42,9 +42,9 @@ class FragmentTest extends TestCase
 
     public function testStringCast()
     {
-        $this->assertSame('{#foo}', (string) new Fragment(new Name('foo')));
-        $this->assertSame('{#foo*}', (string) Fragment::explode(new Name('foo')));
-        $this->assertSame('{#foo:42}', (string) Fragment::limit(new Name('foo'), 42));
+        $this->assertSame('{#foo}', (new Fragment(new Name('foo')))->toString());
+        $this->assertSame('{#foo*}', Fragment::explode(new Name('foo'))->toString());
+        $this->assertSame('{#foo:42}', Fragment::limit(new Name('foo'), 42)->toString());
     }
 
     public function testThrowWhenNegativeLimit()
@@ -95,17 +95,17 @@ class FragmentTest extends TestCase
             Fragment::class,
             $expression = Fragment::of(Str::of('{#foo}'))
         );
-        $this->assertSame('{#foo}', (string) $expression);
+        $this->assertSame('{#foo}', $expression->toString());
         $this->assertInstanceOf(
             Fragment::class,
             $expression = Fragment::of(Str::of('{#foo*}'))
         );
-        $this->assertSame('{#foo*}', (string) $expression);
+        $this->assertSame('{#foo*}', $expression->toString());
         $this->assertInstanceOf(
             Fragment::class,
             $expression = Fragment::of(Str::of('{#foo:42}'))
         );
-        $this->assertSame('{#foo:42}', (string) $expression);
+        $this->assertSame('{#foo:42}', $expression->toString());
     }
 
     public function testThrowWhenInvalidPattern()

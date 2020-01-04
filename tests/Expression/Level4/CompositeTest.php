@@ -34,19 +34,19 @@ class CompositeTest extends TestCase
     {
         $this->assertSame(
             '{/var:1,var}',
-            (string) new Composite(
+            (new Composite(
                 '/',
                 Path::limit(new Name('var'), 1),
                 new Level4(new Name('var'))
-            )
+            ))->toString()
         );
         $this->assertSame(
             '{/list*,path:4}',
-            (string) new Composite(
+            (new Composite(
                 '/',
                 Path::explode(new Name('list')),
                 Level4::limit(new Name('path'), 4)
-            )
+            ))->toString()
         );
     }
 
@@ -91,7 +91,7 @@ class CompositeTest extends TestCase
 
         $expression = Composite::of(Str::of($pattern));
 
-        $this->assertSame($pattern, (string) $expression);
+        $this->assertSame($pattern, $expression->toString());
         $this->assertSame($expected, $expression->expand($variables));
     }
 

@@ -29,7 +29,7 @@ class QueryTest extends TestCase
     {
         $this->assertSame(
             '{?foo,bar}',
-            (string) new Query(new Name('foo'), new Name('bar'))
+            (new Query(new Name('foo'), new Name('bar')))->toString(),
         );
     }
 
@@ -59,7 +59,7 @@ class QueryTest extends TestCase
             Query::class,
             $expression = Query::of(Str::of('{?foo,bar}'))
         );
-        $this->assertSame('{?foo,bar}', (string) $expression);
+        $this->assertSame('{?foo,bar}', $expression->toString());
     }
 
     public function testThrowWhenInvalidPattern()

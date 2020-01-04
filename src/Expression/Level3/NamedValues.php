@@ -35,7 +35,7 @@ final class NamedValues implements Expression
         $this->expressions = $this->names->toMapOf(
             'string',
             Expression::class,
-            static fn($name): \Generator => yield (string) $name => new Level1($name),
+            static fn($name): \Generator => yield $name->toString() => new Level1($name),
         );
     }
 
@@ -86,7 +86,7 @@ final class NamedValues implements Expression
                 'string',
                 fn($name) => \sprintf(
                     '%s=%s%s',
-                    $name,
+                    $name->toString(),
                     $this->keyOnlyWhenEmpty ? '?' : '',
                     (new Level1($name))->regex(),
                 ),
@@ -96,13 +96,13 @@ final class NamedValues implements Expression
             ->toString();
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         return $this->string ?? $this->string = join(
             ',',
             $this->names->mapTo(
                 'string',
-                static fn($element) => (string) $element,
+                static fn($element) => $element->toString(),
             ),
         )
             ->prepend('{'.$this->lead)

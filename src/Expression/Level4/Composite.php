@@ -128,7 +128,7 @@ final class Composite implements Expression
         )->toString();
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         if (\is_string($this->string)) {
             return $this->string;
@@ -136,7 +136,7 @@ final class Composite implements Expression
 
         $expressions = $this->expressions->mapTo(
             Str::class,
-            static fn($expression) => Str::of((string) $expression)->trim('{}'),
+            static fn($expression) => Str::of($expression->toString())->trim('{}'),
         );
 
         //only keep the lead character for the first expression and remove it

@@ -42,9 +42,9 @@ class Level4Test extends TestCase
 
     public function testStringCast()
     {
-        $this->assertSame('{foo}', (string) new Level4(new Name('foo')));
-        $this->assertSame('{foo*}', (string) Level4::explode(new Name('foo')));
-        $this->assertSame('{foo:42}', (string) Level4::limit(new Name('foo'), 42));
+        $this->assertSame('{foo}', (new Level4(new Name('foo')))->toString());
+        $this->assertSame('{foo*}', Level4::explode(new Name('foo'))->toString());
+        $this->assertSame('{foo:42}', Level4::limit(new Name('foo'), 42)->toString());
     }
 
     public function testThrowWhenNegativeLimit()
@@ -103,17 +103,17 @@ class Level4Test extends TestCase
             Level4::class,
             $expression = Level4::of(Str::of('{foo}'))
         );
-        $this->assertSame('{foo}', (string) $expression);
+        $this->assertSame('{foo}', $expression->toString());
         $this->assertInstanceOf(
             Level4::class,
             $expression = Level4::of(Str::of('{foo*}'))
         );
-        $this->assertSame('{foo*}', (string) $expression);
+        $this->assertSame('{foo*}', $expression->toString());
         $this->assertInstanceOf(
             Level4::class,
             $expression = Level4::of(Str::of('{foo:42}'))
         );
-        $this->assertSame('{foo:42}', (string) $expression);
+        $this->assertSame('{foo:42}', $expression->toString());
     }
 
     public function testThrowWhenInvalidPattern()

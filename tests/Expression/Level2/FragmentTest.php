@@ -27,7 +27,7 @@ class FragmentTest extends TestCase
 
     public function testStringCast()
     {
-        $this->assertSame('{#foo}', (string) new Fragment(new Name('foo')));
+        $this->assertSame('{#foo}', (new Fragment(new Name('foo')))->toString());
     }
 
     public function testExpand()
@@ -54,7 +54,7 @@ class FragmentTest extends TestCase
             Fragment::class,
             $expression = Fragment::of(Str::of('{#foo}'))
         );
-        $this->assertSame('{#foo}', (string) $expression);
+        $this->assertSame('{#foo}', $expression->toString());
     }
 
     public function testThrowWhenInvalidPattern()

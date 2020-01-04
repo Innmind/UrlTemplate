@@ -100,8 +100,8 @@ final class Fragment implements Expression
         return $this->expression->expand($variables);
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
-        return (string) $this->expression;
+        return $this->expression->toString();
     }
 }

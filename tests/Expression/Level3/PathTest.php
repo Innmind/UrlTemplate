@@ -29,7 +29,7 @@ class PathTest extends TestCase
     {
         $this->assertSame(
             '{/foo,bar}',
-            (string) new Path(new Name('foo'), new Name('bar'))
+            (new Path(new Name('foo'), new Name('bar')))->toString(),
         );
     }
 
@@ -59,7 +59,7 @@ class PathTest extends TestCase
             Path::class,
             $expression = Path::of(Str::of('{/foo,bar}'))
         );
-        $this->assertSame('{/foo,bar}', (string) $expression);
+        $this->assertSame('{/foo,bar}', $expression->toString());
     }
 
     public function testThrowWhenInvalidPattern()

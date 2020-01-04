@@ -42,9 +42,9 @@ class PathTest extends TestCase
 
     public function testStringCast()
     {
-        $this->assertSame('{/foo}', (string) new Path(new Name('foo')));
-        $this->assertSame('{/foo*}', (string) Path::explode(new Name('foo')));
-        $this->assertSame('{/foo:42}', (string) Path::limit(new Name('foo'), 42));
+        $this->assertSame('{/foo}', (new Path(new Name('foo')))->toString());
+        $this->assertSame('{/foo*}', Path::explode(new Name('foo'))->toString());
+        $this->assertSame('{/foo:42}', Path::limit(new Name('foo'), 42)->toString());
     }
 
     public function testThrowWhenNegativeLimit()
@@ -91,17 +91,17 @@ class PathTest extends TestCase
             Path::class,
             $expression = Path::of(Str::of('{/foo}'))
         );
-        $this->assertSame('{/foo}', (string) $expression);
+        $this->assertSame('{/foo}', $expression->toString());
         $this->assertInstanceOf(
             Path::class,
             $expression = Path::of(Str::of('{/foo*}'))
         );
-        $this->assertSame('{/foo*}', (string) $expression);
+        $this->assertSame('{/foo*}', $expression->toString());
         $this->assertInstanceOf(
             Path::class,
             $expression = Path::of(Str::of('{/foo:42}'))
         );
-        $this->assertSame('{/foo:42}', (string) $expression);
+        $this->assertSame('{/foo:42}', $expression->toString());
     }
 
     public function testThrowWhenInvalidPattern()

@@ -60,7 +60,7 @@ final class Template
             $this->template,
             function(Str $template, Expression $expression) use ($variables): Str {
                 return $template->replace(
-                    (string) $expression,
+                    $expression->toString(),
                     $expression->expand($variables)
                 );
             }
@@ -105,7 +105,7 @@ final class Template
         return $url->matches($regex);
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         return $this->template->toString();
     }
@@ -137,7 +137,7 @@ final class Template
                 $this->template->replace('~', '\~'),
                 static function(Str $template, Expression $expression): Str {
                     return $template->replace(
-                        (string) $expression,
+                        $expression->toString(),
                         $expression->regex()
                     );
                 }

@@ -76,18 +76,18 @@ final class Level3 implements Expression
             ',',
             $this->names->mapTo(
                 'string',
-                static fn(Name $name) => "(?<{$name}>[a-zA-Z0-9\%\-\.\_\~]*)",
+                static fn(Name $name) => "(?<{$name->toString()}>[a-zA-Z0-9\%\-\.\_\~]*)",
             ),
         )->toString();
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         return $this->string ?? $this->string = join(
             ',',
             $this->names->mapTo(
                 'string',
-                static fn($name) => (string) $name,
+                static fn($name) => $name->toString(),
             ),
         )
             ->prepend('{')

@@ -97,11 +97,11 @@ final class QueryContinuation implements Expression
      */
     public function expand(Map $variables): string
     {
-        if (!$variables->contains((string) $this->name)) {
+        if (!$variables->contains($this->name->toString())) {
             return '';
         }
 
-        $variable = $variables->get((string) $this->name);
+        $variable = $variables->get($this->name->toString());
 
         if (\is_array($variable)) {
             return $this->expandList($variables, ...$variable);
@@ -114,10 +114,10 @@ final class QueryContinuation implements Expression
         $value = Str::of($this->expression->expand($variables));
 
         if ($this->mustLimit()) {
-            return "&{$this->name}={$value->substring(0, $this->limit)->toString()}";
+            return "&{$this->name->toString()}={$value->substring(0, $this->limit)->toString()}";
         }
 
-        return "&{$this->name}={$value->toString()}";
+        return "&{$this->name->toString()}={$value->toString()}";
     }
 
     public function regex(): string
@@ -142,26 +142,26 @@ final class QueryContinuation implements Expression
 
         return $this->regex = \sprintf(
             '\&%s=%s',
-            $this->name,
+            $this->name->toString(),
             $regex
         );
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         if (\is_string($this->string)) {
             return $this->string;
         }
 
         if ($this->mustLimit()) {
-            return $this->string = "{&{$this->name}:{$this->limit}}";
+            return $this->string = "{&{$this->name->toString()}:{$this->limit}}";
         }
 
         if ($this->explode) {
-            return $this->string = "{&{$this->name}*}";
+            return $this->string = "{&{$this->name->toString()}*}";
         }
 
-        return $this->string = "{&{$this->name}}";
+        return $this->string = "{&{$this->name->toString()}}";
     }
 
     private function mustLimit(): bool
@@ -194,7 +194,7 @@ final class QueryContinuation implements Expression
             ->map(function($element) use ($variables): string {
                 return $this->expression->expand(
                     $variables->put(
-                        (string) $this->name,
+                        $this->name->toString(),
                         $element
                     )
                 );
@@ -205,7 +205,7 @@ final class QueryContinuation implements Expression
             );
 
         return join(',', $elements)
-            ->prepend("&$this->name=")
+            ->prepend("&{$this->name->toString()}=")
             ->toString();
     }
 
@@ -224,7 +224,7 @@ final class QueryContinuation implements Expression
                 }
 
                 return (new Level3\QueryContinuation($name))->expand(
-                    $variables->put((string) $name, $element)
+                    $variables->put($name->toString(), $element)
                 );
             })
             ->mapTo(

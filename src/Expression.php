@@ -24,5 +24,5 @@ interface Expression
      */
     public function expand(Map $variables): string;
     public function regex(): string;
-    public function __toString(): string;
+    public function toString(): string;
 }

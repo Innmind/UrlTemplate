@@ -44,22 +44,22 @@ final class Fragment implements Expression
      */
     public function expand(Map $variables): string
     {
-        if (!$variables->contains((string) $this->name)) {
+        if (!$variables->contains($this->name->toString())) {
             return '';
         }
 
         return '#'.($this->encode)(
-            (string) $variables->get((string) $this->name)
+            (string) $variables->get($this->name->toString())
         );
     }
 
     public function regex(): string
     {
-        return $this->regex ?? $this->regex = "\#(?<{$this->name}>[a-zA-Z0-9\%:/\?#\[\]@!\$&'\(\)\*\+,;=\-\.\_\~]*)";
+        return $this->regex ?? $this->regex = "\#(?<{$this->name->toString()}>[a-zA-Z0-9\%:/\?#\[\]@!\$&'\(\)\*\+,;=\-\.\_\~]*)";
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
-        return $this->string ?? $this->string = "{#{$this->name}}";
+        return $this->string ?? $this->string = "{#{$this->name->toString()}}";
     }
 }

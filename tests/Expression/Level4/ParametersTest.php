@@ -42,9 +42,9 @@ class ParametersTest extends TestCase
 
     public function testStringCast()
     {
-        $this->assertSame('{;foo}', (string) new Parameters(new Name('foo')));
-        $this->assertSame('{;foo*}', (string) Parameters::explode(new Name('foo')));
-        $this->assertSame('{;foo:42}', (string) Parameters::limit(new Name('foo'), 42));
+        $this->assertSame('{;foo}', (new Parameters(new Name('foo')))->toString());
+        $this->assertSame('{;foo*}', Parameters::explode(new Name('foo'))->toString());
+        $this->assertSame('{;foo:42}', Parameters::limit(new Name('foo'), 42)->toString());
     }
 
     public function testThrowWhenNegativeLimit()
@@ -95,17 +95,17 @@ class ParametersTest extends TestCase
             Parameters::class,
             $expression = Parameters::of(Str::of('{;foo}'))
         );
-        $this->assertSame('{;foo}', (string) $expression);
+        $this->assertSame('{;foo}', $expression->toString());
         $this->assertInstanceOf(
             Parameters::class,
             $expression = Parameters::of(Str::of('{;foo*}'))
         );
-        $this->assertSame('{;foo*}', (string) $expression);
+        $this->assertSame('{;foo*}', $expression->toString());
         $this->assertInstanceOf(
             Parameters::class,
             $expression = Parameters::of(Str::of('{;foo:42}'))
         );
-        $this->assertSame('{;foo:42}', (string) $expression);
+        $this->assertSame('{;foo:42}', $expression->toString());
     }
 
     public function testThrowWhenInvalidPattern()

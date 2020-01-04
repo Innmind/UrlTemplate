@@ -22,10 +22,10 @@ class TemplateTest extends TestCase
     {
         $template = Template::of('http://example.com/{/folders}');
 
-        $this->assertSame('http://example.com/{/folders}', (string) $template);
+        $this->assertSame('http://example.com/{/folders}', $template->toString());
         $this->assertInstanceOf(Set::class, $template->expressions());
         $this->assertCount(1, $template->expressions());
-        $this->assertSame('{/folders}', (string) first($template->expressions()));
+        $this->assertSame('{/folders}', first($template->expressions())->toString());
     }
 
     public function testOf()
@@ -33,7 +33,7 @@ class TemplateTest extends TestCase
         $template = Template::of('http://example.com/{/folders}');
 
         $this->assertInstanceOf(Template::class, $template);
-        $this->assertSame('http://example.com/{/folders}', (string) $template);
+        $this->assertSame('http://example.com/{/folders}', $template->toString());
     }
 
     /**

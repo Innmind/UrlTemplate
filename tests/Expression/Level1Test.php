@@ -27,7 +27,7 @@ class Level1Test extends TestCase
 
     public function testStringCast()
     {
-        $this->assertSame('{foo}', (string) new Level1(new Name('foo')));
+        $this->assertSame('{foo}', (new Level1(new Name('foo')))->toString());
     }
 
     public function testExpand()
@@ -51,7 +51,7 @@ class Level1Test extends TestCase
             Level1::class,
             $expression = Level1::of(Str::of('{foo}'))
         );
-        $this->assertSame('{foo}', (string) $expression);
+        $this->assertSame('{foo}', $expression->toString());
     }
 
     public function testThrowWhenInvalidPattern()

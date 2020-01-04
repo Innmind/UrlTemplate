@@ -87,13 +87,13 @@ final class Fragment implements Expression
             ->toString();
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         return $this->string ?? $this->string = join(
             ',',
             $this->names->mapTo(
                 'string',
-                static fn($element) => (string) $element,
+                static fn($element) => $element->toString(),
             ),
         )
             ->prepend('{#')

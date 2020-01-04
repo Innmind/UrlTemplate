@@ -114,26 +114,26 @@ final class Reserved implements Expression
         }
 
         if (\is_int($this->limit)) {
-            return $this->regex = "(?<{$this->name}>[a-zA-Z0-9\%:/\?#\[\]@!\$&'\(\)\*\+,;=\-\.\_\~]{{$this->limit}})";
+            return $this->regex = "(?<{$this->name->toString()}>[a-zA-Z0-9\%:/\?#\[\]@!\$&'\(\)\*\+,;=\-\.\_\~]{{$this->limit}})";
         }
 
         return $this->regex = $this->expression->regex();
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         if (\is_string($this->string)) {
             return $this->string;
         }
 
         if (\is_int($this->limit)) {
-            return $this->string = "{+{$this->name}:{$this->limit}}";
+            return $this->string = "{+{$this->name->toString()}:{$this->limit}}";
         }
 
         if ($this->explode) {
-            return $this->string = "{+{$this->name}*}";
+            return $this->string = "{+{$this->name->toString()}*}";
         }
 
-        return $this->string = "{+{$this->name}}";
+        return $this->string = "{+{$this->name->toString()}}";
     }
 }

@@ -29,7 +29,7 @@ class Level3Test extends TestCase
     {
         $this->assertSame(
             '{foo,bar}',
-            (string) new Level3(new Name('foo'), new Name('bar'))
+            (new Level3(new Name('foo'), new Name('bar')))->toString(),
         );
     }
 
@@ -59,7 +59,7 @@ class Level3Test extends TestCase
             Level3::class,
             $expression = Level3::of(Str::of('{foo,bar}'))
         );
-        $this->assertSame('{foo,bar}', (string) $expression);
+        $this->assertSame('{foo,bar}', $expression->toString());
     }
 
     public function testThrowWhenInvalidPattern()

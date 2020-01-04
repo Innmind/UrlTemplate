@@ -29,7 +29,7 @@ class QueryContinuationTest extends TestCase
     {
         $this->assertSame(
             '{&foo,bar}',
-            (string) new QueryContinuation(new Name('foo'), new Name('bar'))
+            (new QueryContinuation(new Name('foo'), new Name('bar')))->toString(),
         );
     }
 
@@ -59,7 +59,7 @@ class QueryContinuationTest extends TestCase
             QueryContinuation::class,
             $expression = QueryContinuation::of(Str::of('{&foo,bar}'))
         );
-        $this->assertSame('{&foo,bar}', (string) $expression);
+        $this->assertSame('{&foo,bar}', $expression->toString());
     }
 
     public function testThrowWhenInvalidPattern()

@@ -29,7 +29,7 @@ class LabelTest extends TestCase
     {
         $this->assertSame(
             '{.foo,bar}',
-            (string) new Label(new Name('foo'), new Name('bar'))
+            (new Label(new Name('foo'), new Name('bar')))->toString(),
         );
     }
 
@@ -59,7 +59,7 @@ class LabelTest extends TestCase
             Label::class,
             $expression = Label::of(Str::of('{.foo,bar}'))
         );
-        $this->assertSame('{.foo,bar}', (string) $expression);
+        $this->assertSame('{.foo,bar}', $expression->toString());
     }
 
     public function testThrowWhenInvalidPattern()

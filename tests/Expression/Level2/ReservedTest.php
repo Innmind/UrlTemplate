@@ -27,7 +27,7 @@ class ReservedTest extends TestCase
 
     public function testStringCast()
     {
-        $this->assertSame('{+foo}', (string) new Reserved(new Name('foo')));
+        $this->assertSame('{+foo}', (new Reserved(new Name('foo')))->toString());
     }
 
     public function testExpand()
@@ -54,7 +54,7 @@ class ReservedTest extends TestCase
             Reserved::class,
             $expression = Reserved::of(Str::of('{+foo}'))
         );
-        $this->assertSame('{+foo}', (string) $expression);
+        $this->assertSame('{+foo}', $expression->toString());
     }
 
     public function testThrowWhenInvalidPattern()
