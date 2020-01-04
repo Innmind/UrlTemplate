@@ -172,67 +172,67 @@ final class Query implements Expression
 
     /**
      * @param Map<string, scalar|array> $variables
+     * @param array<scalar|{0:scalar, 1:scalar}> $variablesToExpand
      */
-    private function expandList(Map $variables, ...$elements): string
+    private function expandList(Map $variables, ...$variablesToExpand): string
     {
         if ($this->explode) {
-            return $this->explodeList($variables, $elements);
+            return $this->explodeList($variables, $variablesToExpand);
         }
 
-        $elements = Sequence::mixed(...$elements)
-            ->reduce(
-                Sequence::mixed(),
-                static function(Sequence $values, $element): Sequence {
-                    if (\is_array($element)) {
-                        [$name, $element] = $element;
+        $flattenedVariables = Sequence::of('scalar|array', ...$variablesToExpand)->reduce(
+            Sequence::of('scalar'),
+            static function(Sequence $values, $variableToExpand): Sequence {
+                if (\is_array($variableToExpand)) {
+                    [$name, $variableToExpand] = $variableToExpand;
 
-                        return ($values)($name)($element);
-                    }
+                    return ($values)($name)($variableToExpand);
+                }
 
-                    return ($values)($element);
-                },
-            )
-            ->map(function($element) use ($variables): string {
+                return ($values)($variableToExpand);
+            },
+        );
+        $expanded = $flattenedVariables
+            ->map(function($variableToExpand) use ($variables): string {
+                // here we use the level1 expression to transform the variable to
+                // be expanded to its string representation
                 return $this->expression->expand(
-                    ($variables)($this->name->toString(), $element),
+                    ($variables)($this->name->toString(), $variableToExpand),
                 );
             })
-            ->mapTo(
-                'string',
-                static fn($element) => (string) $element,
-            );
+            ->toSequenceOf('string');
 
-        return join(',', $elements)
+        return join(',', $expanded)
             ->prepend("?{$this->name->toString()}=")
             ->toString();
     }
 
     /**
      * @param Map<string, scalar|array> $variables
+     * @param array<scalar|{0:scalar, 1:scalar}> $variablesToExpand
      */
-    private function explodeList(Map $variables, array $elements): string
+    private function explodeList(Map $variables, array $variablesToExpand): string
     {
-        $elements = Sequence::mixed(...$elements)
-            ->map(function($element) use ($variables): string {
+        $expanded = Sequence::of('scalar|array', ...$variablesToExpand)
+            ->map(function($variableToExpand) use ($variables): string {
                 $name = $this->name;
 
-                if (\is_array($element)) {
-                    [$name, $element] = $element;
+                if (\is_array($variableToExpand)) {
+                    [$name, $variableToExpand] = $variableToExpand;
                     $name = new Name($name);
                 }
 
                 $value = (new Level3\Query($name))->expand(
-                    ($variables)($name->toString(), $element),
+                    ($variables)($name->toString(), $variableToExpand),
                 );
 
+                // the substring is here to remove the '?' as it should be a '&'
+                // done below in the join
                 return Str::of($value)->substring(1)->toString();
             })
-            ->mapTo(
-                'string',
-                static fn($element) => (string) $element,
-            );
+            ->toSequenceOf('string');
 
-        return join('&', $elements)
+        return join('&', $expanded)
             ->prepend('?')
             ->toString();
     }

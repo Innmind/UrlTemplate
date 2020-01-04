@@ -72,7 +72,7 @@ final class Composite implements Expression
      */
     public function expand(Map $variables): string
     {
-        $values = $this->expressions->mapTo(
+        $expanded = $this->expressions->mapTo(
             'string',
             static fn($expression) => $expression->expand($variables),
         );
@@ -80,10 +80,10 @@ final class Composite implements Expression
         //potentially remove the lead characters from the expressions except for
         //the first one, needed for the fragment composite
 
-        $values = $values
+        $expanded = $expanded
             ->take(1)
             ->append(
-                $values->drop(1)->map(function(string $value): string {
+                $expanded->drop(1)->map(function(string $value): string {
                     if ($this->removeLead) {
                         return Str::of($value)->substring(1)->toString();
                     }
@@ -92,7 +92,7 @@ final class Composite implements Expression
                 }),
             );
 
-        return join($this->separator, $values)->toString();
+        return join($this->separator, $expanded)->toString();
     }
 
     public function regex(): string

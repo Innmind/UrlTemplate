@@ -60,20 +60,20 @@ final class NamedValues implements Expression
      */
     public function expand(Map $variables): string
     {
-        $elements = $this->expressions->reduce(
+        $expanded = $this->expressions->reduce(
             Sequence::of('string'),
-            function(Sequence $values, string $name, Expression $expression) use ($variables): Sequence {
+            function(Sequence $expanded, string $name, Expression $expression) use ($variables): Sequence {
                 $value = Str::of($expression->expand($variables));
 
                 if ($value->empty() && $this->keyOnlyWhenEmpty) {
-                    return ($values)($name);
+                    return ($expanded)($name);
                 }
 
-                return ($values)("$name={$value->toString()}");
+                return ($expanded)("$name={$value->toString()}");
             },
         );
 
-        return join($this->separator, $elements)
+        return join($this->separator, $expanded)
             ->prepend($this->lead)
             ->toString();
     }

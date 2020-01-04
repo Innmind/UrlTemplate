@@ -206,50 +206,55 @@ final class Level4 implements Expression
 
     /**
      * @param Map<string, scalar|array> $variables
+     * @param array<scalar|{0:scalar, 1:scalar}> $variablesToExpand
      */
-    private function expandList(Map $variables, ...$elements): string
+    private function expandList(Map $variables, ...$variablesToExpand): string
     {
         if ($this->explode) {
-            return $this->explodeList($variables, $elements);
+            return $this->explodeList($variables, $variablesToExpand);
         }
 
-        $elements = Sequence::mixed(...$elements)
-            ->reduce(
-                Sequence::strings(),
-                static function(Sequence $values, $element): Sequence {
-                    if (\is_array($element)) {
-                        [$name, $element] = $element;
+        $flattenedVariables = Sequence::of('scalar|array', ...$variablesToExpand)->reduce(
+            Sequence::of('scalar'),
+            static function(Sequence $values, $variableToExpand): Sequence {
+                if (\is_array($variableToExpand)) {
+                    [$name, $variableToExpand] = $variableToExpand;
 
-                        return ($values)($name)($element);
-                    }
+                    return ($values)($name)($variableToExpand);
+                }
 
-                    return ($values)($element);
-                },
-            )
-            ->map(function(string $element) use ($variables): string {
+                return ($values)($variableToExpand);
+            },
+        );
+        $expanded = $flattenedVariables
+            ->map(function(string $variableToExpand) use ($variables): string {
+                // here we use the level1 expression to transform the variable to
+                // be expanded to its string representation
                 return $this->expression->expand(
-                    ($variables)($this->name->toString(), $element),
+                    ($variables)($this->name->toString(), $variableToExpand),
                 );
-            });
+            })
+            ->toSequenceOf('string');
 
-        return join($this->separator, $elements)
+        return join($this->separator, $expanded)
             ->prepend($this->lead)
             ->toString();
     }
 
     /**
      * @param Map<string, scalar|array> $variables
+     * @param array<scalar|{0:scalar, 1:scalar}> $variablesToExpand
      */
-    private function explodeList(Map $variables, array $elements): string
+    private function explodeList(Map $variables, array $variablesToExpand): string
     {
-        $elements = Sequence::mixed(...$elements)
-            ->map(function($element) use ($variables): string {
-                if (\is_array($element)) {
-                    [$name, $element] = $element;
+        $expanded = Sequence::of('scalar|array', ...$variablesToExpand)
+            ->map(function($variableToExpand) use ($variables): string {
+                if (\is_array($variableToExpand)) {
+                    [$name, $variableToExpand] = $variableToExpand;
                 }
 
                 $value = $this->expression->expand(
-                    ($variables)($this->name->toString(), $element),
+                    ($variables)($this->name->toString(), $variableToExpand),
                 );
 
                 if (isset($name)) {
@@ -262,12 +267,9 @@ final class Level4 implements Expression
 
                 return $value;
             })
-            ->mapTo(
-                'string',
-                static fn($element) => (string) $element,
-            );
+            ->toSequenceOf('string');
 
-        return join($this->separator, $elements)
+        return join($this->separator, $expanded)
             ->prepend($this->lead)
             ->toString();
     }
