@@ -48,7 +48,7 @@ final class Expressions
             Expression\Level3\Parameters::class,
             Expression\Level3\Query::class,
             Expression\Level3\QueryContinuation::class,
-            Expression\Level4\Composite::class
+            Expression\Level4\Composite::class,
         ];
     }
 }

@@ -66,11 +66,11 @@ final class NamedValues implements Expression
                 $value = Str::of($expression->expand($variables));
 
                 if ($value->empty() && $this->keyOnlyWhenEmpty) {
-                    return $values->add($name);
+                    return ($values)($name);
                 }
 
-                return $values->add("$name={$value->toString()}");
-            }
+                return ($values)("$name={$value->toString()}");
+            },
         );
 
         return join($this->separator, $elements)

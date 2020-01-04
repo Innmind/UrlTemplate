@@ -63,7 +63,7 @@ final class Composite implements Expression
                 Expressions::of($pieces->first()->prepend('{')->append('}')),
                 static function(Expression $level4, Str $expression): Expression {
                     return $level4->add($expression);
-                }
+                },
             );
     }
 
@@ -89,7 +89,7 @@ final class Composite implements Expression
                     }
 
                     return $value;
-                })
+                }),
             );
 
         return join($this->separator, $values)->toString();
@@ -149,7 +149,7 @@ final class Composite implements Expression
                     ->drop(1)
                     ->map(static function(Str $expression): Str {
                         return $expression->leftTrim('+#/.;?&');
-                    })
+                    }),
             )
             ->mapTo(
                 'string',

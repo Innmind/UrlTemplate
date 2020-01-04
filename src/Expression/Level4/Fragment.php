@@ -47,7 +47,7 @@ final class Fragment implements Expression
 
             return self::limit(
                 new Name($name->toString()),
-                (int) $limit->toString()
+                (int) $limit->toString(),
             );
         }
 
@@ -73,7 +73,7 @@ final class Fragment implements Expression
         return Composite::removeLead(
             ',',
             $this,
-            self::of($pattern->prepend('{#')->append('}'))
+            self::of($pattern->prepend('{#')->append('}')),
         );
     }
 

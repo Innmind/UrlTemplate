@@ -61,7 +61,7 @@ final class Template
             function(Str $template, Expression $expression) use ($variables): Str {
                 return $template->replace(
                     $expression->toString(),
-                    $expression->expand($variables)
+                    $expression->expand($variables),
                 );
             }
         );
@@ -89,11 +89,11 @@ final class Template
             ->reduce(
                 Map::of('string', 'string'),
                 static function(Map $variables, string $name, Str $variable): Map {
-                    return $variables->put(
+                    return ($variables)(
                         $name,
-                        \rawurldecode($variable->toString())
+                        \rawurldecode($variable->toString()),
                     );
-                }
+                },
             );
     }
 
@@ -126,7 +126,7 @@ final class Template
 
         return $this->extractExpressions(
             $expressions->add($captured->values()->first()->toString()),
-            $template->replace($captured->values()->first()->toString(), '')
+            $template->replace($captured->values()->first()->toString(), ''),
         );
     }
 
@@ -146,7 +146,7 @@ final class Template
                             $expression->toString(),
                             "__innmind_expression_{$i}__",
                         );
-                    }
+                    },
                 )
                 ->pregQuote();
             $template = $this->expressions->reduce(

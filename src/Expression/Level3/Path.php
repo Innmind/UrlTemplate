@@ -54,9 +54,7 @@ final class Path implements Expression
                 static fn(Sequence $names, Str $name): Sequence => ($names)(new Name($name->toString())),
             );
 
-        return new self(
-            ...unwrap($names),
-        );
+        return new self(...unwrap($names));
     }
 
     /**

@@ -30,7 +30,7 @@ final class Reserved implements Expression
     {
         $this->name = $name;
         $this->expression = (new Level4($name))->withExpression(
-            Level2\Reserved::class
+            Level2\Reserved::class,
         );
     }
 
@@ -53,7 +53,7 @@ final class Reserved implements Expression
 
             return self::limit(
                 new Name($name->toString()),
-                (int) $limit->toString()
+                (int) $limit->toString(),
             );
         }
 
@@ -69,7 +69,7 @@ final class Reserved implements Expression
         $self = new self($name);
         $self->limit = $limit;
         $self->expression = Level4::limit($name, $limit)->withExpression(
-            Level2\Reserved::class
+            Level2\Reserved::class,
         );
 
         return $self;
@@ -80,7 +80,7 @@ final class Reserved implements Expression
         $self = new self($name);
         $self->explode = true;
         $self->expression = Level4::explode($name)->withExpression(
-            Level2\Reserved::class
+            Level2\Reserved::class,
         );
 
         return $self;
@@ -91,7 +91,7 @@ final class Reserved implements Expression
         return new Composite(
             ',',
             $this,
-            self::of($pattern->prepend('{+')->append('}'))
+            self::of($pattern->prepend('{+')->append('}')),
         );
     }
 

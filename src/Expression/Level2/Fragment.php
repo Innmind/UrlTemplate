@@ -49,7 +49,7 @@ final class Fragment implements Expression
         }
 
         return '#'.($this->encode)(
-            (string) $variables->get($this->name->toString())
+            (string) $variables->get($this->name->toString()),
         );
     }
 

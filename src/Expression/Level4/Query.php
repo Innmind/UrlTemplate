@@ -56,7 +56,7 @@ final class Query implements Expression
 
             return self::limit(
                 new Name($name->toString()),
-                (int) $limit->toString()
+                (int) $limit->toString(),
             );
         }
 
@@ -88,7 +88,7 @@ final class Query implements Expression
         return new Composite(
             '',
             $this,
-            QueryContinuation::of($pattern->prepend('{&')->append('}'))
+            QueryContinuation::of($pattern->prepend('{&')->append('}')),
         );
     }
 
@@ -143,7 +143,7 @@ final class Query implements Expression
         return $this->regex = sprintf(
             '\?%s=%s',
             $this->name->toString(),
-            $regex
+            $regex,
         );
     }
 
@@ -185,18 +185,15 @@ final class Query implements Expression
                     if (\is_array($element)) {
                         [$name, $element] = $element;
 
-                        return $values->add($name)->add($element);
+                        return ($values)($name)($element);
                     }
 
-                    return $values->add($element);
-                }
+                    return ($values)($element);
+                },
             )
             ->map(function($element) use ($variables): string {
                 return $this->expression->expand(
-                    $variables->put(
-                        $this->name->toString(),
-                        $element
-                    )
+                    ($variables)($this->name->toString(), $element),
                 );
             })
             ->mapTo(
@@ -224,7 +221,7 @@ final class Query implements Expression
                 }
 
                 $value = (new Level3\Query($name))->expand(
-                    $variables->put($name->toString(), $element)
+                    ($variables)($name->toString(), $element),
                 );
 
                 return Str::of($value)->substring(1)->toString();
