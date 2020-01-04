@@ -20,7 +20,7 @@ class TemplateTest extends TestCase
 {
     public function testInterface()
     {
-        $template = new Template('http://example.com/{/folders}');
+        $template = Template::of('http://example.com/{/folders}');
 
         $this->assertSame('http://example.com/{/folders}', (string) $template);
         $this->assertInstanceOf(Set::class, $template->expressions());

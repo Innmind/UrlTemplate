@@ -22,7 +22,7 @@ final class Template
     /** @var Set<Expression> */
     private Set $expressions;
 
-    public function __construct(string $template)
+    private function __construct(string $template)
     {
         $this->template = Str::of($template);
         $this->expressions = $this
