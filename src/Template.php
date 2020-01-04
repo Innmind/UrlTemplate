@@ -133,14 +133,32 @@ final class Template
     private function regex(): string
     {
         try {
+            $i = 0;
+            $j = 0;
+            $template = $this
+                ->expressions
+                ->reduce(
+                    $this->template->replace('~', '\~'),
+                    static function(Str $template, Expression $expression) use (&$i): Str {
+                        ++$i;
+
+                        return $template->replace(
+                            $expression->toString(),
+                            "__innmind_expression_{$i}__",
+                        );
+                    }
+                )
+                ->pregQuote();
             $template = $this->expressions->reduce(
-                $this->template->replace('~', '\~'),
-                static function(Str $template, Expression $expression): Str {
+                $template,
+                static function(Str $template, Expression $expression) use (&$j): Str {
+                    ++$j;
+
                     return $template->replace(
-                        $expression->toString(),
-                        $expression->regex()
+                        "__innmind_expression_{$j}__",
+                        $expression->regex(),
                     );
-                }
+                },
             );
         } catch (LogicException $e) {
             throw new ExtractionNotSupported('', 0, $e);

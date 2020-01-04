@@ -119,7 +119,7 @@ class TemplateTest extends TestCase
 
     public function testLevel3Extraction()
     {
-        $variables = Template::of('/map\?{x,y}')->extract(Url::of('/map?1024,768'));
+        $variables = Template::of('/map?{x,y}')->extract(Url::of('/map?1024,768'));
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame('string', (string) $variables->keyType());
@@ -232,7 +232,7 @@ class TemplateTest extends TestCase
         $this->assertSame('768', $variables->get('y'));
         $this->assertSame('', $variables->get('empty'));
 
-        $variables = Template::of('\?fixed=yes{&x}')->extract(Url::of('?fixed=yes&x=1024'));
+        $variables = Template::of('?fixed=yes{&x}')->extract(Url::of('?fixed=yes&x=1024'));
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame('string', (string) $variables->keyType());
@@ -344,6 +344,14 @@ class TemplateTest extends TestCase
 
         $this->assertTrue($template->matches(Url::of('/bar')));
         $this->assertFalse($template->matches(Url::of('/bar/foo')));
+    }
+
+    public function testNoNeedToEscapeSpecialRegexCharactersInTheUrl()
+    {
+        $template = Template::of('/*');
+
+        $this->assertTrue($template->matches(Url::of('/*')));
+        $this->assertFalse($template->matches(Url::of('/f')));
     }
 
     public function cases(): array
