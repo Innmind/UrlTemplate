@@ -11,7 +11,7 @@ use Innmind\UrlTemplate\Exception\{
 use Innmind\Url\Url;
 use Innmind\Immutable\{
     Map,
-    Set,
+    Sequence,
     Str,
 };
 use function Innmind\Immutable\assertMap;
@@ -19,15 +19,15 @@ use function Innmind\Immutable\assertMap;
 final class Template
 {
     private Str $template;
-    /** @var Set<Expression> */
-    private Set $expressions;
+    /** @var Sequence<Expression> */
+    private Sequence $expressions;
 
     private function __construct(string $template)
     {
         $this->template = Str::of($template);
         $this->expressions = $this
             ->extractExpressions(
-                Set::of('string'),
+                Sequence::of('string'),
                 $this->template,
             )
             ->mapTo(
@@ -42,9 +42,9 @@ final class Template
     }
 
     /**
-     * @return Set<Expression>
+     * @return Sequence<Expression>
      */
-    public function expressions(): Set
+    public function expressions(): Sequence
     {
         return $this->expressions;
     }
@@ -115,9 +115,9 @@ final class Template
      * them at the same time
      */
     private function extractExpressions(
-        Set $expressions,
+        Sequence $expressions,
         Str $template
-    ): Set {
+    ): Sequence {
         $captured = $template->capture('~(\{[\+#\./;\?&]?[a-zA-Z0-9_]+(\*|:\d+)?(,[a-zA-Z0-9_]+(\*|:\d+)?)*\})~');
 
         if ($captured->size() === 0) {

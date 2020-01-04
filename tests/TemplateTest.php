@@ -11,7 +11,7 @@ use Innmind\UrlTemplate\{
 use Innmind\Url\Url;
 use Innmind\Immutable\{
     Map,
-    Set,
+    Sequence,
 };
 use function Innmind\Immutable\first;
 use PHPUnit\Framework\TestCase;
@@ -23,9 +23,9 @@ class TemplateTest extends TestCase
         $template = Template::of('http://example.com/{/folders}');
 
         $this->assertSame('http://example.com/{/folders}', $template->toString());
-        $this->assertInstanceOf(Set::class, $template->expressions());
+        $this->assertInstanceOf(Sequence::class, $template->expressions());
         $this->assertCount(1, $template->expressions());
-        $this->assertSame('{/folders}', first($template->expressions())->toString());
+        $this->assertSame('{/folders}', $template->expressions()->first()->toString());
     }
 
     public function testOf()
