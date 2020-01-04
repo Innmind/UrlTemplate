@@ -8,6 +8,7 @@ use Innmind\UrlTemplate\{
     Expression\Name,
     Expression,
     Exception\DomainException,
+    Exception\OnlyScalarCanBeExpandedForExpression,
 };
 use Innmind\Immutable\{
     Map,
@@ -70,6 +71,18 @@ class ReservedTest extends TestCase
         $this->assertSame(
             '(?<foo>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]*)',
             Reserved::of(Str::of('{+foo}'))->regex()
+        );
+    }
+
+    public function testThrowWhenTryingToExpandWithAnArray()
+    {
+        $expression = new Reserved(new Name('foo'));
+
+        $this->expectException(OnlyScalarCanBeExpandedForExpression::class);
+        $this->expectExceptionMessage('foo');
+
+        $expression->expand(
+            Map::of('string', 'variable')('foo', ['value'])
         );
     }
 }

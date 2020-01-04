@@ -33,6 +33,7 @@ final class Parameters implements Expression
             throw new DomainException($string->toString());
         }
 
+        /** @var Sequence<Name> $names */
         $names = $string
             ->trim('{;}')
             ->split(',')

@@ -33,6 +33,7 @@ final class Composite implements Expression
     ) {
         $this->separator = $separator;
         $this->type = \get_class($level4);
+        /** @var Sequence<Expression> */
         $this->expressions = Sequence::of(Expression::class, $level4, ...$expressions);
     }
 
@@ -57,11 +58,16 @@ final class Composite implements Expression
             ->trim('{}')
             ->split(',');
 
+        /**
+         * @psalm-suppress UndefinedInterfaceMethod
+         * @psalm-suppress MixedInferredReturnType
+         */
         return $pieces
             ->drop(1)
             ->reduce(
                 Expressions::of($pieces->first()->prepend('{')->append('}')),
                 static function(Expression $level4, Str $expression): Expression {
+                    /** @psalm-suppress MixedReturnStatement */
                     return $level4->add($expression);
                 },
             );

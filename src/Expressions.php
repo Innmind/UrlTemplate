@@ -11,12 +11,14 @@ use Innmind\Immutable\{
 
 final class Expressions
 {
+    /** @var list<string> */
     private static ?array $expressions = null;
 
     public static function of(Str $string): Expression
     {
         foreach (self::expressions() as $expression) {
             try {
+                /** @var Expression */
                 return [$expression, 'of']($string);
             } catch (DomainException $e) {
                 //pass

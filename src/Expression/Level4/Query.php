@@ -102,6 +102,7 @@ final class Query implements Expression
             return '';
         }
 
+        /** @var scalar|array{0:string, 1:scalar} */
         $variable = $variables->get($this->name->toString());
 
         if (\is_array($variable)) {
@@ -172,7 +173,7 @@ final class Query implements Expression
 
     /**
      * @param Map<string, scalar|array> $variables
-     * @param array<scalar|{0:scalar, 1:scalar}> $variablesToExpand
+     * @param array<scalar|array{0:string, 1:scalar}> $variablesToExpand
      */
     private function expandList(Map $variables, ...$variablesToExpand): string
     {
@@ -196,9 +197,11 @@ final class Query implements Expression
             ->map(function($variableToExpand) use ($variables): string {
                 // here we use the level1 expression to transform the variable to
                 // be expanded to its string representation
-                return $this->expression->expand(
-                    ($variables)($this->name->toString(), $variableToExpand),
-                );
+
+                /** @psalm-suppress MixedArgument */
+                $variables = ($variables)($this->name->toString(), $variableToExpand);
+
+                return $this->expression->expand($variables);
             })
             ->toSequenceOf('string');
 
@@ -209,7 +212,7 @@ final class Query implements Expression
 
     /**
      * @param Map<string, scalar|array> $variables
-     * @param array<scalar|{0:scalar, 1:scalar}> $variablesToExpand
+     * @param array<scalar|array{0:string, 1:scalar}> $variablesToExpand
      */
     private function explodeList(Map $variables, array $variablesToExpand): string
     {
@@ -218,13 +221,19 @@ final class Query implements Expression
                 $name = $this->name;
 
                 if (\is_array($variableToExpand)) {
-                    [$name, $variableToExpand] = $variableToExpand;
+                    /**
+                     * @var string $name
+                     * @var scalar $value
+                     */
+                    [$name, $value] = $variableToExpand;
                     $name = new Name($name);
+                    $variableToExpand = $value;
                 }
 
-                $value = (new Level3\Query($name))->expand(
-                    ($variables)($name->toString(), $variableToExpand),
-                );
+                /** @psalm-suppress MixedArgument */
+                $variables = ($variables)($name->toString(), $variableToExpand);
+
+                $value = (new Level3\Query($name))->expand($variables);
 
                 // the substring is here to remove the '?' as it should be a '&'
                 // done below in the join

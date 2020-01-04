@@ -30,10 +30,12 @@ final class Fragment implements Expression
 
     public function __construct(Name ...$names)
     {
+        /** @var Sequence<Name> */
         $this->names = Sequence::of(Name::class, ...$names);
+        /** @var Sequence<Expression> */
         $this->expressions = $this->names->mapTo(
             Expression::class,
-            static fn($name) => new Level2\Reserved($name),
+            static fn(Name $name) => new Level2\Reserved($name),
         );
     }
 
@@ -46,6 +48,7 @@ final class Fragment implements Expression
             throw new DomainException($string->toString());
         }
 
+        /** @var Sequence<Name> $names */
         $names = $string
             ->trim('{#}')
             ->split(',')

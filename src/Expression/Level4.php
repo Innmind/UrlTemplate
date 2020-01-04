@@ -111,10 +111,12 @@ final class Level4 implements Expression
     /**
      * Not ideal technic but didn't find a better to reduce duplicated code
      * @internal
+     *
+     * @param class-string<Expression> $expression
      */
     public function withExpression(string $expression): self
     {
-        if (!(new \ReflectionClass($expression))->implementsInterface(Expression::class)) {
+        if (!is_a($expression, Expression::class, true)) {
             throw new DomainException($expression);
         }
 
@@ -133,6 +135,7 @@ final class Level4 implements Expression
             return '';
         }
 
+        /** @var scalar|array{0:string, 1:scalar} */
         $variable = $variables->get($this->name->toString());
 
         if (\is_array($variable)) {
@@ -206,7 +209,7 @@ final class Level4 implements Expression
 
     /**
      * @param Map<string, scalar|array> $variables
-     * @param array<scalar|{0:scalar, 1:scalar}> $variablesToExpand
+     * @param array<scalar|array{0:scalar, 1:scalar}> $variablesToExpand
      */
     private function expandList(Map $variables, ...$variablesToExpand): string
     {
@@ -243,24 +246,32 @@ final class Level4 implements Expression
 
     /**
      * @param Map<string, scalar|array> $variables
-     * @param array<scalar|{0:scalar, 1:scalar}> $variablesToExpand
+     * @param array<scalar|array{0:scalar, 1:scalar}> $variablesToExpand
      */
     private function explodeList(Map $variables, array $variablesToExpand): string
     {
         $expanded = Sequence::of('scalar|array', ...$variablesToExpand)
             ->map(function($variableToExpand) use ($variables): string {
                 if (\is_array($variableToExpand)) {
-                    [$name, $variableToExpand] = $variableToExpand;
+                    /**
+                     * @var string $name
+                     * @var scalar $value
+                     */
+                    [$name, $value] = $variableToExpand;
+                    $variableToExpand = $value;
                 }
 
-                $value = $this->expression->expand(
-                    ($variables)($this->name->toString(), $variableToExpand),
-                );
+                /** @psalm-suppress MixedArgument */
+                $variables = ($variables)($this->name->toString(), $variableToExpand);
+
+                $value = $this->expression->expand($variables);
 
                 if (isset($name)) {
+                    /** @psalm-suppress MixedArgument */
+                    $name = new Name($name);
                     $value = \sprintf(
                         '%s=%s',
-                        (new Name($name))->toString(),
+                        $name->toString(),
                         $value,
                     );
                 }

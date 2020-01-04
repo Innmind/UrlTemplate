@@ -7,6 +7,7 @@ use Innmind\UrlTemplate\{
     Expression,
     UrlEncode,
     Exception\DomainException,
+    Exception\OnlyScalarCanBeExpandedForExpression,
 };
 use Innmind\Immutable\{
     Map,
@@ -47,9 +48,13 @@ final class Level1 implements Expression
             return '';
         }
 
-        return ($this->encode)(
-            (string) $variables->get($this->name->toString()),
-        );
+        $variable = $variables->get($this->name->toString());
+
+        if (\is_array($variable)) {
+            throw new OnlyScalarCanBeExpandedForExpression($this->name->toString());
+        }
+
+        return ($this->encode)((string) $variable);
     }
 
     public function regex(): string

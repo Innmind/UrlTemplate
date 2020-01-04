@@ -31,11 +31,13 @@ final class NamedValues implements Expression
     {
         $this->lead = $lead;
         $this->separator = $separator;
+        /** @var Sequence<Name> */
         $this->names = Sequence::of(Name::class, ...$names);
+        /** @var Map<string, Expression> */
         $this->expressions = $this->names->toMapOf(
             'string',
             Expression::class,
-            static fn($name): \Generator => yield $name->toString() => new Level1($name),
+            static fn(Name $name): \Generator => yield $name->toString() => new Level1($name),
         );
     }
 
@@ -60,6 +62,7 @@ final class NamedValues implements Expression
      */
     public function expand(Map $variables): string
     {
+        /** @var Sequence<string> */
         $expanded = $this->expressions->reduce(
             Sequence::of('string'),
             function(Sequence $expanded, string $name, Expression $expression) use ($variables): Sequence {

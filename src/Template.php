@@ -73,6 +73,7 @@ final class Template
             throw new UrlDoesntMatchTemplate($url->toString());
         }
 
+        /** @var Map<string, string> */
         return $url
             ->capture($regex)
             ->filter(static function($key): bool {
@@ -80,9 +81,9 @@ final class Template
             })
             ->reduce(
                 Map::of('string', 'string'),
-                static function(Map $variables, string $name, Str $variable): Map {
+                static function(Map $variables, $name, Str $variable): Map {
                     return ($variables)(
-                        $name,
+                        (string) $name,
                         \rawurldecode($variable->toString()),
                     );
                 },
@@ -132,6 +133,7 @@ final class Template
                 ->reduce(
                     $this->template->replace('~', '\~'),
                     static function(Str $template, Expression $expression) use (&$i): Str {
+                        /** @psalm-suppress MixedOperand */
                         ++$i;
 
                         return $template->replace(
@@ -144,6 +146,7 @@ final class Template
             $template = $this->expressions->reduce(
                 $template,
                 static function(Str $template, Expression $expression) use (&$j): Str {
+                    /** @psalm-suppress MixedOperand */
                     ++$j;
 
                     return $template->replace(
