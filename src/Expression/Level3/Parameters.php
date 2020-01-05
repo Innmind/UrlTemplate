@@ -9,15 +9,15 @@ use Innmind\UrlTemplate\{
     Exception\DomainException,
 };
 use Innmind\Immutable\{
-    MapInterface,
-    SequenceInterface,
+    Map,
     Sequence,
     Str,
 };
+use function Innmind\Immutable\unwrap;
 
 final class Parameters implements Expression
 {
-    private $expression;
+    private Expression $expression;
 
     public function __construct(Name ...$names)
     {
@@ -30,26 +30,25 @@ final class Parameters implements Expression
     public static function of(Str $string): Expression
     {
         if (!$string->matches('~^\{;[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)+\}$~')) {
-            throw new DomainException((string) $string);
+            throw new DomainException($string->toString());
         }
 
-        return new self(
-            ...$string
-                ->trim('{;}')
-                ->split(',')
-                ->reduce(
-                    new Sequence,
-                    static function(SequenceInterface $names, Str $name): SequenceInterface {
-                        return $names->add(new Name((string) $name));
-                    }
-                )
-        );
+        /** @var Sequence<Name> $names */
+        $names = $string
+            ->trim('{;}')
+            ->split(',')
+            ->reduce(
+                Sequence::of(Name::class),
+                static fn(Sequence $names, Str $name): Sequence => ($names)(new Name($name->toString())),
+            );
+
+        return new self(...unwrap($names));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function expand(MapInterface $variables): string
+    public function expand(Map $variables): string
     {
         return $this->expression->expand($variables);
     }
@@ -59,8 +58,8 @@ final class Parameters implements Expression
         return $this->expression->regex();
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
-        return (string) $this->expression;
+        return $this->expression->toString();
     }
 }

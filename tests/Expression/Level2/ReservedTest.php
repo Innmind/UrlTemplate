@@ -8,6 +8,7 @@ use Innmind\UrlTemplate\{
     Expression\Name,
     Expression,
     Exception\DomainException,
+    Exception\OnlyScalarCanBeExpandedForExpression,
 };
 use Innmind\Immutable\{
     Map,
@@ -27,7 +28,7 @@ class ReservedTest extends TestCase
 
     public function testStringCast()
     {
-        $this->assertSame('{+foo}', (string) new Reserved(new Name('foo')));
+        $this->assertSame('{+foo}', (new Reserved(new Name('foo')))->toString());
     }
 
     public function testExpand()
@@ -35,16 +36,16 @@ class ReservedTest extends TestCase
         $expression = new Reserved(new Name('foo'));
 
         $this->assertSame('value', $expression->expand(
-            (new Map('string', 'variable'))->put('foo', 'value')
+            Map::of('string', 'variable')('foo', 'value')
         ));
         $this->assertSame('Hello%20World!', $expression->expand(
-            (new Map('string', 'variable'))->put('foo', 'Hello World!')
+            Map::of('string', 'variable')('foo', 'Hello World!')
         ));
         $this->assertSame('/foo/bar', $expression->expand(
-            (new Map('string', 'variable'))->put('foo', '/foo/bar')
+            Map::of('string', 'variable')('foo', '/foo/bar')
         ));
         $this->assertSame('', $expression->expand(
-            new Map('string', 'variable')
+            Map::of('string', 'variable')
         ));
     }
 
@@ -54,7 +55,7 @@ class ReservedTest extends TestCase
             Reserved::class,
             $expression = Reserved::of(Str::of('{+foo}'))
         );
-        $this->assertSame('{+foo}', (string) $expression);
+        $this->assertSame('{+foo}', $expression->toString());
     }
 
     public function testThrowWhenInvalidPattern()
@@ -70,6 +71,18 @@ class ReservedTest extends TestCase
         $this->assertSame(
             '(?<foo>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]*)',
             Reserved::of(Str::of('{+foo}'))->regex()
+        );
+    }
+
+    public function testThrowWhenTryingToExpandWithAnArray()
+    {
+        $expression = new Reserved(new Name('foo'));
+
+        $this->expectException(OnlyScalarCanBeExpandedForExpression::class);
+        $this->expectExceptionMessage('foo');
+
+        $expression->expand(
+            Map::of('string', 'variable')('foo', ['value'])
         );
     }
 }

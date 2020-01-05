@@ -15,9 +15,9 @@
         "issues": "http://github.com/Innmind/UrlTemplate/issues"
     },
     "require": {
-        "php": "~7.2",
-        "innmind/url": "^2.0",
-        "innmind/immutable": "^2.8"
+        "php": "~7.4",
+        "innmind/url": "~3.0",
+        "innmind/immutable": "~3.1"
     },
     "autoload": {
         "psr-4": {
@@ -26,15 +26,12 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\Innmind\\UrlTemplate\\": "tests/",
-            "Fixture\\Innmind\\UrlTemplate\\": "fixtures/"
+            "Tests\\Innmind\\UrlTemplate\\": "tests/"
         }
     },
     "require-dev": {
-        "phpunit/phpunit": "~6.0",
-        "giorgiosironi/eris": "^0.9.0"
-    },
-    "scripts": {
-        "test": "vendor/bin/phpunit --colors=always"
+        "phpunit/phpunit": "~8.0",
+        "giorgiosironi/eris": "^0.11.0",
+        "vimeo/psalm": "~3.7.0"
     }
 }

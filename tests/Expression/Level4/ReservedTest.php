@@ -42,9 +42,9 @@ class ReservedTest extends TestCase
 
     public function testStringCast()
     {
-        $this->assertSame('{+foo}', (string) new Reserved(new Name('foo')));
-        $this->assertSame('{+foo*}', (string) Reserved::explode(new Name('foo')));
-        $this->assertSame('{+foo:42}', (string) Reserved::limit(new Name('foo'), 42));
+        $this->assertSame('{+foo}', (new Reserved(new Name('foo')))->toString());
+        $this->assertSame('{+foo*}', Reserved::explode(new Name('foo'))->toString());
+        $this->assertSame('{+foo:42}', Reserved::limit(new Name('foo'), 42)->toString());
     }
 
     public function testThrowWhenNegativeLimit()
@@ -60,12 +60,12 @@ class ReservedTest extends TestCase
 
     public function testExpand()
     {
-        $variables = (new Map('string', 'variable'))
-            ->put('var', 'value')
-            ->put('hello', 'Hello World!')
-            ->put('path', '/foo/bar')
-            ->put('list', ['red', 'green', 'blue'])
-            ->put('keys', [['semi', ';'], ['dot', '.'], ['comma', ',']]);
+        $variables = Map::of('string', 'variable')
+            ('var', 'value')
+            ('hello', 'Hello World!')
+            ('path', '/foo/bar')
+            ('list', ['red', 'green', 'blue'])
+            ('keys', [['semi', ';'], ['dot', '.'], ['comma', ',']]);
 
         $this->assertSame(
             '/foo/b',
@@ -95,17 +95,17 @@ class ReservedTest extends TestCase
             Reserved::class,
             $expression = Reserved::of(Str::of('{+foo}'))
         );
-        $this->assertSame('{+foo}', (string) $expression);
+        $this->assertSame('{+foo}', $expression->toString());
         $this->assertInstanceOf(
             Reserved::class,
             $expression = Reserved::of(Str::of('{+foo*}'))
         );
-        $this->assertSame('{+foo*}', (string) $expression);
+        $this->assertSame('{+foo*}', $expression->toString());
         $this->assertInstanceOf(
             Reserved::class,
             $expression = Reserved::of(Str::of('{+foo:42}'))
         );
-        $this->assertSame('{+foo:42}', (string) $expression);
+        $this->assertSame('{+foo:42}', $expression->toString());
     }
 
     public function testThrowWhenInvalidPattern()

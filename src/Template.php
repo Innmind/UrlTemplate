@@ -8,36 +8,31 @@ use Innmind\UrlTemplate\Exception\{
     ExtractionNotSupported,
     LogicException,
 };
-use Innmind\Url\{
-    UrlInterface,
-    Url,
-};
+use Innmind\Url\Url;
 use Innmind\Immutable\{
-    MapInterface,
     Map,
-    SetInterface,
-    Set,
+    Sequence,
     Str,
 };
+use function Innmind\Immutable\assertMap;
 
 final class Template
 {
-    private $template;
-    private $expressions;
+    private Str $template;
+    /** @var Sequence<Expression> */
+    private Sequence $expressions;
 
-    public function __construct(string $template)
+    private function __construct(string $template)
     {
         $this->template = Str::of($template);
         $this->expressions = $this
             ->extractExpressions(
-                Set::of('string'),
-                $this->template
+                Sequence::of('string'),
+                $this->template,
             )
-            ->reduce(
-                Set::of(Expression::class),
-                static function(SetInterface $expressions, string $expression): SetInterface {
-                    return $expressions->add(Expressions::of(Str::of($expression)));
-                }
+            ->mapTo(
+                Expression::class,
+                static fn(string $expression) => Expressions::of(Str::of($expression)),
             );
     }
 
@@ -47,77 +42,65 @@ final class Template
     }
 
     /**
-     * @return SetInterface<Expression>
+     * @param Map<string, scalar|array> $variables
      */
-    public function expressions(): SetInterface
+    public function expand(Map $variables): Url
     {
-        return $this->expressions;
-    }
-
-    /**
-     * @param MapInterface<string, variable> $variables
-     */
-    public function expand(MapInterface $variables): UrlInterface
-    {
-        if (
-            (string) $variables->keyType() !== 'string' ||
-            (string) $variables->valueType() !== 'variable'
-        ) {
-            throw new \TypeError('Argument 1 must be of type MapInterface<string, variable>');
-        }
+        assertMap('string', 'scalar|array', $variables, 1);
 
         $url = $this->expressions->reduce(
             $this->template,
             function(Str $template, Expression $expression) use ($variables): Str {
                 return $template->replace(
-                    (string) $expression,
-                    $expression->expand($variables)
+                    $expression->toString(),
+                    $expression->expand($variables),
                 );
             }
         );
 
-        return Url::fromString((string) $url);
+        return Url::of($url->toString());
     }
 
     /**
-     * @return MapInterface<string, string>
+     * @return Map<string, string>
      */
-    public function extract(UrlInterface $url): MapInterface
+    public function extract(Url $url): Map
     {
         $regex = $this->regex();
-        $url = Str::of((string) $url);
+        $url = Str::of($url->toString());
 
         if (!$url->matches($regex)) {
-            throw new UrlDoesntMatchTemplate((string) $url);
+            throw new UrlDoesntMatchTemplate($url->toString());
         }
 
+        /** @var Map<string, string> */
         return $url
             ->capture($regex)
             ->filter(static function($key): bool {
                 return \is_string($key);
             })
             ->reduce(
-                new Map('string', 'string'),
-                static function(MapInterface $variables, string $name, Str $variable): MapInterface {
-                    return $variables->put(
-                        $name,
-                        \rawurldecode((string) $variable)
+                Map::of('string', 'string'),
+                static function(Map $variables, $name, Str $variable): Map {
+                    return ($variables)(
+                        (string) $name,
+                        \rawurldecode($variable->toString()),
                     );
-                }
+                },
             );
     }
 
-    public function matches(UrlInterface $url): bool
+    public function matches(Url $url): bool
     {
         $regex = $this->regex();
-        $url = Str::of((string) $url);
+        $url = Str::of($url->toString());
 
         return $url->matches($regex);
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
-        return (string) $this->template;
+        return $this->template->toString();
     }
 
     /**
@@ -125,9 +108,9 @@ final class Template
      * them at the same time
      */
     private function extractExpressions(
-        SetInterface $expressions,
+        Sequence $expressions,
         Str $template
-    ): SetInterface {
+    ): Sequence {
         $captured = $template->capture('~(\{[\+#\./;\?&]?[a-zA-Z0-9_]+(\*|:\d+)?(,[a-zA-Z0-9_]+(\*|:\d+)?)*\})~');
 
         if ($captured->size() === 0) {
@@ -135,27 +118,47 @@ final class Template
         }
 
         return $this->extractExpressions(
-            $expressions->add((string) $captured->current()),
-            $template->replace((string) $captured->current(), '')
+            $expressions->add($captured->values()->first()->toString()),
+            $template->replace($captured->values()->first()->toString(), ''),
         );
     }
 
     private function regex(): string
     {
         try {
+            $i = 0;
+            $j = 0;
+            $template = $this
+                ->expressions
+                ->reduce(
+                    $this->template->replace('~', '\~'),
+                    static function(Str $template, Expression $expression) use (&$i): Str {
+                        /** @psalm-suppress MixedOperand */
+                        ++$i;
+
+                        return $template->replace(
+                            $expression->toString(),
+                            "__innmind_expression_{$i}__",
+                        );
+                    },
+                )
+                ->pregQuote();
             $template = $this->expressions->reduce(
-                $this->template->replace('~', '\~'),
-                static function(Str $template, Expression $expression): Str {
+                $template,
+                static function(Str $template, Expression $expression) use (&$j): Str {
+                    /** @psalm-suppress MixedOperand */
+                    ++$j;
+
                     return $template->replace(
-                        (string) $expression,
-                        $expression->regex()
+                        "__innmind_expression_{$j}__",
+                        $expression->regex(),
                     );
-                }
+                },
             );
         } catch (LogicException $e) {
             throw new ExtractionNotSupported('', 0, $e);
         }
 
-        return (string) $template->prepend('~^')->append('$~');
+        return $template->prepend('~^')->append('$~')->toString();
     }
 }

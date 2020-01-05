@@ -10,19 +10,21 @@ use Innmind\UrlTemplate\{
     Exception\DomainException,
 };
 use Innmind\Immutable\{
-    MapInterface,
+    Map,
     Sequence,
     Str,
 };
+use function Innmind\Immutable\join;
 
 final class Composite implements Expression
 {
-    private $separator;
-    private $type;
-    private $expressions;
-    private $removeLead = false;
-    private $regex;
-    private $string;
+    private string $separator;
+    private string $type;
+    /** @var Sequence<Expression> */
+    private Sequence $expressions;
+    private bool $removeLead = false;
+    private ?string $regex = null;
+    private ?string $string = null;
 
     public function __construct(
         string $separator,
@@ -31,7 +33,8 @@ final class Composite implements Expression
     ) {
         $this->separator = $separator;
         $this->type = \get_class($level4);
-        $this->expressions = Sequence::of($level4, ...$expressions);
+        /** @var Sequence<Expression> */
+        $this->expressions = Sequence::of(Expression::class, $level4, ...$expressions);
     }
 
     public static function removeLead(
@@ -48,49 +51,54 @@ final class Composite implements Expression
     public static function of(Str $string): Expression
     {
         if (!$string->matches('~^\{[\+#\./;\?&]?[a-zA-Z0-9_]+(\*|:\d*)?(,[a-zA-Z0-9_]+(\*|:\d*)?)+\}$~')) {
-            throw new DomainException((string) $string);
+            throw new DomainException($string->toString());
         }
 
         $pieces = $string
             ->trim('{}')
             ->split(',');
 
+        /**
+         * @psalm-suppress UndefinedInterfaceMethod
+         * @psalm-suppress MixedInferredReturnType
+         */
         return $pieces
             ->drop(1)
             ->reduce(
                 Expressions::of($pieces->first()->prepend('{')->append('}')),
                 static function(Expression $level4, Str $expression): Expression {
+                    /** @psalm-suppress MixedReturnStatement */
                     return $level4->add($expression);
-                }
+                },
             );
     }
 
     /**
      * {@inheritdoc}
      */
-    public function expand(MapInterface $variables): string
+    public function expand(Map $variables): string
     {
-        $values = $this
-            ->expressions
-            ->map(static function(Expression $expression) use ($variables): string {
-                return $expression->expand($variables);
-            });
+        $expanded = $this->expressions->mapTo(
+            'string',
+            static fn($expression) => $expression->expand($variables),
+        );
 
         //potentially remove the lead characters from the expressions except for
         //the first one, needed for the fragment composite
 
-        return (string) $values
+        $expanded = $expanded
             ->take(1)
             ->append(
-                $values->drop(1)->map(function(string $value): string {
+                $expanded->drop(1)->map(function(string $value): string {
                     if ($this->removeLead) {
-                        return (string) Str::of($value)->substring(1);
+                        return Str::of($value)->substring(1)->toString();
                     }
 
                     return $value;
-                })
-            )
-            ->join($this->separator);
+                }),
+            );
+
+        return join($this->separator, $expanded)->toString();
     }
 
     public function regex(): string
@@ -102,55 +110,61 @@ final class Composite implements Expression
         $remaining = $this
             ->expressions
             ->drop(1)
-            ->map(function(Expression $expression): string {
-                if ($this->removeLead) {
-                    return (string) Str::of($expression->regex())->substring(2);
-                }
+            ->mapTo(
+                'string',
+                function(Expression $expression): string {
+                    if ($this->removeLead) {
+                        return Str::of($expression->regex())->substring(2)->toString();
+                    }
 
-                return $expression->regex();
-            });
-
-        return $this->regex = (string) $this
-            ->expressions
-            ->take(1)
-            ->map(static function(Expression $expression): string {
-                return $expression->regex();
-            })
-            ->append($remaining)
-            ->join(
-                $this->separator ? '\\'.$this->separator : ''
+                    return $expression->regex();
+                },
             );
+
+        return $this->regex = join(
+            $this->separator ? '\\'.$this->separator : '',
+            $this
+                ->expressions
+                ->take(1)
+                ->mapTo(
+                    'string',
+                    static fn($expression) => $expression->regex(),
+                )
+                ->append($remaining)
+        )->toString();
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         if (\is_string($this->string)) {
             return $this->string;
         }
 
-        $expressions = $this
-            ->expressions
-            ->map(static function(Expression $expression): Str {
-                return Str::of((string) $expression);
-            })
-            ->map(static function(Str $expression): Str {
-                return $expression->trim('{}');
-            });
+        $expressions = $this->expressions->mapTo(
+            Str::class,
+            static fn($expression) => Str::of($expression->toString())->trim('{}'),
+        );
 
         //only keep the lead character for the first expression and remove it
         //for the following ones
 
-        return $this->string = (string) $expressions
+        $expressions = $expressions
             ->take(1)
             ->append(
                 $expressions
                     ->drop(1)
                     ->map(static function(Str $expression): Str {
                         return $expression->leftTrim('+#/.;?&');
-                    })
+                    }),
             )
-            ->join(',')
+            ->mapTo(
+                'string',
+                static fn($element) => $element->toString(),
+            );
+
+        return $this->string = join(',', $expressions)
             ->prepend('{')
-            ->append('}');
+            ->append('}')
+            ->toString();
     }
 }

@@ -4,10 +4,11 @@ declare(strict_types = 1);
 namespace Innmind\UrlTemplate;
 
 use Innmind\Immutable\Str;
+use function Innmind\Immutable\join;
 
 final class UrlEncode
 {
-    private $safeCharacters;
+    private Str $safeCharacters;
 
     public function __construct()
     {
@@ -31,22 +32,27 @@ final class UrlEncode
         $string = Str::of($string);
 
         if ($string->length() > 1) {
-            return (string) $string
+            $characters = $string
                 ->split()
                 ->map(function(Str $character): Str {
-                    return Str::of($this((string) $character));
+                    return Str::of($this($character->toString()));
                 })
-                ->join('');
+                ->mapTo(
+                    'string',
+                    static fn(Str $character): string => $character->toString(),
+                );
+
+            return join('', $characters)->toString();
         }
 
         if ($string->empty()) {
             return '';
         }
 
-        if ($this->safeCharacters->contains((string) $string)) {
-            return (string) $string;
+        if ($this->safeCharacters->contains($string->toString())) {
+            return $string->toString();
         }
 
-        return \rawurlencode((string) $string);
+        return \rawurlencode($string->toString());
     }
 }

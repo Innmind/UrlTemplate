@@ -10,25 +10,33 @@ use Innmind\UrlTemplate\{
     Exception\DomainException,
 };
 use Innmind\Immutable\{
-    MapInterface,
-    SequenceInterface,
+    Map,
     Sequence,
     Str,
+};
+use function Innmind\Immutable\{
+    join,
+    unwrap,
 };
 
 final class Reserved implements Expression
 {
-    private $names;
-    private $expressions;
-    private $regex;
-    private $string;
+    /** @var Sequence<Name> */
+    private Sequence $names;
+    /** @var Sequence<Expression> */
+    private Sequence $expressions;
+    private ?string $regex = null;
+    private ?string $string = null;
 
     public function __construct(Name ...$names)
     {
-        $this->names = Sequence::of(...$names);
-        $this->expressions = $this->names->map(static function(Name $name): Level2\Reserved {
-            return new Level2\Reserved($name);
-        });
+        /** @var Sequence<Name> */
+        $this->names = Sequence::of(Name::class, ...$names);
+        /** @var Sequence<Expression> */
+        $this->expressions = $this->names->mapTo(
+            Expression::class,
+            static fn(Name $name) => new Level2\Reserved($name),
+        );
     }
 
     /**
@@ -37,51 +45,56 @@ final class Reserved implements Expression
     public static function of(Str $string): Expression
     {
         if (!$string->matches('~^\{\+[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)+\}$~')) {
-            throw new DomainException((string) $string);
+            throw new DomainException($string->toString());
         }
 
-        return new self(
-            ...$string
-                ->trim('{+}')
-                ->split(',')
-                ->reduce(
-                    new Sequence,
-                    static function(SequenceInterface $names, Str $name): SequenceInterface {
-                        return $names->add(new Name((string) $name));
-                    }
-                )
-        );
+        /** @var Sequence<Name> $names */
+        $names = $string
+            ->trim('{+}')
+            ->split(',')
+            ->reduce(
+                Sequence::of(Name::class),
+                static fn(Sequence $names, Str $name): Sequence => ($names)(new Name($name->toString())),
+            );
+
+        return new self(...unwrap($names));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function expand(MapInterface $variables): string
+    public function expand(Map $variables): string
     {
-        return (string) $this
-            ->expressions
-            ->map(static function(Expression $expression) use ($variables): string {
-                return $expression->expand($variables);
-            })
-            ->join(',');
+        $expanded = $this->expressions->mapTo(
+            'string',
+            static fn($expression) => $expression->expand($variables),
+        );
+
+        return join(',', $expanded)->toString();
     }
 
     public function regex(): string
     {
-        return $this->regex ?? $this->regex = (string) $this
-            ->expressions
-            ->map(static function(Expression $expression): string {
-                return $expression->regex();
-            })
-            ->join(',');
+        return $this->regex ?? $this->regex = join(
+            ',',
+            $this->expressions->mapTo(
+                'string',
+                static fn($expression) => $expression->regex(),
+            ),
+        )->toString();
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
-        return $this->string ?? $this->string = (string) $this
-            ->names
-            ->join(',')
+        return $this->string ?? $this->string = join(
+            ',',
+            $this->names->mapTo(
+                'string',
+                static fn($element) => $element->toString(),
+            ),
+        )
             ->prepend('{+')
-            ->append('}');
+            ->append('}')
+            ->toString();
     }
 }

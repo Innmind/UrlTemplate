@@ -10,23 +10,27 @@ use Innmind\UrlTemplate\{
     Expression\Level3,
     Expression\Level4,
     Exception\DomainException,
-    Exception\LogicException,
+    Exception\ExplodeExpressionCantBeMatched,
+    Exception\ExpressionLimitCantBeNegative,
 };
 use Innmind\Immutable\{
-    MapInterface,
+    Map,
     Str,
-    SequenceInterface,
     Sequence,
+};
+use function Innmind\Immutable\{
+    join,
+    unwrap,
 };
 
 final class Query implements Expression
 {
-    private $name;
-    private $limit;
-    private $explode;
-    private $expression;
-    private $regex;
-    private $string;
+    private Name $name;
+    private ?int $limit = null;
+    private bool $explode = false;
+    private Expression $expression;
+    private ?string $regex = null;
+    private ?string $string = null;
 
     public function __construct(Name $name)
     {
@@ -40,30 +44,30 @@ final class Query implements Expression
     public static function of(Str $string): Expression
     {
         if ($string->matches('~^\{\?[a-zA-Z0-9_]+\}$~')) {
-            return new self(new Name((string) $string->trim('{?}')));
+            return new self(new Name($string->trim('{?}')->toString()));
         }
 
         if ($string->matches('~^\{\?[a-zA-Z0-9_]+\*\}$~')) {
-            return self::explode(new Name((string) $string->trim('{?*}')));
+            return self::explode(new Name($string->trim('{?*}')->toString()));
         }
 
         if ($string->matches('~^\{\?[a-zA-Z0-9_]+:\d+\}$~')) {
             $string = $string->trim('{?}');
-            [$name, $limit] = $string->split(':');
+            [$name, $limit] = unwrap($string->split(':'));
 
             return self::limit(
-                new Name((string) $name),
-                (int) (string) $limit
+                new Name($name->toString()),
+                (int) $limit->toString(),
             );
         }
 
-        throw new DomainException((string) $string);
+        throw new DomainException($string->toString());
     }
 
     public static function limit(Name $name, int $limit): self
     {
         if ($limit < 0) {
-            throw new DomainException;
+            throw new ExpressionLimitCantBeNegative($limit);
         }
 
         $self = new self($name);
@@ -85,20 +89,21 @@ final class Query implements Expression
         return new Composite(
             '',
             $this,
-            QueryContinuation::of($pattern->prepend('{&')->append('}'))
+            QueryContinuation::of($pattern->prepend('{&')->append('}')),
         );
     }
 
     /**
-     * @param MapInterface<string, variable> $variables
+     * @param Map<string, scalar|array> $variables
      */
-    public function expand(MapInterface $variables): string
+    public function expand(Map $variables): string
     {
-        if (!$variables->contains((string) $this->name)) {
+        if (!$variables->contains($this->name->toString())) {
             return '';
         }
 
-        $variable = $variables->get((string) $this->name);
+        /** @var scalar|array{0:string, 1:scalar} */
+        $variable = $variables->get($this->name->toString());
 
         if (\is_array($variable)) {
             return $this->expandList($variables, ...$variable);
@@ -111,10 +116,10 @@ final class Query implements Expression
         $value = Str::of($this->expression->expand($variables));
 
         if ($this->mustLimit()) {
-            return "?{$this->name}={$value->substring(0, $this->limit)}";
+            return "?{$this->name->toString()}={$value->substring(0, $this->limit)->toString()}";
         }
 
-        return "?{$this->name}=$value";
+        return "?{$this->name->toString()}={$value->toString()}";
     }
 
     public function regex(): string
@@ -124,40 +129,41 @@ final class Query implements Expression
         }
 
         if ($this->explode) {
-            throw new LogicException;
+            throw new ExplodeExpressionCantBeMatched;
         }
 
         if ($this->mustLimit()) {
             // replace '*' match by the actual limit
-            $regex = (string) Str::of($this->expression->regex())
+            $regex = Str::of($this->expression->regex())
                 ->substring(0, -2)
-                ->append("{{$this->limit}})");
+                ->append("{{$this->limit}})")
+                ->toString();
         } else {
             $regex = $this->expression->regex();
         }
 
         return $this->regex = sprintf(
             '\?%s=%s',
-            $this->name,
-            $regex
+            $this->name->toString(),
+            $regex,
         );
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         if (\is_string($this->string)) {
             return $this->string;
         }
 
         if ($this->mustLimit()) {
-            return $this->string = "{?{$this->name}:{$this->limit}}";
+            return $this->string = "{?{$this->name->toString()}:{$this->limit}}";
         }
 
         if ($this->explode) {
-            return $this->string = "{?{$this->name}*}";
+            return $this->string = "{?{$this->name->toString()}*}";
         }
 
-        return $this->string = "{?{$this->name}}";
+        return $this->string = "{?{$this->name->toString()}}";
     }
 
     private function mustLimit(): bool
@@ -165,55 +171,78 @@ final class Query implements Expression
         return \is_int($this->limit);
     }
 
-    private function expandList(MapInterface $variables, ...$elements): string
+    /**
+     * @param Map<string, scalar|array> $variables
+     * @param array<scalar|array{0:string, 1:scalar}> $variablesToExpand
+     */
+    private function expandList(Map $variables, ...$variablesToExpand): string
     {
         if ($this->explode) {
-            return $this->explodeList($variables, $elements);
+            return $this->explodeList($variables, $variablesToExpand);
         }
 
-        return (string) Sequence::of(...$elements)
-            ->reduce(
-                new Sequence,
-                static function(SequenceInterface $values, $element): SequenceInterface {
-                    if (\is_array($element)) {
-                        [$name, $element] = $element;
+        $flattenedVariables = Sequence::of('scalar|array', ...$variablesToExpand)->reduce(
+            Sequence::of('scalar'),
+            static function(Sequence $values, $variableToExpand): Sequence {
+                if (\is_array($variableToExpand)) {
+                    [$name, $variableToExpand] = $variableToExpand;
 
-                        return $values->add($name)->add($element);
-                    }
-
-                    return $values->add($element);
+                    return ($values)($name)($variableToExpand);
                 }
-            )
-            ->map(function($element) use ($variables): string {
-                return $this->expression->expand(
-                    $variables->put(
-                        (string) $this->name,
-                        $element
-                    )
-                );
+
+                return ($values)($variableToExpand);
+            },
+        );
+        $expanded = $flattenedVariables
+            ->map(function($variableToExpand) use ($variables): string {
+                // here we use the level1 expression to transform the variable to
+                // be expanded to its string representation
+
+                /** @psalm-suppress MixedArgument */
+                $variables = ($variables)($this->name->toString(), $variableToExpand);
+
+                return $this->expression->expand($variables);
             })
-            ->join(',')
-            ->prepend("?$this->name=");
+            ->toSequenceOf('string');
+
+        return join(',', $expanded)
+            ->prepend("?{$this->name->toString()}=")
+            ->toString();
     }
 
-    private function explodeList(MapInterface $variables, array $elements): string
+    /**
+     * @param Map<string, scalar|array> $variables
+     * @param array<scalar|array{0:string, 1:scalar}> $variablesToExpand
+     */
+    private function explodeList(Map $variables, array $variablesToExpand): string
     {
-        return (string) Sequence::of(...$elements)
-            ->map(function($element) use ($variables): string {
+        $expanded = Sequence::of('scalar|array', ...$variablesToExpand)
+            ->map(function($variableToExpand) use ($variables): string {
                 $name = $this->name;
 
-                if (\is_array($element)) {
-                    [$name, $element] = $element;
+                if (\is_array($variableToExpand)) {
+                    /**
+                     * @var string $name
+                     * @var scalar $value
+                     */
+                    [$name, $value] = $variableToExpand;
                     $name = new Name($name);
+                    $variableToExpand = $value;
                 }
 
-                $value = (new Level3\Query($name))->expand(
-                    $variables->put((string) $name, $element)
-                );
+                /** @psalm-suppress MixedArgument */
+                $variables = ($variables)($name->toString(), $variableToExpand);
 
-                return (string) Str::of($value)->substring(1);
+                $value = (new Level3\Query($name))->expand($variables);
+
+                // the substring is here to remove the '?' as it should be a '&'
+                // done below in the join
+                return Str::of($value)->substring(1)->toString();
             })
-            ->join('&')
-            ->prepend('?');
+            ->toSequenceOf('string');
+
+        return join('&', $expanded)
+            ->prepend('?')
+            ->toString();
     }
 }

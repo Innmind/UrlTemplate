@@ -25,7 +25,7 @@ class ExpressionsTest extends TestCase
         );
         $this->assertSame(
             $string,
-            (string) Expressions::of(Str::of($string))
+            Expressions::of(Str::of($string))->toString(),
         );
     }
 

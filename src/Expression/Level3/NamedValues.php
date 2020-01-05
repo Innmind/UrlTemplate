@@ -9,37 +9,36 @@ use Innmind\UrlTemplate\{
     Expression\Level1,
 };
 use Innmind\Immutable\{
-    MapInterface,
     Map,
     Sequence,
-    StreamInterface,
-    Stream,
     Str,
 };
+use function Innmind\Immutable\join;
 
 final class NamedValues implements Expression
 {
-    private $lead;
-    private $separator;
-    private $names;
-    private $expressions;
-    private $keyOnlyWhenEmpty = false;
-    private $regex;
-    private $string;
+    private string $lead;
+    private string $separator;
+    /** @var Sequence<Name> */
+    private Sequence $names;
+    /** @var Map<string, Expression> */
+    private Map $expressions;
+    private bool $keyOnlyWhenEmpty = false;
+    private ?string $regex = null;
+    private ?string $string = null;
 
     public function __construct(string $lead, string $separator, Name ...$names)
     {
         $this->lead = $lead;
         $this->separator = $separator;
-        $this->names = Sequence::of(...$names);
-        $this->expressions = $this->names->reduce(
-            new Map('string', Expression::class),
-            static function(MapInterface $expressions, Name $name): MapInterface {
-                return $expressions->put(
-                    (string) $name,
-                    new Level1($name)
-                );
-            });
+        /** @var Sequence<Name> */
+        $this->names = Sequence::of(Name::class, ...$names);
+        /** @var Map<string, Expression> */
+        $this->expressions = $this->names->toMapOf(
+            'string',
+            Expression::class,
+            static fn(Name $name): \Generator => yield $name->toString() => new Level1($name),
+        );
     }
 
     /**
@@ -61,48 +60,56 @@ final class NamedValues implements Expression
     /**
      * {@inheritdoc}
      */
-    public function expand(MapInterface $variables): string
+    public function expand(Map $variables): string
     {
-        return (string) $this
-            ->expressions
-            ->reduce(
-                Stream::of('string'),
-                function(StreamInterface $values, string $name, Expression $expression) use ($variables): StreamInterface {
-                    $value = Str::of($expression->expand($variables));
+        /** @var Sequence<string> */
+        $expanded = $this->expressions->reduce(
+            Sequence::of('string'),
+            function(Sequence $expanded, string $name, Expression $expression) use ($variables): Sequence {
+                $value = Str::of($expression->expand($variables));
 
-                    if ($value->empty() && $this->keyOnlyWhenEmpty) {
-                        return $values->add($name);
-                    }
-
-                    return $values->add("$name=$value");
+                if ($value->empty() && $this->keyOnlyWhenEmpty) {
+                    return ($expanded)($name);
                 }
-            )
-            ->join($this->separator)
-            ->prepend($this->lead);
+
+                return ($expanded)("$name={$value->toString()}");
+            },
+        );
+
+        return join($this->separator, $expanded)
+            ->prepend($this->lead)
+            ->toString();
     }
 
     public function regex(): string
     {
-        return $this->regex ?? $this->regex = (string) $this
-            ->names
-            ->map(function(Name $name): string {
-                return \sprintf(
+        return $this->regex ?? $this->regex = join(
+            '\\'.$this->separator,
+            $this->names->mapTo(
+                'string',
+                fn($name) => \sprintf(
                     '%s=%s%s',
-                    $name,
+                    $name->toString(),
                     $this->keyOnlyWhenEmpty ? '?' : '',
-                    (new Level1($name))->regex()
-                );
-            })
-            ->join('\\'.$this->separator)
-            ->prepend('\\'.$this->lead);
+                    (new Level1($name))->regex(),
+                ),
+            ),
+        )
+            ->prepend('\\'.$this->lead)
+            ->toString();
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
-        return $this->string ?? $this->string = (string) $this
-            ->names
-            ->join(',')
+        return $this->string ?? $this->string = join(
+            ',',
+            $this->names->mapTo(
+                'string',
+                static fn($element) => $element->toString(),
+            ),
+        )
             ->prepend('{'.$this->lead)
-            ->append('}');
+            ->append('}')
+            ->toString();
     }
 }

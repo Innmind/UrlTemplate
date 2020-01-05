@@ -29,19 +29,19 @@ class ParametersTest extends TestCase
     {
         $this->assertSame(
             '{;foo,bar}',
-            (string) new Parameters(new Name('foo'), new Name('bar'))
+            (new Parameters(new Name('foo'), new Name('bar')))->toString(),
         );
     }
 
     public function testExpand()
     {
-        $variables = (new Map('string', 'variable'))
-            ->put('var', 'value')
-            ->put('hello', 'Hello World!')
-            ->put('empty', '')
-            ->put('path', '/foo/bar')
-            ->put('x', '1024')
-            ->put('y', '768');
+        $variables = Map::of('string', 'variable')
+            ('var', 'value')
+            ('hello', 'Hello World!')
+            ('empty', '')
+            ('path', '/foo/bar')
+            ('x', '1024')
+            ('y', '768');
 
         $this->assertSame(
             ';x=1024;y=768',
@@ -59,7 +59,7 @@ class ParametersTest extends TestCase
             Parameters::class,
             $expression = Parameters::of(Str::of('{;foo,bar}'))
         );
-        $this->assertSame('{;foo,bar}', (string) $expression);
+        $this->assertSame('{;foo,bar}', $expression->toString());
     }
 
     public function testThrowWhenInvalidPattern()

@@ -29,19 +29,19 @@ class Level3Test extends TestCase
     {
         $this->assertSame(
             '{foo,bar}',
-            (string) new Level3(new Name('foo'), new Name('bar'))
+            (new Level3(new Name('foo'), new Name('bar')))->toString(),
         );
     }
 
     public function testExpand()
     {
-        $variables = (new Map('string', 'variable'))
-            ->put('var', 'value')
-            ->put('hello', 'Hello World!')
-            ->put('empty', '')
-            ->put('path', '/foo/bar')
-            ->put('x', '1024')
-            ->put('y', '768');
+        $variables = Map::of('string', 'variable')
+            ('var', 'value')
+            ('hello', 'Hello World!')
+            ('empty', '')
+            ('path', '/foo/bar')
+            ('x', '1024')
+            ('y', '768');
 
         $this->assertSame(
             '1024,768',
@@ -59,7 +59,7 @@ class Level3Test extends TestCase
             Level3::class,
             $expression = Level3::of(Str::of('{foo,bar}'))
         );
-        $this->assertSame('{foo,bar}', (string) $expression);
+        $this->assertSame('{foo,bar}', $expression->toString());
     }
 
     public function testThrowWhenInvalidPattern()

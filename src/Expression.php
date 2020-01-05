@@ -8,7 +8,7 @@ use Innmind\UrlTemplate\{
     Exception\DomainException,
 };
 use Innmind\Immutable\{
-    MapInterface,
+    Map,
     Str,
 };
 
@@ -20,9 +20,9 @@ interface Expression
     public static function of(Str $string): self;
 
     /**
-     * @param MapInterface<string, variable> $variables
+     * @param Map<string, scalar|array> $variables
      */
-    public function expand(MapInterface $variables): string;
+    public function expand(Map $variables): string;
     public function regex(): string;
-    public function __toString(): string;
+    public function toString(): string;
 }

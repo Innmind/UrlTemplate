@@ -34,30 +34,30 @@ class CompositeTest extends TestCase
     {
         $this->assertSame(
             '{/var:1,var}',
-            (string) new Composite(
+            (new Composite(
                 '/',
                 Path::limit(new Name('var'), 1),
                 new Level4(new Name('var'))
-            )
+            ))->toString()
         );
         $this->assertSame(
             '{/list*,path:4}',
-            (string) new Composite(
+            (new Composite(
                 '/',
                 Path::explode(new Name('list')),
                 Level4::limit(new Name('path'), 4)
-            )
+            ))->toString()
         );
     }
 
     public function testExpand()
     {
-        $variables = (new Map('string', 'variable'))
-            ->put('var', 'value')
-            ->put('hello', 'Hello World!')
-            ->put('path', '/foo/bar')
-            ->put('list', ['red', 'green', 'blue'])
-            ->put('keys', [['semi', ';'], ['dot', '.'], ['comma', ',']]);
+        $variables = Map::of('string', 'variable')
+            ('var', 'value')
+            ('hello', 'Hello World!')
+            ('path', '/foo/bar')
+            ('list', ['red', 'green', 'blue'])
+            ('keys', [['semi', ';'], ['dot', '.'], ['comma', ',']]);
 
         $this->assertSame(
             '/v/value',
@@ -82,16 +82,16 @@ class CompositeTest extends TestCase
      */
     public function testOf($pattern, $expected)
     {
-        $variables = (new Map('string', 'variable'))
-            ->put('var', 'value')
-            ->put('hello', 'Hello World!')
-            ->put('path', '/foo/bar')
-            ->put('list', ['red', 'green', 'blue'])
-            ->put('keys', [['semi', ';'], ['dot', '.'], ['comma', ',']]);
+        $variables = Map::of('string', 'variable')
+            ('var', 'value')
+            ('hello', 'Hello World!')
+            ('path', '/foo/bar')
+            ('list', ['red', 'green', 'blue'])
+            ('keys', [['semi', ';'], ['dot', '.'], ['comma', ',']]);
 
         $expression = Composite::of(Str::of($pattern));
 
-        $this->assertSame($pattern, (string) $expression);
+        $this->assertSame($pattern, $expression->toString());
         $this->assertSame($expected, $expression->expand($variables));
     }
 
