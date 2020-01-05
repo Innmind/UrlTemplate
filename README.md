@@ -1,10 +1,9 @@
 # UrlTemplate
 
-| `master` | `develop` |
-|----------|-----------|
-| [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Innmind/UrlTemplate/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/Innmind/UrlTemplate/?branch=master) | [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Innmind/UrlTemplate/badges/quality-score.png?b=develop)](https://scrutinizer-ci.com/g/Innmind/UrlTemplate/?branch=develop) |
-| [![Code Coverage](https://scrutinizer-ci.com/g/Innmind/UrlTemplate/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/Innmind/UrlTemplate/?branch=master) | [![Code Coverage](https://scrutinizer-ci.com/g/Innmind/UrlTemplate/badges/coverage.png?b=develop)](https://scrutinizer-ci.com/g/Innmind/UrlTemplate/?branch=develop) |
-| [![Build Status](https://scrutinizer-ci.com/g/Innmind/UrlTemplate/badges/build.png?b=master)](https://scrutinizer-ci.com/g/Innmind/UrlTemplate/build-status/master) | [![Build Status](https://scrutinizer-ci.com/g/Innmind/UrlTemplate/badges/build.png?b=develop)](https://scrutinizer-ci.com/g/Innmind/UrlTemplate/build-status/develop) |
+| `develop` |
+|-----------|
+| [![codecov](https://codecov.io/gh/Innmind/UrlTemplate/branch/develop/graph/badge.svg)](https://codecov.io/gh/Innmind/UrlTemplate) |
+| [![Build Status](https://github.com/Innmind/UrlTemplate/workflows/CI/badge.svg)](https://github.com/Innmind/UrlTemplate/actions?query=workflow%3ACI) |
 
 [RFC6570](https://tools.ietf.org/html/rfc6570) implementation.
 
@@ -19,17 +18,17 @@ composer require innmind/url-template
 ```php
 use Innmind\UrlTemplate\Template;
 use Innmind\Immutable\Map;
-use Innmind\Url\UrlInterface;
+use Innmind\Url\Url;
 
 $url = Template::of('http://example.com/dictionary/{term:1}/{term}')->expand(
-    (new Map('string', 'variable'))
-        ->put('term', 'dog')
+    Map::of('string', 'scalar|array')
+        ('term', 'dog')
 );
-$url instanceof UrlInterface; // true
-(string) $url; // http://example.com/dictionary/d/dog
+$url instanceof Url; // true
+$url->toString(); // http://example.com/dictionary/d/dog
 
 $variables = Template::of('http://example.com/dictionary/{term:1}/{term}')->extract(
-    Url::fromString('http://example.com/dictionary/d/dog')
+    Url::of('http://example.com/dictionary/d/dog')
 );
 $variables; // MapInterface<string, string>
 $variables->size(); // 1
