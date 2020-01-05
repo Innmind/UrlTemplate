@@ -30,7 +30,7 @@ $url->toString(); // http://example.com/dictionary/d/dog
 $variables = Template::of('http://example.com/dictionary/{term:1}/{term}')->extract(
     Url::of('http://example.com/dictionary/d/dog')
 );
-$variables; // MapInterface<string, string>
+$variables; // Map<string, string>
 $variables->size(); // 1
 $variables->get('term'); // dog
 ```
