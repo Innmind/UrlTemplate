@@ -37,9 +37,6 @@ final class Level4 implements Expression
         $this->expression = new Level1($name);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public static function of(Str $string): Expression
     {
         if ($string->matches('~^\{[a-zA-Z0-9_]+\}$~')) {
@@ -116,7 +113,7 @@ final class Level4 implements Expression
      */
     public function withExpression(string $expression): self
     {
-        if (!is_a($expression, Expression::class, true)) {
+        if (!\is_a($expression, Expression::class, true)) {
             throw new DomainException($expression);
         }
 
@@ -126,9 +123,6 @@ final class Level4 implements Expression
         return $self;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function expand(Map $variables): string
     {
         if (!$variables->contains($this->name->toString())) {

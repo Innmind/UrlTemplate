@@ -38,9 +38,6 @@ final class Parameters implements Expression
         $this->expression = new Level1($name);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public static function of(Str $string): Expression
     {
         if ($string->matches('~^\{;[a-zA-Z0-9_]+\}$~')) {

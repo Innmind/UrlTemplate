@@ -26,9 +26,6 @@ final class Label implements Expression
         $this->expression = (new Level4($name))->withLead('.');
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public static function of(Str $string): Expression
     {
         if ($string->matches('~^\{\.[a-zA-Z0-9_]+\}$~')) {
@@ -83,9 +80,6 @@ final class Label implements Expression
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function expand(Map $variables): string
     {
         return $this->expression->expand($variables);

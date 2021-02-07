@@ -27,9 +27,6 @@ final class Level1 implements Expression
         $this->encode = new UrlEncode;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public static function of(Str $string): Expression
     {
         if (!$string->matches('~^\{[a-zA-Z0-9_]+\}$~')) {
@@ -39,9 +36,6 @@ final class Level1 implements Expression
         return new self(new Name($string->trim('{}')->toString()));
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function expand(Map $variables): string
     {
         if (!$variables->contains($this->name->toString())) {

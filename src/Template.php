@@ -50,7 +50,7 @@ final class Template
 
         $url = $this->expressions->reduce(
             $this->template,
-            function(Str $template, Expression $expression) use ($variables): Str {
+            static function(Str $template, Expression $expression) use ($variables): Str {
                 return $template->replace(
                     $expression->toString(),
                     $expression->expand($variables),

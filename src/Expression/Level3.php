@@ -37,9 +37,6 @@ final class Level3 implements Expression
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public static function of(Str $string): Expression
     {
         if (!$string->matches('~^\{[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)+\}$~')) {
@@ -58,9 +55,6 @@ final class Level3 implements Expression
         return new self(...unwrap($names));
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function expand(Map $variables): string
     {
         $expanded = $this->expressions->mapTo(

@@ -21,7 +21,7 @@ class UrlEncodeTest extends TestCase
             ->then(function(string $string): void {
                 $encode = new UrlEncode;
 
-                $this->assertSame(rawurlencode($string), $encode($string));
+                $this->assertSame(\rawurlencode($string), $encode($string));
             });
     }
 
