@@ -1,9 +1,8 @@
 # UrlTemplate
 
-| `develop` |
-|-----------|
-| [![codecov](https://codecov.io/gh/Innmind/UrlTemplate/branch/develop/graph/badge.svg)](https://codecov.io/gh/Innmind/UrlTemplate) |
-| [![Build Status](https://github.com/Innmind/UrlTemplate/workflows/CI/badge.svg)](https://github.com/Innmind/UrlTemplate/actions?query=workflow%3ACI) |
+[![Build Status](https://github.com/innmind/urltemplate/workflows/CI/badge.svg?branch=master)](https://github.com/innmind/urltemplate/actions?query=workflow%3ACI)
+[![codecov](https://codecov.io/gh/innmind/urltemplate/branch/develop/graph/badge.svg)](https://codecov.io/gh/innmind/urltemplate)
+[![Type Coverage](https://shepherd.dev/github/innmind/urltemplate/coverage.svg)](https://shepherd.dev/github/innmind/urltemplate)
 
 [RFC6570](https://tools.ietf.org/html/rfc6570) implementation.
 
