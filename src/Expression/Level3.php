@@ -73,6 +73,7 @@ final class Level3 implements Expression
 
     public function regex(): string
     {
+        /** @psalm-suppress InvalidArgument */
         return $this->regex ?? $this->regex = join(
             ',',
             $this->names->mapTo(

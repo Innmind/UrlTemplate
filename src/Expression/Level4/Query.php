@@ -181,6 +181,7 @@ final class Query implements Expression
             return $this->explodeList($variables, $variablesToExpand);
         }
 
+        /** @var Sequence<scalar> */
         $flattenedVariables = Sequence::of('scalar|array', ...$variablesToExpand)->reduce(
             Sequence::of('scalar'),
             static function(Sequence $values, $variableToExpand): Sequence {

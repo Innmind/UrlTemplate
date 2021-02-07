@@ -217,6 +217,7 @@ final class Level4 implements Expression
             return $this->explodeList($variables, $variablesToExpand);
         }
 
+        /** @var Sequence<scalar> */
         $flattenedVariables = Sequence::of('scalar|array', ...$variablesToExpand)->reduce(
             Sequence::of('scalar'),
             static function(Sequence $values, $variableToExpand): Sequence {
@@ -229,8 +230,9 @@ final class Level4 implements Expression
                 return ($values)($variableToExpand);
             },
         );
+
         $expanded = $flattenedVariables
-            ->map(function(string $variableToExpand) use ($variables): string {
+            ->map(function($variableToExpand) use ($variables): string {
                 // here we use the level1 expression to transform the variable to
                 // be expanded to its string representation
                 return $this->expression->expand(

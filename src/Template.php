@@ -106,6 +106,9 @@ final class Template
     /**
      * Recursively find the expressions as Str::capture doesnt capture all of
      * them at the same time
+     * @param Sequence<string> $expressions
+     *
+     * @return Sequence<string>
      */
     private function extractExpressions(
         Sequence $expressions,
@@ -133,7 +136,10 @@ final class Template
                 ->reduce(
                     $this->template->replace('~', '\~'),
                     static function(Str $template, Expression $expression) use (&$i): Str {
-                        /** @psalm-suppress MixedOperand */
+                        /**
+                         * @psalm-suppress MixedOperand
+                         * @psalm-suppress MixedAssignment
+                         */
                         ++$i;
 
                         return $template->replace(
@@ -146,7 +152,10 @@ final class Template
             $template = $this->expressions->reduce(
                 $template,
                 static function(Str $template, Expression $expression) use (&$j): Str {
-                    /** @psalm-suppress MixedOperand */
+                    /**
+                     * @psalm-suppress MixedOperand
+                     * @psalm-suppress MixedAssignment
+                     */
                     ++$j;
 
                     return $template->replace(
