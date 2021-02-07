@@ -28,9 +28,6 @@ final class Reserved implements Expression
         $this->encode = UrlEncode::allowReservedCharacters();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public static function of(Str $string): Expression
     {
         if (!$string->matches('~^\{\+[a-zA-Z0-9_]+\}$~')) {
@@ -40,9 +37,6 @@ final class Reserved implements Expression
         return new self(new Name($string->trim('{+}')->toString()));
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function expand(Map $variables): string
     {
         if (!$variables->contains($this->name->toString())) {

@@ -73,9 +73,6 @@ final class Composite implements Expression
             );
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function expand(Map $variables): string
     {
         $expanded = $this->expressions->mapTo(

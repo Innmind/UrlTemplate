@@ -13,7 +13,6 @@ use Innmind\Immutable\{
     Map,
     Sequence,
 };
-use function Innmind\Immutable\first;
 use PHPUnit\Framework\TestCase;
 
 class TemplateTest extends TestCase

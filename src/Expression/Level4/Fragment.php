@@ -29,9 +29,6 @@ final class Fragment implements Expression
             ->withExpression(Level2\Reserved::class);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public static function of(Str $string): Expression
     {
         if ($string->matches('~^\{#[a-zA-Z0-9_]+\}$~')) {
@@ -93,9 +90,6 @@ final class Fragment implements Expression
         return $this->expression->regex();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function expand(Map $variables): string
     {
         return $this->expression->expand($variables);

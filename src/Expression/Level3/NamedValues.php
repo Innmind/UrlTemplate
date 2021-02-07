@@ -41,9 +41,6 @@ final class NamedValues implements Expression
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public static function of(Str $string): Expression
     {
         throw new \LogicException('should not be used directly');
@@ -57,9 +54,6 @@ final class NamedValues implements Expression
         return $self;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function expand(Map $variables): string
     {
         /** @var Sequence<string> */

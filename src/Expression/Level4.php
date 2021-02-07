@@ -37,9 +37,6 @@ final class Level4 implements Expression
         $this->expression = new Level1($name);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public static function of(Str $string): Expression
     {
         if ($string->matches('~^\{[a-zA-Z0-9_]+\}$~')) {
@@ -116,7 +113,7 @@ final class Level4 implements Expression
      */
     public function withExpression(string $expression): self
     {
-        if (!is_a($expression, Expression::class, true)) {
+        if (!\is_a($expression, Expression::class, true)) {
             throw new DomainException($expression);
         }
 
@@ -126,9 +123,6 @@ final class Level4 implements Expression
         return $self;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function expand(Map $variables): string
     {
         if (!$variables->contains($this->name->toString())) {
@@ -217,6 +211,7 @@ final class Level4 implements Expression
             return $this->explodeList($variables, $variablesToExpand);
         }
 
+        /** @var Sequence<scalar> */
         $flattenedVariables = Sequence::of('scalar|array', ...$variablesToExpand)->reduce(
             Sequence::of('scalar'),
             static function(Sequence $values, $variableToExpand): Sequence {
@@ -229,8 +224,9 @@ final class Level4 implements Expression
                 return ($values)($variableToExpand);
             },
         );
+
         $expanded = $flattenedVariables
-            ->map(function(string $variableToExpand) use ($variables): string {
+            ->map(function($variableToExpand) use ($variables): string {
                 // here we use the level1 expression to transform the variable to
                 // be expanded to its string representation
                 return $this->expression->expand(

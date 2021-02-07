@@ -38,9 +38,6 @@ final class Query implements Expression
         $this->expression = new Level1($name);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public static function of(Str $string): Expression
     {
         if ($string->matches('~^\{\?[a-zA-Z0-9_]+\}$~')) {
@@ -142,7 +139,7 @@ final class Query implements Expression
             $regex = $this->expression->regex();
         }
 
-        return $this->regex = sprintf(
+        return $this->regex = \sprintf(
             '\?%s=%s',
             $this->name->toString(),
             $regex,
@@ -181,6 +178,7 @@ final class Query implements Expression
             return $this->explodeList($variables, $variablesToExpand);
         }
 
+        /** @var Sequence<scalar> */
         $flattenedVariables = Sequence::of('scalar|array', ...$variablesToExpand)->reduce(
             Sequence::of('scalar'),
             static function(Sequence $values, $variableToExpand): Sequence {

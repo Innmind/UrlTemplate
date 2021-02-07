@@ -15,14 +15,6 @@ final class UrlEncode
         $this->safeCharacters = Str::of('');
     }
 
-    public static function allowReservedCharacters(): self
-    {
-        $self = new self;
-        $self->safeCharacters = Str::of(':/?#[]@!$&\'()*+,;=');
-
-        return $self;
-    }
-
     public function __invoke(string $string): string
     {
         if ($this->safeCharacters->empty()) {
@@ -54,5 +46,13 @@ final class UrlEncode
         }
 
         return \rawurlencode($string->toString());
+    }
+
+    public static function allowReservedCharacters(): self
+    {
+        $self = new self;
+        $self->safeCharacters = Str::of(':/?#[]@!$&\'()*+,;=');
+
+        return $self;
     }
 }
