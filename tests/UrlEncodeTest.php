@@ -5,19 +5,19 @@ namespace Tests\Innmind\UrlTemplate;
 
 use Innmind\UrlTemplate\UrlEncode;
 use PHPUnit\Framework\TestCase;
-use Eris\{
-    Generator,
-    TestTrait,
+use Innmind\BlackBox\{
+    PHPUnit\BlackBox,
+    Set,
 };
 
 class UrlEncodeTest extends TestCase
 {
-    use TestTrait;
+    use BlackBox;
 
     public function testStandardEncode()
     {
         $this
-            ->forAll(Generator\string())
+            ->forAll(Set\Strings::any())
             ->then(function(string $string): void {
                 $encode = new UrlEncode;
 
@@ -28,7 +28,7 @@ class UrlEncodeTest extends TestCase
     public function testSafeCharactersAreNotEncoded()
     {
         $this
-            ->forAll(Generator\elements(
+            ->forAll(Set\Elements::of(
                 ':',
                 '/',
                 '?',

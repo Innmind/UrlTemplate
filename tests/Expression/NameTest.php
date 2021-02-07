@@ -8,22 +8,23 @@ use Innmind\UrlTemplate\{
     Exception\DomainException,
 };
 use PHPUnit\Framework\TestCase;
-use Eris\{
-    Generator,
-    TestTrait,
+use Innmind\BlackBox\{
+    PHPUnit\BlackBox,
+    Set,
 };
 
 class NameTest extends TestCase
 {
-    use TestTrait;
+    use BlackBox;
 
     public function testInterface()
     {
         $this
-            ->forAll(Generator\string())
-            ->when(static function(string $string): bool {
-                return (bool) preg_match('~[a-zA-Z0-9_]+~', $string);
-            })
+            ->forAll(
+                Set\Strings::atLeast(1)->filter(static function(string $string): bool {
+                    return (bool) preg_match('~[a-zA-Z0-9_]+~', $string);
+                }),
+            )
             ->then(function(string $string): void {
                 $this->assertSame($string, (new Name($string))->toString());
             });
@@ -32,10 +33,11 @@ class NameTest extends TestCase
     public function testThrowWhenInvalidName()
     {
         $this
-            ->forAll(Generator\string())
-            ->when(static function(string $string): bool {
-                return !preg_match('~[a-zA-Z0-9_]+~', $string);
-            })
+            ->forAll(
+                Set\Strings::any()->filter(static function(string $string): bool {
+                    return (bool) !preg_match('~[a-zA-Z0-9_]+~', $string);
+                }),
+            )
             ->then(function(string $string): void {
                 $this->expectException(DomainException::class);
                 $this->expectExceptionMessage($string);

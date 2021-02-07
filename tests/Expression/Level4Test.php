@@ -15,14 +15,14 @@ use Innmind\Immutable\{
     Str,
 };
 use PHPUnit\Framework\TestCase;
-use Eris\{
-    Generator,
-    TestTrait,
+use Innmind\BlackBox\{
+    PHPUnit\BlackBox,
+    Set,
 };
 
 class Level4Test extends TestCase
 {
-    use TestTrait;
+    use BlackBox;
 
     public function testInterface()
     {
@@ -50,7 +50,7 @@ class Level4Test extends TestCase
     public function testThrowWhenNegativeLimit()
     {
         $this
-            ->forAll(Generator\neg())
+            ->forAll(Set\Integers::below(1))
             ->then(function(int $int): void {
                 $this->expectException(DomainException::class);
 
