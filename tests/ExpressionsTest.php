@@ -21,7 +21,7 @@ class ExpressionsTest extends TestCase
     {
         $this->assertInstanceOf(
             $expected,
-            Expressions::of(Str::of($string))
+            Expressions::of(Str::of($string)),
         );
         $this->assertSame(
             $string,

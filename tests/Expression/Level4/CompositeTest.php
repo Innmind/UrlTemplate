@@ -25,8 +25,8 @@ class CompositeTest extends TestCase
             Expression::class,
             new Composite(
                 '/',
-                $this->createMock(Expression::class)
-            )
+                $this->createMock(Expression::class),
+            ),
         );
     }
 
@@ -37,16 +37,16 @@ class CompositeTest extends TestCase
             (new Composite(
                 '/',
                 Path::limit(new Name('var'), 1),
-                new Level4(new Name('var'))
-            ))->toString()
+                new Level4(new Name('var')),
+            ))->toString(),
         );
         $this->assertSame(
             '{/list*,path:4}',
             (new Composite(
                 '/',
                 Path::explode(new Name('list')),
-                Level4::limit(new Name('path'), 4)
-            ))->toString()
+                Level4::limit(new Name('path'), 4),
+            ))->toString(),
         );
     }
 
@@ -64,16 +64,16 @@ class CompositeTest extends TestCase
             (new Composite(
                 '/',
                 Path::limit(new Name('var'), 1),
-                new Level4(new Name('var'))
-            ))->expand($variables)
+                new Level4(new Name('var')),
+            ))->expand($variables),
         );
         $this->assertSame(
             '/red/green/blue/%2Ffoo',
             (new Composite(
                 '/',
                 Path::explode(new Name('list')),
-                Level4::limit(new Name('path'), 4)
-            ))->expand($variables)
+                Level4::limit(new Name('path'), 4),
+            ))->expand($variables),
         );
     }
 
@@ -107,39 +107,39 @@ class CompositeTest extends TestCase
     {
         $this->assertSame(
             '(?<var>[a-zA-Z0-9\%\-\.\_\~]*)\,(?<hello>[a-zA-Z0-9\%\-\.\_\~]*)',
-            Composite::of(Str::of('{var,hello}'))->regex()
+            Composite::of(Str::of('{var,hello}'))->regex(),
         );
         $this->assertSame(
             '(?<var>[a-zA-Z0-9\%\-\.\_\~]*)\,(?<hello>[a-zA-Z0-9\%\-\.\_\~]{5})',
-            Composite::of(Str::of('{var,hello:5}'))->regex()
+            Composite::of(Str::of('{var,hello:5}'))->regex(),
         );
         $this->assertSame(
             '(?<var>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]*)\,(?<hello>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]{5})',
-            Composite::of(Str::of('{+var,hello:5}'))->regex()
+            Composite::of(Str::of('{+var,hello:5}'))->regex(),
         );
         $this->assertSame(
             '\#(?<var>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]*)\,(?<hello>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]{5})',
-            Composite::of(Str::of('{#var,hello:5}'))->regex()
+            Composite::of(Str::of('{#var,hello:5}'))->regex(),
         );
         $this->assertSame(
             '\.(?<var>[a-zA-Z0-9\%\-\.\_\~]*)\.(?<hello>[a-zA-Z0-9\%\-\.\_\~]{5})',
-            Composite::of(Str::of('{.var,hello:5}'))->regex()
+            Composite::of(Str::of('{.var,hello:5}'))->regex(),
         );
         $this->assertSame(
             '\/(?<var>[a-zA-Z0-9\%\-\.\_\~]*)\/(?<hello>[a-zA-Z0-9\%\-\.\_\~]{5})',
-            Composite::of(Str::of('{/var,hello:5}'))->regex()
+            Composite::of(Str::of('{/var,hello:5}'))->regex(),
         );
         $this->assertSame(
             '\;var=(?<var>[a-zA-Z0-9\%\-\.\_\~]*)\;hello=(?<hello>[a-zA-Z0-9\%\-\.\_\~]{5})',
-            Composite::of(Str::of('{;var,hello:5}'))->regex()
+            Composite::of(Str::of('{;var,hello:5}'))->regex(),
         );
         $this->assertSame(
             '\?var=(?<var>[a-zA-Z0-9\%\-\.\_\~]*)\&hello=(?<hello>[a-zA-Z0-9\%\-\.\_\~]{5})',
-            Composite::of(Str::of('{?var,hello:5}'))->regex()
+            Composite::of(Str::of('{?var,hello:5}'))->regex(),
         );
         $this->assertSame(
             '\&var=(?<var>[a-zA-Z0-9\%\-\.\_\~]*)\&hello=(?<hello>[a-zA-Z0-9\%\-\.\_\~]{5})',
-            Composite::of(Str::of('{&var,hello:5}'))->regex()
+            Composite::of(Str::of('{&var,hello:5}'))->regex(),
         );
     }
 

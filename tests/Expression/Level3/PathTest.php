@@ -21,7 +21,7 @@ class PathTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Path(new Name('foo'), new Name('bar'))
+            new Path(new Name('foo'), new Name('bar')),
         );
     }
 
@@ -45,11 +45,11 @@ class PathTest extends TestCase
 
         $this->assertSame(
             '/value',
-            (new Path(new Name('var')))->expand($variables)
+            (new Path(new Name('var')))->expand($variables),
         );
         $this->assertSame(
             '/value/1024',
-            (new Path(new Name('var'), new Name('x')))->expand($variables)
+            (new Path(new Name('var'), new Name('x')))->expand($variables),
         );
     }
 
@@ -57,7 +57,7 @@ class PathTest extends TestCase
     {
         $this->assertInstanceOf(
             Path::class,
-            $expression = Path::of(Str::of('{/foo,bar}'))
+            $expression = Path::of(Str::of('{/foo,bar}')),
         );
         $this->assertSame('{/foo,bar}', $expression->toString());
     }
@@ -74,7 +74,7 @@ class PathTest extends TestCase
     {
         $this->assertSame(
             '/(?<foo>[a-zA-Z0-9\%\-\.\_\~]*)/(?<bar>[a-zA-Z0-9\%\-\.\_\~]*)',
-            Path::of(Str::of('{/foo,bar}'))->regex()
+            Path::of(Str::of('{/foo,bar}'))->regex(),
         );
     }
 }

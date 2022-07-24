@@ -29,7 +29,7 @@ final class Composite implements Expression
     public function __construct(
         string $separator,
         Expression $level4,
-        Expression ...$expressions
+        Expression ...$expressions,
     ) {
         $this->separator = $separator;
         $this->type = \get_class($level4);
@@ -40,7 +40,7 @@ final class Composite implements Expression
     public static function removeLead(
         string $separator,
         Expression $level4,
-        Expression ...$expressions
+        Expression ...$expressions,
     ): self {
         $self = new self($separator, $level4, ...$expressions);
         $self->removeLead = true;
@@ -127,7 +127,7 @@ final class Composite implements Expression
                     'string',
                     static fn($expression) => $expression->regex(),
                 )
-                ->append($remaining)
+                ->append($remaining),
         )->toString();
     }
 

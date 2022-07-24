@@ -28,15 +28,15 @@ class Level4Test extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Level4(new Name('foo'))
+            new Level4(new Name('foo')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Level4::explode(new Name('foo'))
+            Level4::explode(new Name('foo')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Level4::limit(new Name('foo'), 42)
+            Level4::limit(new Name('foo'), 42),
         );
     }
 
@@ -69,31 +69,31 @@ class Level4Test extends TestCase
 
         $this->assertSame(
             'val',
-            Level4::limit(new Name('var'), 3)->expand($variables)
+            Level4::limit(new Name('var'), 3)->expand($variables),
         );
         $this->assertSame(
             'value',
-            Level4::limit(new Name('var'), 30)->expand($variables)
+            Level4::limit(new Name('var'), 30)->expand($variables),
         );
         $this->assertSame(
             '%2Ffoo',
-            Level4::limit(new Name('path'), 4)->expand($variables)
+            Level4::limit(new Name('path'), 4)->expand($variables),
         );
         $this->assertSame(
             'red,green,blue',
-            (new Level4(new Name('list')))->expand($variables)
+            (new Level4(new Name('list')))->expand($variables),
         );
         $this->assertSame(
             'red,green,blue',
-            Level4::explode(new Name('list'))->expand($variables)
+            Level4::explode(new Name('list'))->expand($variables),
         );
         $this->assertSame(
             'semi,%3B,dot,.,comma,%2C',
-            (new Level4(new Name('keys')))->expand($variables)
+            (new Level4(new Name('keys')))->expand($variables),
         );
         $this->assertSame(
             'semi=%3B,dot=.,comma=%2C',
-            Level4::explode(new Name('keys'))->expand($variables)
+            Level4::explode(new Name('keys'))->expand($variables),
         );
     }
 
@@ -101,17 +101,17 @@ class Level4Test extends TestCase
     {
         $this->assertInstanceOf(
             Level4::class,
-            $expression = Level4::of(Str::of('{foo}'))
+            $expression = Level4::of(Str::of('{foo}')),
         );
         $this->assertSame('{foo}', $expression->toString());
         $this->assertInstanceOf(
             Level4::class,
-            $expression = Level4::of(Str::of('{foo*}'))
+            $expression = Level4::of(Str::of('{foo*}')),
         );
         $this->assertSame('{foo*}', $expression->toString());
         $this->assertInstanceOf(
             Level4::class,
-            $expression = Level4::of(Str::of('{foo:42}'))
+            $expression = Level4::of(Str::of('{foo:42}')),
         );
         $this->assertSame('{foo:42}', $expression->toString());
     }
@@ -135,11 +135,11 @@ class Level4Test extends TestCase
     {
         $this->assertSame(
             '(?<foo>[a-zA-Z0-9\%\-\.\_\~]*)',
-            Level4::of(Str::of('{foo}'))->regex()
+            Level4::of(Str::of('{foo}'))->regex(),
         );
         $this->assertSame(
             '(?<foo>[a-zA-Z0-9\%\-\.\_\~]{2})',
-            Level4::of(Str::of('{foo:2}'))->regex()
+            Level4::of(Str::of('{foo:2}'))->regex(),
         );
     }
 }

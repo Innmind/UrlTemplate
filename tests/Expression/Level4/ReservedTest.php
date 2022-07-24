@@ -28,15 +28,15 @@ class ReservedTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Reserved(new Name('foo'))
+            new Reserved(new Name('foo')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Reserved::explode(new Name('foo'))
+            Reserved::explode(new Name('foo')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Reserved::limit(new Name('foo'), 42)
+            Reserved::limit(new Name('foo'), 42),
         );
     }
 
@@ -69,23 +69,23 @@ class ReservedTest extends TestCase
 
         $this->assertSame(
             '/foo/b',
-            Reserved::limit(new Name('path'), 6)->expand($variables)
+            Reserved::limit(new Name('path'), 6)->expand($variables),
         );
         $this->assertSame(
             'red,green,blue',
-            (new Reserved(new Name('list')))->expand($variables)
+            (new Reserved(new Name('list')))->expand($variables),
         );
         $this->assertSame(
             'red,green,blue',
-            Reserved::explode(new Name('list'))->expand($variables)
+            Reserved::explode(new Name('list'))->expand($variables),
         );
         $this->assertSame(
             'semi,;,dot,.,comma,,',
-            (new Reserved(new Name('keys')))->expand($variables)
+            (new Reserved(new Name('keys')))->expand($variables),
         );
         $this->assertSame(
             'semi=;,dot=.,comma=,',
-            Reserved::explode(new Name('keys'))->expand($variables)
+            Reserved::explode(new Name('keys'))->expand($variables),
         );
     }
 
@@ -93,17 +93,17 @@ class ReservedTest extends TestCase
     {
         $this->assertInstanceOf(
             Reserved::class,
-            $expression = Reserved::of(Str::of('{+foo}'))
+            $expression = Reserved::of(Str::of('{+foo}')),
         );
         $this->assertSame('{+foo}', $expression->toString());
         $this->assertInstanceOf(
             Reserved::class,
-            $expression = Reserved::of(Str::of('{+foo*}'))
+            $expression = Reserved::of(Str::of('{+foo*}')),
         );
         $this->assertSame('{+foo*}', $expression->toString());
         $this->assertInstanceOf(
             Reserved::class,
-            $expression = Reserved::of(Str::of('{+foo:42}'))
+            $expression = Reserved::of(Str::of('{+foo:42}')),
         );
         $this->assertSame('{+foo:42}', $expression->toString());
     }
@@ -127,11 +127,11 @@ class ReservedTest extends TestCase
     {
         $this->assertSame(
             '(?<foo>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]*)',
-            Reserved::of(Str::of('{+foo}'))->regex()
+            Reserved::of(Str::of('{+foo}'))->regex(),
         );
         $this->assertSame(
             '(?<foo>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]{2})',
-            Reserved::of(Str::of('{+foo:2}'))->regex()
+            Reserved::of(Str::of('{+foo:2}'))->regex(),
         );
     }
 }

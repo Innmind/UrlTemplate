@@ -21,7 +21,7 @@ class QueryTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Query(new Name('foo'), new Name('bar'))
+            new Query(new Name('foo'), new Name('bar')),
         );
     }
 
@@ -45,11 +45,11 @@ class QueryTest extends TestCase
 
         $this->assertSame(
             '?x=1024&y=768',
-            (new Query(new Name('x'), new Name('y')))->expand($variables)
+            (new Query(new Name('x'), new Name('y')))->expand($variables),
         );
         $this->assertSame(
             '?x=1024&y=768&empty=',
-            (new Query(new Name('x'), new Name('y'), new Name('empty')))->expand($variables)
+            (new Query(new Name('x'), new Name('y'), new Name('empty')))->expand($variables),
         );
     }
 
@@ -57,7 +57,7 @@ class QueryTest extends TestCase
     {
         $this->assertInstanceOf(
             Query::class,
-            $expression = Query::of(Str::of('{?foo,bar}'))
+            $expression = Query::of(Str::of('{?foo,bar}')),
         );
         $this->assertSame('{?foo,bar}', $expression->toString());
     }
@@ -74,7 +74,7 @@ class QueryTest extends TestCase
     {
         $this->assertSame(
             '\?foo=(?<foo>[a-zA-Z0-9\%\-\.\_\~]*)\&bar=(?<bar>[a-zA-Z0-9\%\-\.\_\~]*)',
-            Query::of(Str::of('{?foo,bar}'))->regex()
+            Query::of(Str::of('{?foo,bar}'))->regex(),
         );
     }
 }

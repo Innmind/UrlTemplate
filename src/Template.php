@@ -55,7 +55,7 @@ final class Template
                     $expression->toString(),
                     $expression->expand($variables),
                 );
-            }
+            },
         );
 
         return Url::of($url->toString());
@@ -112,7 +112,7 @@ final class Template
      */
     private function extractExpressions(
         Sequence $expressions,
-        Str $template
+        Str $template,
     ): Sequence {
         $captured = $template->capture('~(\{[\+#\./;\?&]?[a-zA-Z0-9_]+(\*|:\d+)?(,[a-zA-Z0-9_]+(\*|:\d+)?)*\})~');
 

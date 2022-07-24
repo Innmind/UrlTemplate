@@ -21,7 +21,7 @@ class LabelTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Label(new Name('foo'), new Name('bar'))
+            new Label(new Name('foo'), new Name('bar')),
         );
     }
 
@@ -45,11 +45,11 @@ class LabelTest extends TestCase
 
         $this->assertSame(
             '.1024.768',
-            (new Label(new Name('x'), new Name('y')))->expand($variables)
+            (new Label(new Name('x'), new Name('y')))->expand($variables),
         );
         $this->assertSame(
             '.value',
-            (new Label(new Name('var')))->expand($variables)
+            (new Label(new Name('var')))->expand($variables),
         );
     }
 
@@ -57,7 +57,7 @@ class LabelTest extends TestCase
     {
         $this->assertInstanceOf(
             Label::class,
-            $expression = Label::of(Str::of('{.foo,bar}'))
+            $expression = Label::of(Str::of('{.foo,bar}')),
         );
         $this->assertSame('{.foo,bar}', $expression->toString());
     }
@@ -74,7 +74,7 @@ class LabelTest extends TestCase
     {
         $this->assertSame(
             '\.(?<foo>[a-zA-Z0-9\%\-\_\~]*).(?<bar>[a-zA-Z0-9\%\-\_\~]*)',
-            Label::of(Str::of('{.foo,bar}'))->regex()
+            Label::of(Str::of('{.foo,bar}'))->regex(),
         );
     }
 }

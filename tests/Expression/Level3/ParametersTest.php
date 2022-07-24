@@ -21,7 +21,7 @@ class ParametersTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Parameters(new Name('foo'), new Name('bar'))
+            new Parameters(new Name('foo'), new Name('bar')),
         );
     }
 
@@ -45,11 +45,11 @@ class ParametersTest extends TestCase
 
         $this->assertSame(
             ';x=1024;y=768',
-            (new Parameters(new Name('x'), new Name('y')))->expand($variables)
+            (new Parameters(new Name('x'), new Name('y')))->expand($variables),
         );
         $this->assertSame(
             ';x=1024;y=768;empty',
-            (new Parameters(new Name('x'), new Name('y'), new Name('empty')))->expand($variables)
+            (new Parameters(new Name('x'), new Name('y'), new Name('empty')))->expand($variables),
         );
     }
 
@@ -57,7 +57,7 @@ class ParametersTest extends TestCase
     {
         $this->assertInstanceOf(
             Parameters::class,
-            $expression = Parameters::of(Str::of('{;foo,bar}'))
+            $expression = Parameters::of(Str::of('{;foo,bar}')),
         );
         $this->assertSame('{;foo,bar}', $expression->toString());
     }
@@ -74,7 +74,7 @@ class ParametersTest extends TestCase
     {
         $this->assertSame(
             '\;foo=?(?<foo>[a-zA-Z0-9\%\-\.\_\~]*)\;bar=?(?<bar>[a-zA-Z0-9\%\-\.\_\~]*)',
-            Parameters::of(Str::of('{;foo,bar}'))->regex()
+            Parameters::of(Str::of('{;foo,bar}'))->regex(),
         );
     }
 }

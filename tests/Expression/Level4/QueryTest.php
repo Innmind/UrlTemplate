@@ -28,15 +28,15 @@ class QueryTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Query(new Name('foo'))
+            new Query(new Name('foo')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Query::explode(new Name('foo'))
+            Query::explode(new Name('foo')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Query::limit(new Name('foo'), 42)
+            Query::limit(new Name('foo'), 42),
         );
     }
 
@@ -69,23 +69,23 @@ class QueryTest extends TestCase
 
         $this->assertSame(
             '?var=val',
-            Query::limit(new Name('var'), 3)->expand($variables)
+            Query::limit(new Name('var'), 3)->expand($variables),
         );
         $this->assertSame(
             '?list=red,green,blue',
-            (new Query(new Name('list')))->expand($variables)
+            (new Query(new Name('list')))->expand($variables),
         );
         $this->assertSame(
             '?list=red&list=green&list=blue',
-            Query::explode(new Name('list'))->expand($variables)
+            Query::explode(new Name('list'))->expand($variables),
         );
         $this->assertSame(
             '?keys=semi,%3B,dot,.,comma,%2C',
-            (new Query(new Name('keys')))->expand($variables)
+            (new Query(new Name('keys')))->expand($variables),
         );
         $this->assertSame(
             '?semi=%3B&dot=.&comma=%2C',
-            Query::explode(new Name('keys'))->expand($variables)
+            Query::explode(new Name('keys'))->expand($variables),
         );
     }
 
@@ -93,17 +93,17 @@ class QueryTest extends TestCase
     {
         $this->assertInstanceOf(
             Query::class,
-            $expression = Query::of(Str::of('{?foo}'))
+            $expression = Query::of(Str::of('{?foo}')),
         );
         $this->assertSame('{?foo}', $expression->toString());
         $this->assertInstanceOf(
             Query::class,
-            $expression = Query::of(Str::of('{?foo*}'))
+            $expression = Query::of(Str::of('{?foo*}')),
         );
         $this->assertSame('{?foo*}', $expression->toString());
         $this->assertInstanceOf(
             Query::class,
-            $expression = Query::of(Str::of('{?foo:42}'))
+            $expression = Query::of(Str::of('{?foo:42}')),
         );
         $this->assertSame('{?foo:42}', $expression->toString());
     }
@@ -127,11 +127,11 @@ class QueryTest extends TestCase
     {
         $this->assertSame(
             '\?foo=(?<foo>[a-zA-Z0-9\%\-\.\_\~]*)',
-            Query::of(Str::of('{?foo}'))->regex()
+            Query::of(Str::of('{?foo}'))->regex(),
         );
         $this->assertSame(
             '\?foo=(?<foo>[a-zA-Z0-9\%\-\.\_\~]{2})',
-            Query::of(Str::of('{?foo:2}'))->regex()
+            Query::of(Str::of('{?foo:2}'))->regex(),
         );
     }
 }

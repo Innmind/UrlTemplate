@@ -22,7 +22,7 @@ class FragmentTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Fragment(new Name('foo'))
+            new Fragment(new Name('foo')),
         );
     }
 
@@ -36,16 +36,16 @@ class FragmentTest extends TestCase
         $expression = new Fragment(new Name('foo'));
 
         $this->assertSame('#value', $expression->expand(
-            Map::of('string', 'variable')('foo', 'value')
+            Map::of('string', 'variable')('foo', 'value'),
         ));
         $this->assertSame('#Hello%20World!', $expression->expand(
-            Map::of('string', 'variable')('foo', 'Hello World!')
+            Map::of('string', 'variable')('foo', 'Hello World!'),
         ));
         $this->assertSame('#/foo/bar', $expression->expand(
-            Map::of('string', 'variable')('foo', '/foo/bar')
+            Map::of('string', 'variable')('foo', '/foo/bar'),
         ));
         $this->assertSame('', $expression->expand(
-            Map::of('string', 'variable')
+            Map::of('string', 'variable'),
         ));
     }
 
@@ -53,7 +53,7 @@ class FragmentTest extends TestCase
     {
         $this->assertInstanceOf(
             Fragment::class,
-            $expression = Fragment::of(Str::of('{#foo}'))
+            $expression = Fragment::of(Str::of('{#foo}')),
         );
         $this->assertSame('{#foo}', $expression->toString());
     }
@@ -70,7 +70,7 @@ class FragmentTest extends TestCase
     {
         $this->assertSame(
             '\#(?<foo>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]*)',
-            Fragment::of(Str::of('{#foo}'))->regex()
+            Fragment::of(Str::of('{#foo}'))->regex(),
         );
     }
 
@@ -82,7 +82,7 @@ class FragmentTest extends TestCase
         $this->expectExceptionMessage('foo');
 
         $expression->expand(
-            Map::of('string', 'variable')('foo', ['value'])
+            Map::of('string', 'variable')('foo', ['value']),
         );
     }
 }

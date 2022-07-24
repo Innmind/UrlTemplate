@@ -21,7 +21,7 @@ class Level3Test extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Level3(new Name('foo'), new Name('bar'))
+            new Level3(new Name('foo'), new Name('bar')),
         );
     }
 
@@ -45,11 +45,11 @@ class Level3Test extends TestCase
 
         $this->assertSame(
             '1024,768',
-            (new Level3(new Name('x'), new Name('y')))->expand($variables)
+            (new Level3(new Name('x'), new Name('y')))->expand($variables),
         );
         $this->assertSame(
             '1024,Hello%20World%21,768',
-            (new Level3(new Name('x'), new Name('hello'), new Name('y')))->expand($variables)
+            (new Level3(new Name('x'), new Name('hello'), new Name('y')))->expand($variables),
         );
     }
 
@@ -57,7 +57,7 @@ class Level3Test extends TestCase
     {
         $this->assertInstanceOf(
             Level3::class,
-            $expression = Level3::of(Str::of('{foo,bar}'))
+            $expression = Level3::of(Str::of('{foo,bar}')),
         );
         $this->assertSame('{foo,bar}', $expression->toString());
     }
@@ -74,7 +74,7 @@ class Level3Test extends TestCase
     {
         $this->assertSame(
             '(?<foo>[a-zA-Z0-9\%\-\.\_\~]*),(?<bar>[a-zA-Z0-9\%\-\.\_\~]*)',
-            Level3::of(Str::of('{foo,bar}'))->regex()
+            Level3::of(Str::of('{foo,bar}'))->regex(),
         );
     }
 }

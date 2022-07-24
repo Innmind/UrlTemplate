@@ -21,7 +21,7 @@ class QueryContinuationTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new QueryContinuation(new Name('foo'), new Name('bar'))
+            new QueryContinuation(new Name('foo'), new Name('bar')),
         );
     }
 
@@ -45,11 +45,11 @@ class QueryContinuationTest extends TestCase
 
         $this->assertSame(
             '&x=1024&y=768',
-            (new QueryContinuation(new Name('x'), new Name('y')))->expand($variables)
+            (new QueryContinuation(new Name('x'), new Name('y')))->expand($variables),
         );
         $this->assertSame(
             '&x=1024&y=768&empty=',
-            (new QueryContinuation(new Name('x'), new Name('y'), new Name('empty')))->expand($variables)
+            (new QueryContinuation(new Name('x'), new Name('y'), new Name('empty')))->expand($variables),
         );
     }
 
@@ -57,7 +57,7 @@ class QueryContinuationTest extends TestCase
     {
         $this->assertInstanceOf(
             QueryContinuation::class,
-            $expression = QueryContinuation::of(Str::of('{&foo,bar}'))
+            $expression = QueryContinuation::of(Str::of('{&foo,bar}')),
         );
         $this->assertSame('{&foo,bar}', $expression->toString());
     }
@@ -74,7 +74,7 @@ class QueryContinuationTest extends TestCase
     {
         $this->assertSame(
             '\&foo=(?<foo>[a-zA-Z0-9\%\-\.\_\~]*)\&bar=(?<bar>[a-zA-Z0-9\%\-\.\_\~]*)',
-            QueryContinuation::of(Str::of('{&foo,bar}'))->regex()
+            QueryContinuation::of(Str::of('{&foo,bar}'))->regex(),
         );
     }
 }
