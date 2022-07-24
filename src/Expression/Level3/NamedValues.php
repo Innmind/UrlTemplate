@@ -31,7 +31,6 @@ final class NamedValues implements Expression
     {
         $this->lead = $lead;
         $this->separator = $separator;
-        /** @var Sequence<Name> */
         $this->names = Sequence::of(Name::class, ...$names);
         /** @var Map<string, Expression> */
         $this->expressions = $this->names->toMapOf(

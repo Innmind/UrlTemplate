@@ -30,7 +30,6 @@ final class Path implements Expression
 
     public function __construct(Name ...$names)
     {
-        /** @var Sequence<Name> */
         $this->names = Sequence::of(Name::class, ...$names);
         /** @var Sequence<Expression> */
         $this->expressions = $this->names->mapTo(

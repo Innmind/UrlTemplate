@@ -33,7 +33,6 @@ final class Composite implements Expression
     ) {
         $this->separator = $separator;
         $this->type = \get_class($level4);
-        /** @var Sequence<Expression> */
         $this->expressions = Sequence::of(Expression::class, $level4, ...$expressions);
     }
 

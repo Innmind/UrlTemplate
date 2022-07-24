@@ -219,10 +219,6 @@ final class Query implements Expression
                 $name = $this->name;
 
                 if (\is_array($variableToExpand)) {
-                    /**
-                     * @var string $name
-                     * @var scalar $value
-                     */
                     [$name, $value] = $variableToExpand;
                     $name = new Name($name);
                     $variableToExpand = $value;

@@ -249,10 +249,6 @@ final class Level4 implements Expression
         $expanded = Sequence::of('scalar|array', ...$variablesToExpand)
             ->map(function($variableToExpand) use ($variables): string {
                 if (\is_array($variableToExpand)) {
-                    /**
-                     * @var string $name
-                     * @var scalar $value
-                     */
                     [$name, $value] = $variableToExpand;
                     $variableToExpand = $value;
                 }

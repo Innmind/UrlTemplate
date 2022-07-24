@@ -28,9 +28,7 @@ final class Level3 implements Expression
 
     public function __construct(Name ...$names)
     {
-        /** @var Sequence<Name> */
         $this->names = Sequence::of(Name::class, ...$names);
-        /** @var Sequence<Level1> */
         $this->expressions = $this->names->mapTo(
             Level1::class,
             static fn(Name $name) => new Level1($name),
