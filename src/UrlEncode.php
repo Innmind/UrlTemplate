@@ -5,6 +5,7 @@ namespace Innmind\UrlTemplate;
 
 use Innmind\Immutable\{
     Str,
+    Sequence,
     Monoid\Concat,
 };
 
@@ -13,11 +14,12 @@ use Innmind\Immutable\{
  */
 final class UrlEncode
 {
-    private Str $safeCharacters;
+    /** @var Sequence<string> */
+    private Sequence $safeCharacters;
 
     public function __construct()
     {
-        $this->safeCharacters = Str::of('');
+        $this->safeCharacters = Sequence::strings();
     }
 
     public function __invoke(string $string): string
@@ -41,7 +43,26 @@ final class UrlEncode
     public static function allowReservedCharacters(): self
     {
         $self = new self;
-        $self->safeCharacters = Str::of(':/?#[]@!$&\'()*+,;=');
+        $self->safeCharacters = Sequence::strings(
+            ':',
+            '/',
+            '?',
+            '#',
+            '[',
+            ']',
+            '@',
+            '!',
+            '$',
+            '&',
+            "'",
+            '(',
+            ')',
+            '*',
+            '+',
+            ',',
+            ';',
+            '=',
+        );
 
         return $self;
     }
