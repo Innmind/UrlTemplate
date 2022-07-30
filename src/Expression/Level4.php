@@ -255,7 +255,6 @@ final class Level4 implements Expression
                     $variableToExpand = $value;
                 }
 
-                /** @psalm-suppress MixedArgument */
                 $variables = ($variables)($this->name->toString(), $variableToExpand);
 
                 $value = $this->expression->expand($variables);

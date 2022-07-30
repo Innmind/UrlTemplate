@@ -195,7 +195,6 @@ final class Parameters implements Expression
             function($variableToExpand) use ($variables): string {
                 // here we use the level1 expression to transform the variable to
                 // be expanded to its string representation
-                /** @psalm-suppress MixedArgument */
                 $variables = ($variables)($this->name->toString(), $variableToExpand);
 
                 return $this->expression->expand($variables);
@@ -225,7 +224,6 @@ final class Parameters implements Expression
                     $variableToExpand = $value;
                 }
 
-                /** @psalm-suppress MixedArgument */
                 $variables = ($variables)($name->toString(), $variableToExpand);
 
                 return (new Level3\Parameters($name))->expand($variables);

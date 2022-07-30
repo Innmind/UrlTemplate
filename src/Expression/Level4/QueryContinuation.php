@@ -194,7 +194,6 @@ final class QueryContinuation implements Expression
         $expanded = $flattenedVariables->map(function($variableToExpand) use ($variables): string {
             // here we use the level1 expression to transform the variable to
             // be expanded to its string representation
-            /** @psalm-suppress MixedArgument */
             $variables = ($variables)($this->name->toString(), $variableToExpand);
 
             return $this->expression->expand($variables);
@@ -222,7 +221,6 @@ final class QueryContinuation implements Expression
                 $variableToExpand = $value;
             }
 
-            /** @psalm-suppress MixedArgument */
             $variables = ($variables)($name->toString(), $variableToExpand);
 
             return (new Level3\QueryContinuation($name))->expand($variables);

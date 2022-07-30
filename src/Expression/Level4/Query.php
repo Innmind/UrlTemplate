@@ -195,7 +195,6 @@ final class Query implements Expression
             // here we use the level1 expression to transform the variable to
             // be expanded to its string representation
 
-            /** @psalm-suppress MixedArgument */
             $variables = ($variables)($this->name->toString(), $variableToExpand);
 
             return $this->expression->expand($variables);
@@ -223,7 +222,6 @@ final class Query implements Expression
                 $variableToExpand = $value;
             }
 
-            /** @psalm-suppress MixedArgument */
             $variables = ($variables)($name->toString(), $variableToExpand);
 
             $value = (new Level3\Query($name))->expand($variables);
