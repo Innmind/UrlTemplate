@@ -18,10 +18,6 @@ use Innmind\Immutable\{
     Str,
     Sequence,
 };
-use function Innmind\Immutable\{
-    join,
-    unwrap,
-};
 
 final class Query implements Expression
 {
@@ -50,7 +46,7 @@ final class Query implements Expression
 
         if ($string->matches('~^\{\?[a-zA-Z0-9_]+:\d+\}$~')) {
             $string = $string->trim('{?}');
-            [$name, $limit] = unwrap($string->split(':'));
+            [$name, $limit] = $string->split(':')->toList();
 
             return self::limit(
                 new Name($name->toString()),
@@ -95,12 +91,15 @@ final class Query implements Expression
      */
     public function expand(Map $variables): string
     {
-        if (!$variables->contains($this->name->toString())) {
+        /** @var scalar|array{0:string, 1:scalar}|null */
+        $variable = $variables->get($this->name->toString())->match(
+            static fn($variable) => $variable,
+            static fn() => null,
+        );
+
+        if (\is_null($variable)) {
             return '';
         }
-
-        /** @var scalar|array{0:string, 1:scalar} */
-        $variable = $variables->get($this->name->toString());
 
         if (\is_array($variable)) {
             return $this->expandList($variables, ...$variable);
@@ -169,6 +168,7 @@ final class Query implements Expression
     }
 
     /**
+     * @no-named-arguments
      * @param Map<string, scalar|array> $variables
      * @param array<scalar|array{0:string, 1:scalar}> $variablesToExpand
      */
@@ -178,32 +178,29 @@ final class Query implements Expression
             return $this->explodeList($variables, $variablesToExpand);
         }
 
-        /** @var Sequence<scalar> */
-        $flattenedVariables = Sequence::of('scalar|array', ...$variablesToExpand)->reduce(
-            Sequence::of('scalar'),
-            static function(Sequence $values, $variableToExpand): Sequence {
+        $flattenedVariables = Sequence::of(...$variablesToExpand)->flatMap(
+            static function($variableToExpand): Sequence {
                 if (\is_array($variableToExpand)) {
                     [$name, $variableToExpand] = $variableToExpand;
 
-                    return ($values)($name)($variableToExpand);
+                    return Sequence::of($name, $variableToExpand);
                 }
 
-                return ($values)($variableToExpand);
+                return Sequence::of($variableToExpand);
             },
         );
-        $expanded = $flattenedVariables
-            ->map(function($variableToExpand) use ($variables): string {
-                // here we use the level1 expression to transform the variable to
-                // be expanded to its string representation
+        $expanded = $flattenedVariables->map(function($variableToExpand) use ($variables): string {
+            // here we use the level1 expression to transform the variable to
+            // be expanded to its string representation
 
-                /** @psalm-suppress MixedArgument */
-                $variables = ($variables)($this->name->toString(), $variableToExpand);
+            /** @psalm-suppress MixedArgument */
+            $variables = ($variables)($this->name->toString(), $variableToExpand);
 
-                return $this->expression->expand($variables);
-            })
-            ->toSequenceOf('string');
+            return $this->expression->expand($variables);
+        });
 
-        return join(',', $expanded)
+        return Str::of(',')
+            ->join($expanded)
             ->prepend("?{$this->name->toString()}=")
             ->toString();
     }
@@ -214,28 +211,28 @@ final class Query implements Expression
      */
     private function explodeList(Map $variables, array $variablesToExpand): string
     {
-        $expanded = Sequence::of('scalar|array', ...$variablesToExpand)
-            ->map(function($variableToExpand) use ($variables): string {
-                $name = $this->name;
+        /** @psalm-suppress NamedArgumentNotAllowed */
+        $expanded = Sequence::of(...$variablesToExpand)->map(function($variableToExpand) use ($variables): string {
+            $name = $this->name;
 
-                if (\is_array($variableToExpand)) {
-                    [$name, $value] = $variableToExpand;
-                    $name = new Name($name);
-                    $variableToExpand = $value;
-                }
+            if (\is_array($variableToExpand)) {
+                [$name, $value] = $variableToExpand;
+                $name = new Name($name);
+                $variableToExpand = $value;
+            }
 
-                /** @psalm-suppress MixedArgument */
-                $variables = ($variables)($name->toString(), $variableToExpand);
+            /** @psalm-suppress MixedArgument */
+            $variables = ($variables)($name->toString(), $variableToExpand);
 
-                $value = (new Level3\Query($name))->expand($variables);
+            $value = (new Level3\Query($name))->expand($variables);
 
-                // the substring is here to remove the '?' as it should be a '&'
-                // done below in the join
-                return Str::of($value)->substring(1)->toString();
-            })
-            ->toSequenceOf('string');
+            // the substring is here to remove the '?' as it should be a '&'
+            // done below in the join
+            return Str::of($value)->substring(1)->toString();
+        });
 
-        return join('&', $expanded)
+        return Str::of('&')
+            ->join($expanded)
             ->prepend('?')
             ->toString();
     }

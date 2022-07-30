@@ -60,7 +60,7 @@ class LabelTest extends TestCase
 
     public function testExpand()
     {
-        $variables = Map::of('string', 'variable')
+        $variables = Map::of()
             ('var', 'value')
             ('hello', 'Hello World!')
             ('path', '/foo/bar')

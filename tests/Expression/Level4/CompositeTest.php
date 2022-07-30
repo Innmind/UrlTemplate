@@ -52,7 +52,7 @@ class CompositeTest extends TestCase
 
     public function testExpand()
     {
-        $variables = Map::of('string', 'variable')
+        $variables = Map::of()
             ('var', 'value')
             ('hello', 'Hello World!')
             ('path', '/foo/bar')
@@ -82,7 +82,7 @@ class CompositeTest extends TestCase
      */
     public function testOf($pattern, $expected)
     {
-        $variables = Map::of('string', 'variable')
+        $variables = Map::of()
             ('var', 'value')
             ('hello', 'Hello World!')
             ('path', '/foo/bar')

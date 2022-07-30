@@ -36,13 +36,13 @@ class Level1Test extends TestCase
         $expression = new Level1(new Name('foo'));
 
         $this->assertSame('value', $expression->expand(
-            Map::of('string', 'variable')('foo', 'value'),
+            Map::of(['foo', 'value']),
         ));
         $this->assertSame('Hello%20World%21', $expression->expand(
-            Map::of('string', 'variable')('foo', 'Hello World!'),
+            Map::of(['foo', 'Hello World!']),
         ));
         $this->assertSame('', $expression->expand(
-            Map::of('string', 'variable'),
+            Map::of(),
         ));
     }
 
@@ -79,7 +79,7 @@ class Level1Test extends TestCase
         $this->expectExceptionMessage('foo');
 
         $expression->expand(
-            Map::of('string', 'variable')('foo', ['value']),
+            Map::of(['foo', ['value']]),
         );
     }
 }

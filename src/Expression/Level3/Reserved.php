@@ -14,10 +14,6 @@ use Innmind\Immutable\{
     Sequence,
     Str,
 };
-use function Innmind\Immutable\{
-    join,
-    unwrap,
-};
 
 final class Reserved implements Expression
 {
@@ -28,12 +24,14 @@ final class Reserved implements Expression
     private ?string $regex = null;
     private ?string $string = null;
 
+    /**
+     * @no-named-arguments
+     */
     public function __construct(Name ...$names)
     {
-        $this->names = Sequence::of(Name::class, ...$names);
+        $this->names = Sequence::of(...$names);
         /** @var Sequence<Expression> */
-        $this->expressions = $this->names->mapTo(
-            Expression::class,
+        $this->expressions = $this->names->map(
             static fn(Name $name) => new Level2\Reserved($name),
         );
     }
@@ -44,48 +42,38 @@ final class Reserved implements Expression
             throw new DomainException($string->toString());
         }
 
-        /** @var Sequence<Name> $names */
         $names = $string
             ->trim('{+}')
             ->split(',')
-            ->reduce(
-                Sequence::of(Name::class),
-                static fn(Sequence $names, Str $name): Sequence => ($names)(new Name($name->toString())),
-            );
+            ->map(static fn($name) => new Name($name->toString()));
 
-        return new self(...unwrap($names));
+        return new self(...$names->toList());
     }
 
     public function expand(Map $variables): string
     {
-        $expanded = $this->expressions->mapTo(
-            'string',
+        $expanded = $this->expressions->map(
             static fn($expression) => $expression->expand($variables),
         );
 
-        return join(',', $expanded)->toString();
+        return Str::of(',')->join($expanded)->toString();
     }
 
     public function regex(): string
     {
-        return $this->regex ?? $this->regex = join(
-            ',',
-            $this->expressions->mapTo(
-                'string',
+        return $this->regex ?? $this->regex = Str::of(',')
+            ->join($this->expressions->map(
                 static fn($expression) => $expression->regex(),
-            ),
-        )->toString();
+            ))
+            ->toString();
     }
 
     public function toString(): string
     {
-        return $this->string ?? $this->string = join(
-            ',',
-            $this->names->mapTo(
-                'string',
+        return $this->string ?? $this->string = Str::of(',')
+            ->join($this->names->map(
                 static fn($element) => $element->toString(),
-            ),
-        )
+            ))
             ->prepend('{+')
             ->append('}')
             ->toString();

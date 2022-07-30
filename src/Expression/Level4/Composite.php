@@ -14,7 +14,6 @@ use Innmind\Immutable\{
     Sequence,
     Str,
 };
-use function Innmind\Immutable\join;
 
 final class Composite implements Expression
 {
@@ -33,7 +32,7 @@ final class Composite implements Expression
     ) {
         $this->separator = $separator;
         $this->type = \get_class($level4);
-        $this->expressions = Sequence::of(Expression::class, $level4, ...$expressions);
+        $this->expressions = Sequence::of($level4, ...$expressions);
     }
 
     public static function removeLead(
@@ -56,6 +55,10 @@ final class Composite implements Expression
         $pieces = $string
             ->trim('{}')
             ->split(',');
+        $first = $pieces->first()->match(
+            static fn($first) => $first,
+            static fn() => throw new DomainException($string->toString()),
+        );
 
         /**
          * @psalm-suppress UndefinedInterfaceMethod
@@ -64,7 +67,7 @@ final class Composite implements Expression
         return $pieces
             ->drop(1)
             ->reduce(
-                Expressions::of($pieces->first()->prepend('{')->append('}')),
+                Expressions::of($first->prepend('{')->append('}')),
                 static function(Expression $level4, Str $expression): Expression {
                     /** @psalm-suppress MixedReturnStatement */
                     return $level4->add($expression);
@@ -74,8 +77,7 @@ final class Composite implements Expression
 
     public function expand(Map $variables): string
     {
-        $expanded = $this->expressions->mapTo(
-            'string',
+        $expanded = $this->expressions->map(
             static fn($expression) => $expression->expand($variables),
         );
 
@@ -94,7 +96,7 @@ final class Composite implements Expression
                 }),
             );
 
-        return join($this->separator, $expanded)->toString();
+        return Str::of($this->separator)->join($expanded)->toString();
     }
 
     public function regex(): string
@@ -106,28 +108,23 @@ final class Composite implements Expression
         $remaining = $this
             ->expressions
             ->drop(1)
-            ->mapTo(
-                'string',
-                function(Expression $expression): string {
-                    if ($this->removeLead) {
-                        return Str::of($expression->regex())->substring(2)->toString();
-                    }
+            ->map(function(Expression $expression): string {
+                if ($this->removeLead) {
+                    return Str::of($expression->regex())->substring(2)->toString();
+                }
 
-                    return $expression->regex();
-                },
-            );
+                return $expression->regex();
+            });
 
-        return $this->regex = join(
-            $this->separator ? '\\'.$this->separator : '',
-            $this
-                ->expressions
-                ->take(1)
-                ->mapTo(
-                    'string',
-                    static fn($expression) => $expression->regex(),
-                )
-                ->append($remaining),
-        )->toString();
+        return $this->regex = Str::of($this->separator ? '\\'.$this->separator : '')
+            ->join(
+                $this
+                    ->expressions
+                    ->take(1)
+                    ->map(static fn($expression) => $expression->regex())
+                    ->append($remaining),
+            )
+            ->toString();
     }
 
     public function toString(): string
@@ -136,8 +133,7 @@ final class Composite implements Expression
             return $this->string;
         }
 
-        $expressions = $this->expressions->mapTo(
-            Str::class,
+        $expressions = $this->expressions->map(
             static fn($expression) => Str::of($expression->toString())->trim('{}'),
         );
 
@@ -153,12 +149,10 @@ final class Composite implements Expression
                         return $expression->leftTrim('+#/.;?&');
                     }),
             )
-            ->mapTo(
-                'string',
-                static fn($element) => $element->toString(),
-            );
+            ->map(static fn($element) => $element->toString());
 
-        return $this->string = join(',', $expressions)
+        return $this->string = Str::of(',')
+            ->join($expressions)
             ->prepend('{')
             ->append('}')
             ->toString();

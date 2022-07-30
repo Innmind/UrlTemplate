@@ -14,7 +14,6 @@ use Innmind\Immutable\{
     Sequence,
     Str,
 };
-use function Innmind\Immutable\assertMap;
 
 final class Template
 {
@@ -27,13 +26,11 @@ final class Template
         $this->template = Str::of($template);
         $this->expressions = $this
             ->extractExpressions(
-                Sequence::of('string'),
+                Sequence::of(),
                 $this->template,
             )
-            ->mapTo(
-                Expression::class,
-                static fn(string $expression) => Expressions::of(Str::of($expression)),
-            );
+            ->map(Str::of(...))
+            ->map(Expressions::of(...));
     }
 
     public static function of(string $template): self
@@ -46,8 +43,6 @@ final class Template
      */
     public function expand(Map $variables): Url
     {
-        assertMap('string', 'scalar|array', $variables, 1);
-
         $url = $this->expressions->reduce(
             $this->template,
             static function(Str $template, Expression $expression) use ($variables): Str {
@@ -76,18 +71,8 @@ final class Template
         /** @var Map<string, string> */
         return $url
             ->capture($regex)
-            ->filter(static function($key): bool {
-                return \is_string($key);
-            })
-            ->reduce(
-                Map::of('string', 'string'),
-                static function(Map $variables, $name, Str $variable): Map {
-                    return ($variables)(
-                        (string) $name,
-                        \rawurldecode($variable->toString()),
-                    );
-                },
-            );
+            ->filter(static fn($key) => \is_string($key))
+            ->map(static fn($_, $variable) => \rawurldecode($variable->toString()));
     }
 
     public function matches(Url $url): bool
@@ -116,14 +101,16 @@ final class Template
     ): Sequence {
         $captured = $template->capture('~(\{[\+#\./;\?&]?[a-zA-Z0-9_]+(\*|:\d+)?(,[a-zA-Z0-9_]+(\*|:\d+)?)*\})~');
 
-        if ($captured->size() === 0) {
-            return $expressions;
-        }
-
-        return $this->extractExpressions(
-            $expressions->add($captured->values()->first()->toString()),
-            $template->replace($captured->values()->first()->toString(), ''),
-        );
+        return $captured
+            ->values()
+            ->first()
+            ->match(
+                fn($value) => $this->extractExpressions(
+                    $expressions->add($value->toString()),
+                    $template->replace($value->toString(), ''),
+                ),
+                static fn() => $expressions,
+            );
     }
 
     private function regex(): string

@@ -35,7 +35,7 @@ class ReservedTest extends TestCase
 
     public function testExpand()
     {
-        $variables = Map::of('string', 'variable')
+        $variables = Map::of()
             ('var', 'value')
             ('hello', 'Hello World!')
             ('empty', '')

@@ -4,7 +4,6 @@ declare(strict_types = 1);
 namespace Innmind\UrlTemplate;
 
 use Innmind\Immutable\Str;
-use function Innmind\Immutable\join;
 
 final class UrlEncode
 {
@@ -26,15 +25,10 @@ final class UrlEncode
         if ($string->length() > 1) {
             $characters = $string
                 ->split()
-                ->map(function(Str $character): Str {
-                    return Str::of($this($character->toString()));
-                })
-                ->mapTo(
-                    'string',
-                    static fn(Str $character): string => $character->toString(),
-                );
+                ->map(fn($character) => Str::of($this($character->toString())))
+                ->map(static fn($character) => $character->toString());
 
-            return join('', $characters)->toString();
+            return Str::of('')->join($characters)->toString();
         }
 
         if ($string->empty()) {

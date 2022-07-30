@@ -15,10 +15,6 @@ use Innmind\Immutable\{
     Str,
     Sequence,
 };
-use function Innmind\Immutable\{
-    join,
-    unwrap,
-};
 
 final class Level4 implements Expression
 {
@@ -49,7 +45,7 @@ final class Level4 implements Expression
 
         if ($string->matches('~^\{[a-zA-Z0-9_]+:\d+\}$~')) {
             $string = $string->trim('{}');
-            [$name, $limit] = unwrap($string->split(':'));
+            [$name, $limit] = $string->split(':')->toList();
 
             return self::limit(
                 new Name($name->toString()),
@@ -125,12 +121,15 @@ final class Level4 implements Expression
 
     public function expand(Map $variables): string
     {
-        if (!$variables->contains($this->name->toString())) {
+        /** @var scalar|array{0:string, 1:scalar}|null */
+        $variable = $variables->get($this->name->toString())->match(
+            static fn($variable) => $variable,
+            static fn() => null,
+        );
+
+        if (\is_null($variable)) {
             return '';
         }
-
-        /** @var scalar|array{0:string, 1:scalar} */
-        $variable = $variables->get($this->name->toString());
 
         if (\is_array($variable)) {
             return $this->expandList($variables, ...$variable);
@@ -202,6 +201,7 @@ final class Level4 implements Expression
     }
 
     /**
+     * @no-named-arguments
      * @param Map<string, scalar|array> $variables
      * @param array<scalar|array{0:scalar, 1:scalar}> $variablesToExpand
      */
@@ -211,31 +211,30 @@ final class Level4 implements Expression
             return $this->explodeList($variables, $variablesToExpand);
         }
 
-        /** @var Sequence<scalar> */
-        $flattenedVariables = Sequence::of('scalar|array', ...$variablesToExpand)->reduce(
-            Sequence::of('scalar'),
-            static function(Sequence $values, $variableToExpand): Sequence {
+        $flattenedVariables = Sequence::of(...$variablesToExpand)->flatMap(
+            static function($variableToExpand): Sequence {
                 if (\is_array($variableToExpand)) {
                     [$name, $variableToExpand] = $variableToExpand;
 
-                    return ($values)($name)($variableToExpand);
+                    return Sequence::of($name, $variableToExpand);
                 }
 
-                return ($values)($variableToExpand);
+                return Sequence::of($variableToExpand);
             },
         );
 
-        $expanded = $flattenedVariables
-            ->map(function($variableToExpand) use ($variables): string {
+        $expanded = $flattenedVariables->map(
+            function($variableToExpand) use ($variables): string {
                 // here we use the level1 expression to transform the variable to
                 // be expanded to its string representation
                 return $this->expression->expand(
                     ($variables)($this->name->toString(), $variableToExpand),
                 );
-            })
-            ->toSequenceOf('string');
+            },
+        );
 
-        return join($this->separator, $expanded)
+        return Str::of($this->separator)
+            ->join($expanded)
             ->prepend($this->lead)
             ->toString();
     }
@@ -246,8 +245,9 @@ final class Level4 implements Expression
      */
     private function explodeList(Map $variables, array $variablesToExpand): string
     {
-        $expanded = Sequence::of('scalar|array', ...$variablesToExpand)
-            ->map(function($variableToExpand) use ($variables): string {
+        /** @psalm-suppress NamedArgumentNotAllowed */
+        $expanded = Sequence::of(...$variablesToExpand)->map(
+            function($variableToExpand) use ($variables): string {
                 if (\is_array($variableToExpand)) {
                     [$name, $value] = $variableToExpand;
                     $variableToExpand = $value;
@@ -269,10 +269,11 @@ final class Level4 implements Expression
                 }
 
                 return $value;
-            })
-            ->toSequenceOf('string');
+            },
+        );
 
-        return join($this->separator, $expanded)
+        return Str::of($this->separator)
+            ->join($expanded)
             ->prepend($this->lead)
             ->toString();
     }

@@ -13,12 +13,14 @@ use Innmind\Immutable\{
     Sequence,
     Str,
 };
-use function Innmind\Immutable\unwrap;
 
 final class Query implements Expression
 {
     private Expression $expression;
 
+    /**
+     * @no-named-arguments
+     */
     public function __construct(Name ...$names)
     {
         $this->expression = new NamedValues('?', '&', ...$names);
@@ -30,16 +32,12 @@ final class Query implements Expression
             throw new DomainException($string->toString());
         }
 
-        /** @var Sequence<Name> $names */
         $names = $string
             ->trim('{?}')
             ->split(',')
-            ->reduce(
-                Sequence::of(Name::class),
-                static fn(Sequence $names, Str $name): Sequence => ($names)(new Name($name->toString())),
-            );
+            ->map(static fn($name) => new Name($name->toString()));
 
-        return new self(...unwrap($names));
+        return new self(...$names->toList());
     }
 
     public function expand(Map $variables): string

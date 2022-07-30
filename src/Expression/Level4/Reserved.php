@@ -16,7 +16,6 @@ use Innmind\Immutable\{
     Map,
     Str,
 };
-use function Innmind\Immutable\unwrap;
 
 final class Reserved implements Expression
 {
@@ -47,7 +46,7 @@ final class Reserved implements Expression
 
         if ($string->matches('~^\{\+[a-zA-Z0-9_]+:\d+\}$~')) {
             $string = $string->trim('{+}');
-            [$name, $limit] = unwrap($string->split(':'));
+            [$name, $limit] = $string->split(':')->toList();
 
             return self::limit(
                 new Name($name->toString()),

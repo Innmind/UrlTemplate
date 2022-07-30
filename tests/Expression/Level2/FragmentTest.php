@@ -36,16 +36,16 @@ class FragmentTest extends TestCase
         $expression = new Fragment(new Name('foo'));
 
         $this->assertSame('#value', $expression->expand(
-            Map::of('string', 'variable')('foo', 'value'),
+            Map::of(['foo', 'value']),
         ));
         $this->assertSame('#Hello%20World!', $expression->expand(
-            Map::of('string', 'variable')('foo', 'Hello World!'),
+            Map::of(['foo', 'Hello World!']),
         ));
         $this->assertSame('#/foo/bar', $expression->expand(
-            Map::of('string', 'variable')('foo', '/foo/bar'),
+            Map::of(['foo', '/foo/bar']),
         ));
         $this->assertSame('', $expression->expand(
-            Map::of('string', 'variable'),
+            Map::of(),
         ));
     }
 
@@ -82,7 +82,7 @@ class FragmentTest extends TestCase
         $this->expectExceptionMessage('foo');
 
         $expression->expand(
-            Map::of('string', 'variable')('foo', ['value']),
+            Map::of(['foo', ['value']]),
         );
     }
 }

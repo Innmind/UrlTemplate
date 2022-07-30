@@ -39,17 +39,18 @@ final class Fragment implements Expression
 
     public function expand(Map $variables): string
     {
-        if (!$variables->contains($this->name->toString())) {
-            return '';
-        }
+        return $variables
+            ->get($this->name->toString())
+            ->match(
+                function($variable) {
+                    if (\is_array($variable)) {
+                        throw new OnlyScalarCanBeExpandedForExpression($this->name->toString());
+                    }
 
-        $variable = $variables->get($this->name->toString());
-
-        if (\is_array($variable)) {
-            throw new OnlyScalarCanBeExpandedForExpression($this->name->toString());
-        }
-
-        return '#'.($this->encode)((string) $variable);
+                    return '#'.($this->encode)((string) $variable);
+                },
+                static fn() => '',
+            );
     }
 
     public function regex(): string

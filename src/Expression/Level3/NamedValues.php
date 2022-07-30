@@ -13,7 +13,6 @@ use Innmind\Immutable\{
     Sequence,
     Str,
 };
-use function Innmind\Immutable\join;
 
 final class NamedValues implements Expression
 {
@@ -27,16 +26,23 @@ final class NamedValues implements Expression
     private ?string $regex = null;
     private ?string $string = null;
 
+    /**
+     * @no-named-arguments
+     */
     public function __construct(string $lead, string $separator, Name ...$names)
     {
         $this->lead = $lead;
         $this->separator = $separator;
-        $this->names = Sequence::of(Name::class, ...$names);
+        $this->names = Sequence::of(...$names);
         /** @var Map<string, Expression> */
-        $this->expressions = $this->names->toMapOf(
-            'string',
-            Expression::class,
-            static fn(Name $name): \Generator => yield $name->toString() => new Level1($name),
+        $this->expressions = Map::of(
+            ...$this
+                ->names
+                ->map(static fn($name) => [
+                    $name->toString(),
+                    new Level1($name),
+                ])
+                ->toList(),
         );
     }
 
@@ -45,6 +51,9 @@ final class NamedValues implements Expression
         throw new \LogicException('should not be used directly');
     }
 
+    /**
+     * @no-named-arguments
+     */
     public static function keyOnlyWhenEmpty(string $lead, string $separator, Name ...$names): self
     {
         $self = new self($lead, $separator, ...$names);
@@ -57,7 +66,7 @@ final class NamedValues implements Expression
     {
         /** @var Sequence<string> */
         $expanded = $this->expressions->reduce(
-            Sequence::of('string'),
+            Sequence::strings(),
             function(Sequence $expanded, string $name, Expression $expression) use ($variables): Sequence {
                 $value = Str::of($expression->expand($variables));
 
@@ -69,38 +78,33 @@ final class NamedValues implements Expression
             },
         );
 
-        return join($this->separator, $expanded)
+        return Str::of($this->separator)
+            ->join($expanded)
             ->prepend($this->lead)
             ->toString();
     }
 
     public function regex(): string
     {
-        return $this->regex ?? $this->regex = join(
-            '\\'.$this->separator,
-            $this->names->mapTo(
-                'string',
+        return $this->regex ?? $this->regex = Str::of('\\'.$this->separator)
+            ->join($this->names->map(
                 fn($name) => \sprintf(
                     '%s=%s%s',
                     $name->toString(),
                     $this->keyOnlyWhenEmpty ? '?' : '',
                     (new Level1($name))->regex(),
                 ),
-            ),
-        )
+            ))
             ->prepend('\\'.$this->lead)
             ->toString();
     }
 
     public function toString(): string
     {
-        return $this->string ?? $this->string = join(
-            ',',
-            $this->names->mapTo(
-                'string',
+        return $this->string ?? $this->string = Str::of(',')
+            ->join($this->names->map(
                 static fn($element) => $element->toString(),
-            ),
-        )
+            ))
             ->prepend('{'.$this->lead)
             ->append('}')
             ->toString();
