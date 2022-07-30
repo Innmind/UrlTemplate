@@ -96,7 +96,7 @@ final class Composite implements Expression
             ->append(
                 $expanded->drop(1)->map(function(string $value): string {
                     if ($this->removeLead) {
-                        return Str::of($value)->substring(1)->toString();
+                        return Str::of($value)->drop(1)->toString();
                     }
 
                     return $value;
@@ -113,7 +113,7 @@ final class Composite implements Expression
             ->drop(1)
             ->map(function(Expression $expression): string {
                 if ($this->removeLead) {
-                    return Str::of($expression->regex())->substring(2)->toString();
+                    return Str::of($expression->regex())->drop(2)->toString();
                 }
 
                 return $expression->regex();

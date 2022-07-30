@@ -21,6 +21,7 @@ final class Level4 implements Expression
 {
     private Name $name;
     private Expression $expression;
+    /** @var ?positive-int */
     private ?int $limit = null;
     private bool $explode = false;
     private string $lead = '';
@@ -48,7 +49,7 @@ final class Level4 implements Expression
     /**
      * @psalm-pure
      *
-     * @param int<0, max> $limit
+     * @param positive-int $limit
      */
     public static function limit(Name $name, int $limit): self
     {
@@ -137,7 +138,7 @@ final class Level4 implements Expression
         }
 
         if ($this->mustLimit()) {
-            $value = Str::of((string) $variable)->substring(0, $this->limit);
+            $value = Str::of((string) $variable)->take($this->limit);
             $value = $this->expression->expand(
                 ($variables)($this->name->toString(), $value->toString()),
             );
@@ -157,7 +158,7 @@ final class Level4 implements Expression
         if ($this->mustLimit()) {
             // replace '*' match by the actual limit
             $regex = Str::of($this->expression->regex())
-                ->substring(0, -2)
+                ->dropEnd(2)
                 ->append("{{$this->limit}})")
                 ->toString();
         } else {
@@ -184,6 +185,9 @@ final class Level4 implements Expression
         return "{{$this->lead}{$this->name->toString()}}";
     }
 
+    /**
+     * @psalm-assert-if-true positive-int $this->limit
+     */
     private function mustLimit(): bool
     {
         return \is_int($this->limit);

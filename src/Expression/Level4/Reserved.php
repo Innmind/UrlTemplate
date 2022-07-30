@@ -21,6 +21,7 @@ use Innmind\Immutable\{
 final class Reserved implements Expression
 {
     private Name $name;
+    /** @var ?positive-int */
     private ?int $limit = null;
     private bool $explode = false;
     private Expression $expression;
@@ -50,7 +51,7 @@ final class Reserved implements Expression
     /**
      * @psalm-pure
      *
-     * @param int<0, max> $limit
+     * @param positive-int $limit
      */
     public static function limit(Name $name, int $limit): self
     {

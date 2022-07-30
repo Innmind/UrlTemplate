@@ -23,6 +23,7 @@ use Innmind\Immutable\{
 final class QueryContinuation implements Expression
 {
     private Name $name;
+    /** @var ?positive-int */
     private ?int $limit = null;
     private bool $explode = false;
     private Expression $expression;
@@ -50,7 +51,7 @@ final class QueryContinuation implements Expression
     /**
      * @psalm-pure
      *
-     * @param int<0, max> $limit
+     * @param positive-int $limit
      */
     public static function limit(Name $name, int $limit): self
     {
@@ -106,7 +107,7 @@ final class QueryContinuation implements Expression
         $value = Str::of($this->expression->expand($variables));
 
         if ($this->mustLimit()) {
-            return "&{$this->name->toString()}={$value->substring(0, $this->limit)->toString()}";
+            return "&{$this->name->toString()}={$value->take($this->limit)->toString()}";
         }
 
         return "&{$this->name->toString()}={$value->toString()}";
@@ -121,7 +122,7 @@ final class QueryContinuation implements Expression
         if ($this->mustLimit()) {
             // replace '*' match by the actual limit
             $regex = Str::of($this->expression->regex())
-                ->substring(0, -2)
+                ->dropEnd(2)
                 ->append("{{$this->limit}})")
                 ->toString();
         } else {
@@ -148,6 +149,9 @@ final class QueryContinuation implements Expression
         return "{&{$this->name->toString()}}";
     }
 
+    /**
+     * @psalm-assert-if-true positive-int $this->limit
+     */
     private function mustLimit(): bool
     {
         return \is_int($this->limit);

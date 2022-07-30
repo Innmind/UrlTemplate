@@ -19,7 +19,7 @@ final class Parse
      *
      * @param pure-callable(Name): T $standard
      * @param pure-callable(Name): T $explode
-     * @param pure-callable(Name, int<0, max>): T $limit
+     * @param pure-callable(Name, positive-int): T $limit
      * @param non-empty-string|null $lead
      *
      * @return T
@@ -53,7 +53,7 @@ final class Parse
             [$name, $int] = $string->split(':')->toList();
             $int = (int) $int->toString();
 
-            if ($int < 0) {
+            if ($int < 1) {
                 throw new ExpressionLimitCantBeNegative($int);
             }
 

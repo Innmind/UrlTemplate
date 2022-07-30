@@ -43,7 +43,7 @@ final class Path implements Expression
     /**
      * @psalm-pure
      *
-     * @param int<0, max> $limit
+     * @param positive-int $limit
      */
     public static function limit(Name $name, int $limit): self
     {
