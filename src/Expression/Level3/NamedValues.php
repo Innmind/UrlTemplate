@@ -14,6 +14,9 @@ use Innmind\Immutable\{
     Str,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class NamedValues implements Expression
 {
     private string $lead;
@@ -23,8 +26,6 @@ final class NamedValues implements Expression
     /** @var Map<string, Expression> */
     private Map $expressions;
     private bool $keyOnlyWhenEmpty = false;
-    private ?string $regex = null;
-    private ?string $string = null;
 
     /**
      * @no-named-arguments
@@ -46,6 +47,9 @@ final class NamedValues implements Expression
         );
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function of(Str $string): Expression
     {
         throw new \LogicException('should not be used directly');
@@ -53,6 +57,7 @@ final class NamedValues implements Expression
 
     /**
      * @no-named-arguments
+     * @psalm-pure
      */
     public static function keyOnlyWhenEmpty(string $lead, string $separator, Name ...$names): self
     {
@@ -86,7 +91,7 @@ final class NamedValues implements Expression
 
     public function regex(): string
     {
-        return $this->regex ?? $this->regex = Str::of('\\'.$this->separator)
+        return Str::of('\\'.$this->separator)
             ->join($this->names->map(
                 fn($name) => \sprintf(
                     '%s=%s%s',
@@ -101,7 +106,7 @@ final class NamedValues implements Expression
 
     public function toString(): string
     {
-        return $this->string ?? $this->string = Str::of(',')
+        return Str::of(',')
             ->join($this->names->map(
                 static fn($element) => $element->toString(),
             ))

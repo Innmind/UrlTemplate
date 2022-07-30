@@ -14,6 +14,9 @@ use Innmind\Immutable\{
     Str,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class QueryContinuation implements Expression
 {
     private Expression $expression;
@@ -26,6 +29,9 @@ final class QueryContinuation implements Expression
         $this->expression = new NamedValues('&', '&', ...$names);
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function of(Str $string): Expression
     {
         if (!$string->matches('~^\{\&[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)+\}$~')) {

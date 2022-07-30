@@ -13,14 +13,15 @@ use Innmind\Immutable\{
     Str,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class Level3 implements Expression
 {
     /** @var Sequence<Name> */
     private Sequence $names;
     /** @var Sequence<Level1> */
     private Sequence $expressions;
-    private ?string $regex = null;
-    private ?string $string = null;
 
     /**
      * @no-named-arguments
@@ -33,6 +34,9 @@ final class Level3 implements Expression
         );
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function of(Str $string): Expression
     {
         if (!$string->matches('~^\{[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)+\}$~')) {
@@ -59,7 +63,7 @@ final class Level3 implements Expression
     public function regex(): string
     {
         /** @psalm-suppress InvalidArgument */
-        return $this->regex ?? $this->regex = Str::of(',')
+        return Str::of(',')
             ->join($this->names->map(
                 static fn(Name $name) => "(?<{$name->toString()}>[a-zA-Z0-9\%\-\.\_\~]*)",
             ))
@@ -68,7 +72,7 @@ final class Level3 implements Expression
 
     public function toString(): string
     {
-        return $this->string ?? $this->string = Str::of(',')
+        return Str::of(',')
             ->join($this->names->map(
                 static fn($name) => $name->toString(),
             ))

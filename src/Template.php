@@ -15,6 +15,9 @@ use Innmind\Immutable\{
     Str,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class Template
 {
     private Str $template;
@@ -33,6 +36,9 @@ final class Template
             ->map(Expressions::of(...));
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function of(string $template): self
     {
         return new self($template);

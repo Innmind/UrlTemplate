@@ -15,14 +15,15 @@ use Innmind\Immutable\{
     Str,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class Label implements Expression
 {
     /** @var Sequence<Name> */
     private Sequence $names;
     /** @var Sequence<Expression> */
     private Sequence $expressions;
-    private ?string $regex = null;
-    private ?string $string = null;
 
     /**
      * @no-named-arguments
@@ -36,6 +37,9 @@ final class Label implements Expression
         );
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function of(Str $string): Expression
     {
         if (!$string->matches('~^\{\.[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)+\}$~')) {
@@ -64,7 +68,7 @@ final class Label implements Expression
 
     public function regex(): string
     {
-        return $this->regex ?? $this->regex = Str::of('.')
+        return Str::of('.')
             ->join($this->expressions->map(
                 static fn($expression) => $expression->regex(),
             ))
@@ -75,7 +79,7 @@ final class Label implements Expression
 
     public function toString(): string
     {
-        return $this->string ?? $this->string = Str::of(',')
+        return Str::of(',')
             ->join($this->names->map(
                 static fn($element) => $element->toString(),
             ))

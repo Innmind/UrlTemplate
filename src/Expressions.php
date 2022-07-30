@@ -9,11 +9,14 @@ use Innmind\Immutable\{
     Str,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class Expressions
 {
-    /** @var list<string> */
-    private static ?array $expressions = null;
-
+    /**
+     * @psalm-pure
+     */
     public static function of(Str $string): Expression
     {
         foreach (self::expressions() as $expression) {
@@ -29,11 +32,13 @@ final class Expressions
     }
 
     /**
-     * @return list<string>
+     * @psalm-pure
+     *
+     * @return list<class-string<Expression>>
      */
     private static function expressions(): array
     {
-        return self::$expressions ?? self::$expressions = [
+        return [
             Expression\Level4::class,
             Expression\Level4\Reserved::class,
             Expression\Level4\Fragment::class,

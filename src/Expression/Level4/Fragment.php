@@ -17,6 +17,9 @@ use Innmind\Immutable\{
     Str,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class Fragment implements Expression
 {
     private Expression $expression;
@@ -28,6 +31,9 @@ final class Fragment implements Expression
             ->withExpression(Level2\Reserved::class);
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function of(Str $string): Expression
     {
         if ($string->matches('~^\{#[a-zA-Z0-9_]+\}$~')) {
@@ -51,6 +57,9 @@ final class Fragment implements Expression
         throw new DomainException($string->toString());
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function limit(Name $name, int $limit): self
     {
         if ($limit < 0) {
@@ -65,15 +74,9 @@ final class Fragment implements Expression
         return $self;
     }
 
-    public function add(Str $pattern): Composite
-    {
-        return Composite::removeLead(
-            ',',
-            $this,
-            self::of($pattern->prepend('{#')->append('}')),
-        );
-    }
-
+    /**
+     * @psalm-pure
+     */
     public static function explode(Name $name): self
     {
         $self = new self($name);
@@ -82,6 +85,15 @@ final class Fragment implements Expression
             ->withExpression(Level2\Reserved::class);
 
         return $self;
+    }
+
+    public function add(Str $pattern): Composite
+    {
+        return Composite::removeLead(
+            ',',
+            $this,
+            self::of($pattern->prepend('{#')->append('}')),
+        );
     }
 
     public function regex(): string

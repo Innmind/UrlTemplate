@@ -19,14 +19,15 @@ use Innmind\Immutable\{
     Sequence,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class Parameters implements Expression
 {
     private Name $name;
     private ?int $limit = null;
     private bool $explode = false;
     private Expression $expression;
-    private ?string $regex = null;
-    private ?string $string = null;
 
     public function __construct(Name $name)
     {
@@ -34,6 +35,9 @@ final class Parameters implements Expression
         $this->expression = new Level1($name);
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function of(Str $string): Expression
     {
         if ($string->matches('~^\{;[a-zA-Z0-9_]+\}$~')) {
@@ -57,6 +61,9 @@ final class Parameters implements Expression
         throw new DomainException($string->toString());
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function limit(Name $name, int $limit): self
     {
         if ($limit < 0) {
@@ -69,6 +76,9 @@ final class Parameters implements Expression
         return $self;
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function explode(Name $name): self
     {
         $self = new self($name);
@@ -120,10 +130,6 @@ final class Parameters implements Expression
 
     public function regex(): string
     {
-        if (\is_string($this->regex)) {
-            return $this->regex;
-        }
-
         if ($this->explode) {
             throw new ExplodeExpressionCantBeMatched;
         }
@@ -138,7 +144,7 @@ final class Parameters implements Expression
             $regex = $this->expression->regex();
         }
 
-        return $this->regex = \sprintf(
+        return \sprintf(
             '\;%s=%s',
             $this->name->toString(),
             $regex,
@@ -147,19 +153,15 @@ final class Parameters implements Expression
 
     public function toString(): string
     {
-        if (\is_string($this->string)) {
-            return $this->string;
-        }
-
         if ($this->mustLimit()) {
-            return $this->string = "{;{$this->name->toString()}:{$this->limit}}";
+            return "{;{$this->name->toString()}:{$this->limit}}";
         }
 
         if ($this->explode) {
-            return $this->string = "{;{$this->name->toString()}*}";
+            return "{;{$this->name->toString()}*}";
         }
 
-        return $this->string = "{;{$this->name->toString()}}";
+        return "{;{$this->name->toString()}}";
     }
 
     private function mustLimit(): bool

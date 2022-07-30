@@ -15,6 +15,9 @@ use Innmind\Immutable\{
     Str,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class Composite implements Expression
 {
     private string $separator;
@@ -22,8 +25,6 @@ final class Composite implements Expression
     /** @var Sequence<Expression> */
     private Sequence $expressions;
     private bool $removeLead = false;
-    private ?string $regex = null;
-    private ?string $string = null;
 
     public function __construct(
         string $separator,
@@ -35,6 +36,9 @@ final class Composite implements Expression
         $this->expressions = Sequence::of($level4, ...$expressions);
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function removeLead(
         string $separator,
         Expression $level4,
@@ -46,6 +50,9 @@ final class Composite implements Expression
         return $self;
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function of(Str $string): Expression
     {
         if (!$string->matches('~^\{[\+#\./;\?&]?[a-zA-Z0-9_]+(\*|:\d*)?(,[a-zA-Z0-9_]+(\*|:\d*)?)+\}$~')) {
@@ -101,10 +108,6 @@ final class Composite implements Expression
 
     public function regex(): string
     {
-        if (\is_string($this->regex)) {
-            return $this->regex;
-        }
-
         $remaining = $this
             ->expressions
             ->drop(1)
@@ -116,7 +119,7 @@ final class Composite implements Expression
                 return $expression->regex();
             });
 
-        return $this->regex = Str::of($this->separator ? '\\'.$this->separator : '')
+        return Str::of($this->separator ? '\\'.$this->separator : '')
             ->join(
                 $this
                     ->expressions
@@ -129,10 +132,6 @@ final class Composite implements Expression
 
     public function toString(): string
     {
-        if (\is_string($this->string)) {
-            return $this->string;
-        }
-
         $expressions = $this->expressions->map(
             static fn($expression) => Str::of($expression->toString())->trim('{}'),
         );
@@ -151,7 +150,7 @@ final class Composite implements Expression
             )
             ->map(static fn($element) => $element->toString());
 
-        return $this->string = Str::of(',')
+        return Str::of(',')
             ->join($expressions)
             ->prepend('{')
             ->append('}')

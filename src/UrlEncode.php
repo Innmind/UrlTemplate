@@ -5,6 +5,9 @@ namespace Innmind\UrlTemplate;
 
 use Innmind\Immutable\Str;
 
+/**
+ * @psalm-immutable
+ */
 final class UrlEncode
 {
     private Str $safeCharacters;
@@ -42,6 +45,9 @@ final class UrlEncode
         return \rawurlencode($string->toString());
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function allowReservedCharacters(): self
     {
         $self = new self;

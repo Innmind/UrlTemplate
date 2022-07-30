@@ -6,6 +6,9 @@ namespace Innmind\UrlTemplate\Expression;
 use Innmind\UrlTemplate\Exception\DomainException;
 use Innmind\Immutable\Str;
 
+/**
+ * @psalm-immutable
+ */
 final class Name
 {
     private string $value;

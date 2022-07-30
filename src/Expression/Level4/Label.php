@@ -16,6 +16,9 @@ use Innmind\Immutable\{
     Str,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class Label implements Expression
 {
     private Expression $expression;
@@ -25,6 +28,9 @@ final class Label implements Expression
         $this->expression = (new Level4($name))->withLead('.');
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function of(Str $string): Expression
     {
         if ($string->matches('~^\{\.[a-zA-Z0-9_]+\}$~')) {
@@ -48,6 +54,9 @@ final class Label implements Expression
         throw new DomainException($string->toString());
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function limit(Name $name, int $limit): self
     {
         if ($limit < 0) {
@@ -60,6 +69,9 @@ final class Label implements Expression
         return $self;
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function explode(Name $name): self
     {
         $self = new self($name);

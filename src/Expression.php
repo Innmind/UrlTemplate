@@ -12,9 +12,14 @@ use Innmind\Immutable\{
     Str,
 };
 
+/**
+ * @psalm-immutable
+ */
 interface Expression
 {
     /**
+     * @psalm-pure
+     *
      * @throws DomainException
      */
     public static function of(Str $string): self;

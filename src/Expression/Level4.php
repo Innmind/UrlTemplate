@@ -16,6 +16,9 @@ use Innmind\Immutable\{
     Sequence,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class Level4 implements Expression
 {
     private Name $name;
@@ -24,8 +27,6 @@ final class Level4 implements Expression
     private bool $explode = false;
     private string $lead = '';
     private string $separator = ',';
-    private ?string $regex = null;
-    private ?string $string = null;
 
     public function __construct(Name $name)
     {
@@ -33,6 +34,9 @@ final class Level4 implements Expression
         $this->expression = new Level1($name);
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function of(Str $string): Expression
     {
         if ($string->matches('~^\{[a-zA-Z0-9_]+\}$~')) {
@@ -56,6 +60,9 @@ final class Level4 implements Expression
         throw new DomainException($string->toString());
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function limit(Name $name, int $limit): self
     {
         if ($limit < 0) {
@@ -68,6 +75,9 @@ final class Level4 implements Expression
         return $self;
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function explode(Name $name): self
     {
         $self = new self($name);
@@ -153,10 +163,6 @@ final class Level4 implements Expression
 
     public function regex(): string
     {
-        if (\is_string($this->regex)) {
-            return $this->regex;
-        }
-
         if ($this->explode) {
             throw new ExplodeExpressionCantBeMatched;
         }
@@ -171,7 +177,7 @@ final class Level4 implements Expression
             $regex = $this->expression->regex();
         }
 
-        return $this->regex = \sprintf(
+        return \sprintf(
             '%s%s',
             $this->lead ? '\\'.$this->lead : '',
             $regex,
@@ -180,19 +186,15 @@ final class Level4 implements Expression
 
     public function toString(): string
     {
-        if (\is_string($this->string)) {
-            return $this->string;
-        }
-
         if ($this->mustLimit()) {
-            return $this->string = "{{$this->lead}{$this->name->toString()}:{$this->limit}}";
+            return "{{$this->lead}{$this->name->toString()}:{$this->limit}}";
         }
 
         if ($this->explode) {
-            return $this->string = "{{$this->lead}{$this->name->toString()}*}";
+            return "{{$this->lead}{$this->name->toString()}*}";
         }
 
-        return $this->string = "{{$this->lead}{$this->name->toString()}}";
+        return "{{$this->lead}{$this->name->toString()}}";
     }
 
     private function mustLimit(): bool

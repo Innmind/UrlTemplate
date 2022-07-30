@@ -14,12 +14,13 @@ use Innmind\Immutable\{
     Str,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class Level1 implements Expression
 {
     private Name $name;
     private UrlEncode $encode;
-    private ?string $regex = null;
-    private ?string $string = null;
 
     public function __construct(Name $name)
     {
@@ -27,6 +28,9 @@ final class Level1 implements Expression
         $this->encode = new UrlEncode;
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function of(Str $string): Expression
     {
         if (!$string->matches('~^\{[a-zA-Z0-9_]+\}$~')) {
@@ -54,11 +58,11 @@ final class Level1 implements Expression
 
     public function regex(): string
     {
-        return $this->regex ?? $this->regex = "(?<{$this->name->toString()}>[a-zA-Z0-9\%\-\.\_\~]*)";
+        return "(?<{$this->name->toString()}>[a-zA-Z0-9\%\-\.\_\~]*)";
     }
 
     public function toString(): string
     {
-        return $this->string ?? $this->string = "{{$this->name->toString()}}";
+        return "{{$this->name->toString()}}";
     }
 }
