@@ -3,7 +3,10 @@ declare(strict_types = 1);
 
 namespace Innmind\UrlTemplate;
 
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Monoid\Concat,
+};
 
 /**
  * @psalm-immutable
@@ -23,26 +26,13 @@ final class UrlEncode
             return \rawurlencode($string);
         }
 
-        $string = Str::of($string);
-
-        if ($string->length() > 1) {
-            $characters = $string
-                ->split()
-                ->map(fn($character) => Str::of($this($character->toString())))
-                ->map(static fn($character) => $character->toString());
-
-            return Str::of('')->join($characters)->toString();
-        }
-
-        if ($string->empty()) {
-            return '';
-        }
-
-        if ($this->safeCharacters->contains($string->toString())) {
-            return $string->toString();
-        }
-
-        return \rawurlencode($string->toString());
+        return Str::of($string)
+            ->split()
+            ->map(static fn($char) => $char->toString())
+            ->map($this->encode(...))
+            ->map(Str::of(...))
+            ->fold(new Concat)
+            ->toString();
     }
 
     /**
@@ -54,5 +44,13 @@ final class UrlEncode
         $self->safeCharacters = Str::of(':/?#[]@!$&\'()*+,;=');
 
         return $self;
+    }
+
+    private function encode(string $char): string
+    {
+        return match ($this->safeCharacters->contains($char)) {
+            true => $char,
+            false => \rawurlencode($char),
+        };
     }
 }
