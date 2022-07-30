@@ -9,9 +9,7 @@ use Innmind\UrlTemplate\{
     Expression\Level1,
     Expression\Level3,
     Expression\Level4,
-    Exception\DomainException,
     Exception\ExplodeExpressionCantBeMatched,
-    Exception\ExpressionLimitCantBeNegative,
 };
 use Innmind\Immutable\{
     Map,
@@ -40,36 +38,22 @@ final class Query implements Expression
      */
     public static function of(Str $string): Expression
     {
-        if ($string->matches('~^\{\?[a-zA-Z0-9_]+\}$~')) {
-            return new self(Name::of($string->trim('{?}')->toString()));
-        }
-
-        if ($string->matches('~^\{\?[a-zA-Z0-9_]+\*\}$~')) {
-            return self::explode(Name::of($string->trim('{?*}')->toString()));
-        }
-
-        if ($string->matches('~^\{\?[a-zA-Z0-9_]+:\d+\}$~')) {
-            $string = $string->trim('{?}');
-            [$name, $limit] = $string->split(':')->toList();
-
-            return self::limit(
-                Name::of($name->toString()),
-                (int) $limit->toString(),
-            );
-        }
-
-        throw new DomainException($string->toString());
+        return Parse::of(
+            $string,
+            static fn(Name $name) => new self($name),
+            self::explode(...),
+            self::limit(...),
+            '?',
+        );
     }
 
     /**
      * @psalm-pure
+     *
+     * @param int<0, max> $limit
      */
     public static function limit(Name $name, int $limit): self
     {
-        if ($limit < 0) {
-            throw new ExpressionLimitCantBeNegative($limit);
-        }
-
         $self = new self($name);
         $self->limit = $limit;
 
