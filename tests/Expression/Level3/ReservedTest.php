@@ -12,6 +12,7 @@ use Innmind\UrlTemplate\{
 use Innmind\Immutable\{
     Map,
     Str,
+    Sequence,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -21,7 +22,7 @@ class ReservedTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Reserved(new Name('foo'), new Name('bar')),
+            new Reserved(Sequence::of(new Name('foo'), new Name('bar'))),
         );
     }
 
@@ -29,7 +30,7 @@ class ReservedTest extends TestCase
     {
         $this->assertSame(
             '{+foo,bar}',
-            (new Reserved(new Name('foo'), new Name('bar')))->toString(),
+            (new Reserved(Sequence::of(new Name('foo'), new Name('bar'))))->toString(),
         );
     }
 
@@ -45,11 +46,11 @@ class ReservedTest extends TestCase
 
         $this->assertSame(
             '1024,Hello%20World!,768',
-            (new Reserved(new Name('x'), new Name('hello'), new Name('y')))->expand($variables),
+            (new Reserved(Sequence::of(new Name('x'), new Name('hello'), new Name('y'))))->expand($variables),
         );
         $this->assertSame(
             '/foo/bar,1024',
-            (new Reserved(new Name('path'), new Name('x')))->expand($variables),
+            (new Reserved(Sequence::of(new Name('path'), new Name('x'))))->expand($variables),
         );
     }
 

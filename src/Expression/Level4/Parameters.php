@@ -226,7 +226,7 @@ final class Parameters implements Expression
 
                 $variables = ($variables)($name->toString(), $variableToExpand);
 
-                return (new Level3\Parameters($name))->expand($variables);
+                return (new Level3\Parameters(Sequence::of($name)))->expand($variables);
             },
         );
 

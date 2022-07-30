@@ -12,6 +12,7 @@ use Innmind\UrlTemplate\{
 use Innmind\Immutable\{
     Map,
     Str,
+    Sequence,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -21,7 +22,7 @@ class FragmentTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Fragment(new Name('foo'), new Name('bar')),
+            new Fragment(Sequence::of(new Name('foo'), new Name('bar'))),
         );
     }
 
@@ -29,7 +30,7 @@ class FragmentTest extends TestCase
     {
         $this->assertSame(
             '{#foo,bar}',
-            (new Fragment(new Name('foo'), new Name('bar')))->toString(),
+            (new Fragment(Sequence::of(new Name('foo'), new Name('bar'))))->toString(),
         );
     }
 
@@ -45,11 +46,11 @@ class FragmentTest extends TestCase
 
         $this->assertSame(
             '#1024,Hello%20World!,768',
-            (new Fragment(new Name('x'), new Name('hello'), new Name('y')))->expand($variables),
+            (new Fragment(Sequence::of(new Name('x'), new Name('hello'), new Name('y'))))->expand($variables),
         );
         $this->assertSame(
             '#/foo/bar,1024',
-            (new Fragment(new Name('path'), new Name('x')))->expand($variables),
+            (new Fragment(Sequence::of(new Name('path'), new Name('x'))))->expand($variables),
         );
     }
 

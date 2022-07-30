@@ -28,13 +28,13 @@ final class NamedValues implements Expression
     private bool $keyOnlyWhenEmpty = false;
 
     /**
-     * @no-named-arguments
+     * @param Sequence<Name> $names
      */
-    public function __construct(string $lead, string $separator, Name ...$names)
+    public function __construct(string $lead, string $separator, Sequence $names)
     {
         $this->lead = $lead;
         $this->separator = $separator;
-        $this->names = Sequence::of(...$names);
+        $this->names = $names;
         /** @var Map<string, Expression> */
         $this->expressions = Map::of(
             ...$this
@@ -56,12 +56,13 @@ final class NamedValues implements Expression
     }
 
     /**
-     * @no-named-arguments
      * @psalm-pure
+     *
+     * @param Sequence<Name> $names
      */
-    public static function keyOnlyWhenEmpty(string $lead, string $separator, Name ...$names): self
+    public static function keyOnlyWhenEmpty(string $lead, string $separator, Sequence $names): self
     {
-        $self = new self($lead, $separator, ...$names);
+        $self = new self($lead, $separator, $names);
         $self->keyOnlyWhenEmpty = true;
 
         return $self;

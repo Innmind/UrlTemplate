@@ -12,6 +12,7 @@ use Innmind\UrlTemplate\{
 use Innmind\Immutable\{
     Map,
     Str,
+    Sequence,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -21,7 +22,7 @@ class PathTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Path(new Name('foo'), new Name('bar')),
+            new Path(Sequence::of(new Name('foo'), new Name('bar'))),
         );
     }
 
@@ -29,7 +30,7 @@ class PathTest extends TestCase
     {
         $this->assertSame(
             '{/foo,bar}',
-            (new Path(new Name('foo'), new Name('bar')))->toString(),
+            (new Path(Sequence::of(new Name('foo'), new Name('bar'))))->toString(),
         );
     }
 
@@ -45,11 +46,11 @@ class PathTest extends TestCase
 
         $this->assertSame(
             '/value',
-            (new Path(new Name('var')))->expand($variables),
+            (new Path(Sequence::of(new Name('var'))))->expand($variables),
         );
         $this->assertSame(
             '/value/1024',
-            (new Path(new Name('var'), new Name('x')))->expand($variables),
+            (new Path(Sequence::of(new Name('var'), new Name('x'))))->expand($variables),
         );
     }
 

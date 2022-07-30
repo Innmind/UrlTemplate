@@ -12,6 +12,7 @@ use Innmind\UrlTemplate\{
 use Innmind\Immutable\{
     Map,
     Str,
+    Sequence,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -21,7 +22,7 @@ class Level3Test extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Level3(new Name('foo'), new Name('bar')),
+            new Level3(Sequence::of(new Name('foo'), new Name('bar'))),
         );
     }
 
@@ -29,7 +30,7 @@ class Level3Test extends TestCase
     {
         $this->assertSame(
             '{foo,bar}',
-            (new Level3(new Name('foo'), new Name('bar')))->toString(),
+            (new Level3(Sequence::of(new Name('foo'), new Name('bar'))))->toString(),
         );
     }
 
@@ -45,11 +46,11 @@ class Level3Test extends TestCase
 
         $this->assertSame(
             '1024,768',
-            (new Level3(new Name('x'), new Name('y')))->expand($variables),
+            (new Level3(Sequence::of(new Name('x'), new Name('y'))))->expand($variables),
         );
         $this->assertSame(
             '1024,Hello%20World%21,768',
-            (new Level3(new Name('x'), new Name('hello'), new Name('y')))->expand($variables),
+            (new Level3(Sequence::of(new Name('x'), new Name('hello'), new Name('y'))))->expand($variables),
         );
     }
 

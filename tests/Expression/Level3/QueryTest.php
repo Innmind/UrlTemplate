@@ -12,6 +12,7 @@ use Innmind\UrlTemplate\{
 use Innmind\Immutable\{
     Map,
     Str,
+    Sequence,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -21,7 +22,7 @@ class QueryTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Query(new Name('foo'), new Name('bar')),
+            new Query(Sequence::of(new Name('foo'), new Name('bar'))),
         );
     }
 
@@ -29,7 +30,7 @@ class QueryTest extends TestCase
     {
         $this->assertSame(
             '{?foo,bar}',
-            (new Query(new Name('foo'), new Name('bar')))->toString(),
+            (new Query(Sequence::of(new Name('foo'), new Name('bar'))))->toString(),
         );
     }
 
@@ -45,11 +46,11 @@ class QueryTest extends TestCase
 
         $this->assertSame(
             '?x=1024&y=768',
-            (new Query(new Name('x'), new Name('y')))->expand($variables),
+            (new Query(Sequence::of(new Name('x'), new Name('y'))))->expand($variables),
         );
         $this->assertSame(
             '?x=1024&y=768&empty=',
-            (new Query(new Name('x'), new Name('y'), new Name('empty')))->expand($variables),
+            (new Query(Sequence::of(new Name('x'), new Name('y'), new Name('empty'))))->expand($variables),
         );
     }
 

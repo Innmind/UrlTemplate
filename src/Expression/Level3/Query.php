@@ -22,11 +22,11 @@ final class Query implements Expression
     private Expression $expression;
 
     /**
-     * @no-named-arguments
+     * @param Sequence<Name> $names
      */
-    public function __construct(Name ...$names)
+    public function __construct(Sequence $names)
     {
-        $this->expression = new NamedValues('?', '&', ...$names);
+        $this->expression = new NamedValues('?', '&', $names);
     }
 
     /**
@@ -38,12 +38,12 @@ final class Query implements Expression
             throw new DomainException($string->toString());
         }
 
-        $names = $string
-            ->trim('{?}')
-            ->split(',')
-            ->map(static fn($name) => new Name($name->toString()));
-
-        return new self(...$names->toList());
+        return new self(
+            $string
+                ->trim('{?}')
+                ->split(',')
+                ->map(static fn($name) => new Name($name->toString())),
+        );
     }
 
     public function expand(Map $variables): string

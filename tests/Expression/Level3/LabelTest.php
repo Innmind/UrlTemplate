@@ -12,6 +12,7 @@ use Innmind\UrlTemplate\{
 use Innmind\Immutable\{
     Map,
     Str,
+    Sequence,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -21,7 +22,7 @@ class LabelTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Label(new Name('foo'), new Name('bar')),
+            new Label(Sequence::of(new Name('foo'), new Name('bar'))),
         );
     }
 
@@ -29,7 +30,7 @@ class LabelTest extends TestCase
     {
         $this->assertSame(
             '{.foo,bar}',
-            (new Label(new Name('foo'), new Name('bar')))->toString(),
+            (new Label(Sequence::of(new Name('foo'), new Name('bar'))))->toString(),
         );
     }
 
@@ -45,11 +46,11 @@ class LabelTest extends TestCase
 
         $this->assertSame(
             '.1024.768',
-            (new Label(new Name('x'), new Name('y')))->expand($variables),
+            (new Label(Sequence::of(new Name('x'), new Name('y'))))->expand($variables),
         );
         $this->assertSame(
             '.value',
-            (new Label(new Name('var')))->expand($variables),
+            (new Label(Sequence::of(new Name('var'))))->expand($variables),
         );
     }
 

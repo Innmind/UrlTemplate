@@ -224,7 +224,7 @@ final class Query implements Expression
 
             $variables = ($variables)($name->toString(), $variableToExpand);
 
-            $value = (new Level3\Query($name))->expand($variables);
+            $value = (new Level3\Query(Sequence::of($name)))->expand($variables);
 
             // the substring is here to remove the '?' as it should be a '&'
             // done below in the join

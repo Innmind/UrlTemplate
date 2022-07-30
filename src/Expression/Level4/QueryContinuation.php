@@ -223,7 +223,7 @@ final class QueryContinuation implements Expression
 
             $variables = ($variables)($name->toString(), $variableToExpand);
 
-            return (new Level3\QueryContinuation($name))->expand($variables);
+            return (new Level3\QueryContinuation(Sequence::of($name)))->expand($variables);
         });
 
         return Str::of('')->join($expanded)->toString();
