@@ -5,14 +5,12 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level3;
 
 use Innmind\UrlTemplate\{
     Expression\Level3\Parameters,
-    Expression\Name,
     Expression,
     Exception\DomainException,
 };
 use Innmind\Immutable\{
     Map,
     Str,
-    Sequence,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -22,7 +20,7 @@ class ParametersTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Parameters(Sequence::of(new Name('foo'), new Name('bar'))),
+            Parameters::of(Str::of('{;foo,bar}')),
         );
     }
 
@@ -30,7 +28,7 @@ class ParametersTest extends TestCase
     {
         $this->assertSame(
             '{;foo,bar}',
-            (new Parameters(Sequence::of(new Name('foo'), new Name('bar'))))->toString(),
+            Parameters::of(Str::of('{;foo,bar}'))->toString(),
         );
     }
 
@@ -46,11 +44,11 @@ class ParametersTest extends TestCase
 
         $this->assertSame(
             ';x=1024;y=768',
-            (new Parameters(Sequence::of(new Name('x'), new Name('y'))))->expand($variables),
+            Parameters::of(Str::of('{;x,y}'))->expand($variables),
         );
         $this->assertSame(
             ';x=1024;y=768;empty',
-            (new Parameters(Sequence::of(new Name('x'), new Name('y'), new Name('empty'))))->expand($variables),
+            Parameters::of(Str::of('{;x,y,empty}'))->expand($variables),
         );
     }
 

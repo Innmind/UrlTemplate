@@ -5,7 +5,6 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level2;
 
 use Innmind\UrlTemplate\{
     Expression\Level2\Fragment,
-    Expression\Name,
     Expression,
     Exception\DomainException,
     Exception\OnlyScalarCanBeExpandedForExpression,
@@ -22,18 +21,18 @@ class FragmentTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Fragment(new Name('foo')),
+            Fragment::of(Str::of('{#foo}')),
         );
     }
 
     public function testStringCast()
     {
-        $this->assertSame('{#foo}', (new Fragment(new Name('foo')))->toString());
+        $this->assertSame('{#foo}', Fragment::of(Str::of('{#foo}'))->toString());
     }
 
     public function testExpand()
     {
-        $expression = new Fragment(new Name('foo'));
+        $expression = Fragment::of(Str::of('{#foo}'));
 
         $this->assertSame('#value', $expression->expand(
             Map::of(['foo', 'value']),
@@ -76,7 +75,7 @@ class FragmentTest extends TestCase
 
     public function testThrowWhenTryingToExpandWithAnArray()
     {
-        $expression = new Fragment(new Name('foo'));
+        $expression = Fragment::of(Str::of('{#foo}'));
 
         $this->expectException(OnlyScalarCanBeExpandedForExpression::class);
         $this->expectExceptionMessage('foo');

@@ -5,7 +5,6 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level4;
 
 use Innmind\UrlTemplate\{
     Expression\Level4\Query,
-    Expression\Name,
     Expression,
     Exception\DomainException,
     Exception\LogicException,
@@ -28,23 +27,23 @@ class QueryTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Query(new Name('foo')),
+            Query::of(Str::of('{?foo}')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Query::explode(new Name('foo')),
+            Query::of(Str::of('{?foo*}')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Query::limit(new Name('foo'), 42),
+            Query::of(Str::of('{?foo:42}')),
         );
     }
 
     public function testStringCast()
     {
-        $this->assertSame('{?foo}', (new Query(new Name('foo')))->toString());
-        $this->assertSame('{?foo*}', Query::explode(new Name('foo'))->toString());
-        $this->assertSame('{?foo:42}', Query::limit(new Name('foo'), 42)->toString());
+        $this->assertSame('{?foo}', Query::of(Str::of('{?foo}'))->toString());
+        $this->assertSame('{?foo*}', Query::of(Str::of('{?foo*}'))->toString());
+        $this->assertSame('{?foo:42}', Query::of(Str::of('{?foo:42}'))->toString());
     }
 
     public function testThrowWhenNegativeLimit()
@@ -54,7 +53,7 @@ class QueryTest extends TestCase
             ->then(function(int $int): void {
                 $this->expectException(DomainException::class);
 
-                Query::limit(new Name('foo'), $int);
+                Query::of(Str::of("{?foo:$int}"));
             });
     }
 
@@ -69,23 +68,23 @@ class QueryTest extends TestCase
 
         $this->assertSame(
             '?var=val',
-            Query::limit(new Name('var'), 3)->expand($variables),
+            Query::of(Str::of('{?var:3}'))->expand($variables),
         );
         $this->assertSame(
             '?list=red,green,blue',
-            (new Query(new Name('list')))->expand($variables),
+            Query::of(Str::of('{?list}'))->expand($variables),
         );
         $this->assertSame(
             '?list=red&list=green&list=blue',
-            Query::explode(new Name('list'))->expand($variables),
+            Query::of(Str::of('{?list*}'))->expand($variables),
         );
         $this->assertSame(
             '?keys=semi,%3B,dot,.,comma,%2C',
-            (new Query(new Name('keys')))->expand($variables),
+            Query::of(Str::of('{?keys}'))->expand($variables),
         );
         $this->assertSame(
             '?semi=%3B&dot=.&comma=%2C',
-            Query::explode(new Name('keys'))->expand($variables),
+            Query::of(Str::of('{?keys*}'))->expand($variables),
         );
     }
 

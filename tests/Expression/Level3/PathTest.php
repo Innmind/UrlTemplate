@@ -5,14 +5,12 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level3;
 
 use Innmind\UrlTemplate\{
     Expression\Level3\Path,
-    Expression\Name,
     Expression,
     Exception\DomainException,
 };
 use Innmind\Immutable\{
     Map,
     Str,
-    Sequence,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -22,7 +20,7 @@ class PathTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Path(Sequence::of(new Name('foo'), new Name('bar'))),
+            Path::of(Str::of('{/foo,bar}')),
         );
     }
 
@@ -30,7 +28,7 @@ class PathTest extends TestCase
     {
         $this->assertSame(
             '{/foo,bar}',
-            (new Path(Sequence::of(new Name('foo'), new Name('bar'))))->toString(),
+            Path::of(Str::of('{/foo,bar}'))->toString(),
         );
     }
 
@@ -46,11 +44,11 @@ class PathTest extends TestCase
 
         $this->assertSame(
             '/value',
-            (new Path(Sequence::of(new Name('var'))))->expand($variables),
+            Path::of(Str::of('{/var}'))->expand($variables),
         );
         $this->assertSame(
             '/value/1024',
-            (new Path(Sequence::of(new Name('var'), new Name('x'))))->expand($variables),
+            Path::of(Str::of('{/var,x}'))->expand($variables),
         );
     }
 
@@ -66,9 +64,9 @@ class PathTest extends TestCase
     public function testThrowWhenInvalidPattern()
     {
         $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('{/foo}');
+        $this->expectExceptionMessage('{foo}');
 
-        Path::of(Str::of('{/foo}'));
+        Path::of(Str::of('{foo}'));
     }
 
     public function testRegex()

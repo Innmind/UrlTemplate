@@ -5,7 +5,6 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level4;
 
 use Innmind\UrlTemplate\{
     Expression\Level4\Label,
-    Expression\Name,
     Expression,
     Exception\DomainException,
     Exception\LogicException,
@@ -28,23 +27,23 @@ class LabelTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Label(new Name('foo')),
+            Label::of(Str::of('{.foo}')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Label::explode(new Name('foo')),
+            Label::of(Str::of('{.foo*}')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Label::limit(new Name('foo'), 42),
+            Label::of(Str::of('{.foo:42}')),
         );
     }
 
     public function testStringCast()
     {
-        $this->assertSame('{.foo}', (new Label(new Name('foo')))->toString());
-        $this->assertSame('{.foo*}', Label::explode(new Name('foo'))->toString());
-        $this->assertSame('{.foo:42}', Label::limit(new Name('foo'), 42)->toString());
+        $this->assertSame('{.foo}', Label::of(Str::of('{.foo}'))->toString());
+        $this->assertSame('{.foo*}', Label::of(Str::of('{.foo*}'))->toString());
+        $this->assertSame('{.foo:42}', Label::of(Str::of('{.foo:42}'))->toString());
     }
 
     public function testThrowWhenNegativeLimit()
@@ -54,7 +53,7 @@ class LabelTest extends TestCase
             ->then(function(int $int): void {
                 $this->expectException(DomainException::class);
 
-                Label::limit(new Name('foo'), $int);
+                Label::of(Str::of("{.foo:$int}"));
             });
     }
 
@@ -69,23 +68,23 @@ class LabelTest extends TestCase
 
         $this->assertSame(
             '.val',
-            Label::limit(new Name('var'), 3)->expand($variables),
+            Label::of(Str::of('{.var:3}'))->expand($variables),
         );
         $this->assertSame(
             '.red,green,blue',
-            (new Label(new Name('list')))->expand($variables),
+            Label::of(Str::of('{.list}'))->expand($variables),
         );
         $this->assertSame(
             '.red.green.blue',
-            Label::explode(new Name('list'))->expand($variables),
+            Label::of(Str::of('{.list*}'))->expand($variables),
         );
         $this->assertSame(
             '.semi,%3B,dot,.,comma,%2C',
-            (new Label(new Name('keys')))->expand($variables),
+            Label::of(Str::of('{.keys}'))->expand($variables),
         );
         $this->assertSame(
             '.semi=%3B.dot=..comma=%2C',
-            Label::explode(new Name('keys'))->expand($variables),
+            Label::of(Str::of('{.keys*}'))->expand($variables),
         );
     }
 

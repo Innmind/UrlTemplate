@@ -5,7 +5,6 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level4;
 
 use Innmind\UrlTemplate\{
     Expression\Level4\Reserved,
-    Expression\Name,
     Expression,
     Exception\DomainException,
     Exception\LogicException,
@@ -28,23 +27,23 @@ class ReservedTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Reserved(new Name('foo')),
+            Reserved::of(Str::of('{+foo}')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Reserved::explode(new Name('foo')),
+            Reserved::of(Str::of('{+foo*}')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Reserved::limit(new Name('foo'), 42),
+            Reserved::of(Str::of('{+foo:42}')),
         );
     }
 
     public function testStringCast()
     {
-        $this->assertSame('{+foo}', (new Reserved(new Name('foo')))->toString());
-        $this->assertSame('{+foo*}', Reserved::explode(new Name('foo'))->toString());
-        $this->assertSame('{+foo:42}', Reserved::limit(new Name('foo'), 42)->toString());
+        $this->assertSame('{+foo}', Reserved::of(Str::of('{+foo}'))->toString());
+        $this->assertSame('{+foo*}', Reserved::of(Str::of('{+foo*}'))->toString());
+        $this->assertSame('{+foo:42}', Reserved::of(Str::of('{+foo:42}'))->toString());
     }
 
     public function testThrowWhenNegativeLimit()
@@ -54,7 +53,7 @@ class ReservedTest extends TestCase
             ->then(function(int $int): void {
                 $this->expectException(DomainException::class);
 
-                Reserved::limit(new Name('foo'), $int);
+                Reserved::of(Str::of("{+foo:$int}"));
             });
     }
 
@@ -69,23 +68,23 @@ class ReservedTest extends TestCase
 
         $this->assertSame(
             '/foo/b',
-            Reserved::limit(new Name('path'), 6)->expand($variables),
+            Reserved::of(Str::of('{+path:6}'))->expand($variables),
         );
         $this->assertSame(
             'red,green,blue',
-            (new Reserved(new Name('list')))->expand($variables),
+            Reserved::of(Str::of('{+list}'))->expand($variables),
         );
         $this->assertSame(
             'red,green,blue',
-            Reserved::explode(new Name('list'))->expand($variables),
+            Reserved::of(Str::of('{+list*}'))->expand($variables),
         );
         $this->assertSame(
             'semi,;,dot,.,comma,,',
-            (new Reserved(new Name('keys')))->expand($variables),
+            Reserved::of(Str::of('{+keys}'))->expand($variables),
         );
         $this->assertSame(
             'semi=;,dot=.,comma=,',
-            Reserved::explode(new Name('keys'))->expand($variables),
+            Reserved::of(Str::of('{+keys*}'))->expand($variables),
         );
     }
 

@@ -23,9 +23,9 @@ final class Path implements Expression
 {
     private Expression $expression;
 
-    public function __construct(Name $name)
+    private function __construct(Name $name)
     {
-        $this->expression = (new Level4($name))->withLead('/');
+        $this->expression = Level4::named($name)->withLead('/');
     }
 
     /**
@@ -34,11 +34,11 @@ final class Path implements Expression
     public static function of(Str $string): Expression
     {
         if ($string->matches('~^\{/[a-zA-Z0-9_]+\}$~')) {
-            return new self(new Name($string->trim('{/}')->toString()));
+            return new self(Name::of($string->trim('{/}')->toString()));
         }
 
         if ($string->matches('~^\{/[a-zA-Z0-9_]+\*\}$~')) {
-            return self::explode(new Name($string->trim('{/*}')->toString()));
+            return self::explode(Name::of($string->trim('{/*}')->toString()));
         }
 
         if ($string->matches('~^\{/[a-zA-Z0-9_]+:\d+\}$~')) {
@@ -46,7 +46,7 @@ final class Path implements Expression
             [$name, $limit] = $string->split(':')->toList();
 
             return self::limit(
-                new Name($name->toString()),
+                Name::of($name->toString()),
                 (int) $limit->toString(),
             );
         }

@@ -7,7 +7,6 @@ use Innmind\UrlTemplate\{
     Expression\Level4\Composite,
     Expression\Level4\Path,
     Expression\Level4,
-    Expression\Name,
     Expression,
     Exception\DomainException,
 };
@@ -36,16 +35,16 @@ class CompositeTest extends TestCase
             '{/var:1,var}',
             (new Composite(
                 '/',
-                Path::limit(new Name('var'), 1),
-                new Level4(new Name('var')),
+                Path::of(Str::of('{/var:1}')),
+                Level4::of(Str::of('{var}')),
             ))->toString(),
         );
         $this->assertSame(
             '{/list*,path:4}',
             (new Composite(
                 '/',
-                Path::explode(new Name('list')),
-                Level4::limit(new Name('path'), 4),
+                Path::of(Str::of('{/list*}')),
+                Level4::of(Str::of('{path:4}')),
             ))->toString(),
         );
     }
@@ -63,16 +62,16 @@ class CompositeTest extends TestCase
             '/v/value',
             (new Composite(
                 '/',
-                Path::limit(new Name('var'), 1),
-                new Level4(new Name('var')),
+                Path::of(Str::of('{/var:1}')),
+                Level4::of(Str::of('{var}')),
             ))->expand($variables),
         );
         $this->assertSame(
             '/red/green/blue/%2Ffoo',
             (new Composite(
                 '/',
-                Path::explode(new Name('list')),
-                Level4::limit(new Name('path'), 4),
+                Path::of(Str::of('{/list*}')),
+                Level4::of(Str::of('{path:4}')),
             ))->expand($variables),
         );
     }

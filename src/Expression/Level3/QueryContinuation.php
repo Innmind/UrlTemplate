@@ -24,7 +24,7 @@ final class QueryContinuation implements Expression
     /**
      * @param Sequence<Name> $names
      */
-    public function __construct(Sequence $names)
+    private function __construct(Sequence $names)
     {
         $this->expression = new NamedValues('&', '&', $names);
     }
@@ -34,7 +34,7 @@ final class QueryContinuation implements Expression
      */
     public static function of(Str $string): Expression
     {
-        if (!$string->matches('~^\{\&[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)+\}$~')) {
+        if (!$string->matches('~^\{\&[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)*\}$~')) {
             throw new DomainException($string->toString());
         }
 
@@ -42,8 +42,14 @@ final class QueryContinuation implements Expression
             $string
                 ->trim('{&}')
                 ->split(',')
-                ->map(static fn($name) => new Name($name->toString())),
+                ->map(static fn($name) => $name->toString())
+                ->map(Name::of(...)),
         );
+    }
+
+    public static function named(Name $name): self
+    {
+        return new self(Sequence::of($name));
     }
 
     public function expand(Map $variables): string

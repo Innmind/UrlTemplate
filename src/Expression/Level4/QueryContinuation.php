@@ -29,10 +29,10 @@ final class QueryContinuation implements Expression
     private bool $explode = false;
     private Expression $expression;
 
-    public function __construct(Name $name)
+    private function __construct(Name $name)
     {
         $this->name = $name;
-        $this->expression = new Level1($name);
+        $this->expression = Level1::named($name);
     }
 
     /**
@@ -41,11 +41,11 @@ final class QueryContinuation implements Expression
     public static function of(Str $string): Expression
     {
         if ($string->matches('~^\{\&[a-zA-Z0-9_]+\}$~')) {
-            return new self(new Name($string->trim('{&}')->toString()));
+            return new self(Name::of($string->trim('{&}')->toString()));
         }
 
         if ($string->matches('~^\{\&[a-zA-Z0-9_]+\*\}$~')) {
-            return self::explode(new Name($string->trim('{&*}')->toString()));
+            return self::explode(Name::of($string->trim('{&*}')->toString()));
         }
 
         if ($string->matches('~^\{\&[a-zA-Z0-9_]+:\d+\}$~')) {
@@ -53,7 +53,7 @@ final class QueryContinuation implements Expression
             [$name, $limit] = $string->split(':')->toList();
 
             return self::limit(
-                new Name($name->toString()),
+                Name::of($name->toString()),
                 (int) $limit->toString(),
             );
         }
@@ -217,13 +217,13 @@ final class QueryContinuation implements Expression
 
             if (\is_array($variableToExpand)) {
                 [$name, $value] = $variableToExpand;
-                $name = new Name($name);
+                $name = Name::of($name);
                 $variableToExpand = $value;
             }
 
             $variables = ($variables)($name->toString(), $variableToExpand);
 
-            return (new Level3\QueryContinuation(Sequence::of($name)))->expand($variables);
+            return Level3\QueryContinuation::named($name)->expand($variables);
         });
 
         return Str::of('')->join($expanded)->toString();

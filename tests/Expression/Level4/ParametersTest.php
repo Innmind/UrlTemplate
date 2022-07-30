@@ -5,7 +5,6 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level4;
 
 use Innmind\UrlTemplate\{
     Expression\Level4\Parameters,
-    Expression\Name,
     Expression,
     Exception\DomainException,
     Exception\LogicException,
@@ -28,23 +27,23 @@ class ParametersTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Parameters(new Name('foo')),
+            Parameters::of(Str::of('{;foo}')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Parameters::explode(new Name('foo')),
+            Parameters::of(Str::of('{;foo*}')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Parameters::limit(new Name('foo'), 42),
+            Parameters::of(Str::of('{;foo:42}')),
         );
     }
 
     public function testStringCast()
     {
-        $this->assertSame('{;foo}', (new Parameters(new Name('foo')))->toString());
-        $this->assertSame('{;foo*}', Parameters::explode(new Name('foo'))->toString());
-        $this->assertSame('{;foo:42}', Parameters::limit(new Name('foo'), 42)->toString());
+        $this->assertSame('{;foo}', Parameters::of(Str::of('{;foo}'))->toString());
+        $this->assertSame('{;foo*}', Parameters::of(Str::of('{;foo*}'))->toString());
+        $this->assertSame('{;foo:42}', Parameters::of(Str::of('{;foo:42}'))->toString());
     }
 
     public function testThrowWhenNegativeLimit()
@@ -54,7 +53,7 @@ class ParametersTest extends TestCase
             ->then(function(int $int): void {
                 $this->expectException(DomainException::class);
 
-                Parameters::limit(new Name('foo'), $int);
+                Parameters::of(Str::of("{;foo:$int}"));
             });
     }
 
@@ -69,23 +68,23 @@ class ParametersTest extends TestCase
 
         $this->assertSame(
             ';hello=Hello',
-            Parameters::limit(new Name('hello'), 5)->expand($variables),
+            Parameters::of(Str::of('{;hello:5}'))->expand($variables),
         );
         $this->assertSame(
             ';list=red,green,blue',
-            (new Parameters(new Name('list')))->expand($variables),
+            Parameters::of(Str::of('{;list}'))->expand($variables),
         );
         $this->assertSame(
             ';list=red;list=green;list=blue',
-            Parameters::explode(new Name('list'))->expand($variables),
+            Parameters::of(Str::of('{;list*}'))->expand($variables),
         );
         $this->assertSame(
             ';keys=semi,%3B,dot,.,comma,%2C',
-            (new Parameters(new Name('keys')))->expand($variables),
+            Parameters::of(Str::of('{;keys}'))->expand($variables),
         );
         $this->assertSame(
             ';semi=%3B;dot=.;comma=%2C',
-            Parameters::explode(new Name('keys'))->expand($variables),
+            Parameters::of(Str::of('{;keys*}'))->expand($variables),
         );
     }
 

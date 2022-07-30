@@ -5,7 +5,6 @@ namespace Tests\Innmind\UrlTemplate\Expression;
 
 use Innmind\UrlTemplate\{
     Expression\Level1,
-    Expression\Name,
     Expression,
     Exception\DomainException,
     Exception\OnlyScalarCanBeExpandedForExpression,
@@ -22,18 +21,18 @@ class Level1Test extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Level1(new Name('foo')),
+            Level1::of(Str::of('{foo}')),
         );
     }
 
     public function testStringCast()
     {
-        $this->assertSame('{foo}', (new Level1(new Name('foo')))->toString());
+        $this->assertSame('{foo}', Level1::of(Str::of('{foo}'))->toString());
     }
 
     public function testExpand()
     {
-        $expression = new Level1(new Name('foo'));
+        $expression = Level1::of(Str::of('{foo}'));
 
         $this->assertSame('value', $expression->expand(
             Map::of(['foo', 'value']),
@@ -73,7 +72,7 @@ class Level1Test extends TestCase
 
     public function testThrowWhenTryingToExpandWithAnArray()
     {
-        $expression = new Level1(new Name('foo'));
+        $expression = Level1::of(Str::of('{foo}'));
 
         $this->expectException(OnlyScalarCanBeExpandedForExpression::class);
         $this->expectExceptionMessage('foo');

@@ -5,7 +5,6 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level4;
 
 use Innmind\UrlTemplate\{
     Expression\Level4\Path,
-    Expression\Name,
     Expression,
     Exception\DomainException,
     Exception\LogicException,
@@ -28,23 +27,23 @@ class PathTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Path(new Name('foo')),
+            Path::of(Str::of('{/foo}')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Path::explode(new Name('foo')),
+            Path::of(Str::of('{/foo*}')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Path::limit(new Name('foo'), 42),
+            Path::of(Str::of('{/foo:42}')),
         );
     }
 
     public function testStringCast()
     {
-        $this->assertSame('{/foo}', (new Path(new Name('foo')))->toString());
-        $this->assertSame('{/foo*}', Path::explode(new Name('foo'))->toString());
-        $this->assertSame('{/foo:42}', Path::limit(new Name('foo'), 42)->toString());
+        $this->assertSame('{/foo}', Path::of(Str::of('{/foo}'))->toString());
+        $this->assertSame('{/foo*}', Path::of(Str::of('{/foo*}'))->toString());
+        $this->assertSame('{/foo:42}', Path::of(Str::of('{/foo:42}'))->toString());
     }
 
     public function testThrowWhenNegativeLimit()
@@ -54,7 +53,7 @@ class PathTest extends TestCase
             ->then(function(int $int): void {
                 $this->expectException(DomainException::class);
 
-                Path::limit(new Name('foo'), $int);
+                Path::of(Str::of("{/foo:$int}"));
             });
     }
 
@@ -69,19 +68,19 @@ class PathTest extends TestCase
 
         $this->assertSame(
             '/red,green,blue',
-            (new Path(new Name('list')))->expand($variables),
+            Path::of(Str::of('{/list}'))->expand($variables),
         );
         $this->assertSame(
             '/red/green/blue',
-            Path::explode(new Name('list'))->expand($variables),
+            Path::of(Str::of('{/list*}'))->expand($variables),
         );
         $this->assertSame(
             '/semi,%3B,dot,.,comma,%2C',
-            (new Path(new Name('keys')))->expand($variables),
+            Path::of(Str::of('{/keys}'))->expand($variables),
         );
         $this->assertSame(
             '/semi=%3B/dot=./comma=%2C',
-            Path::explode(new Name('keys'))->expand($variables),
+            Path::of(Str::of('{/keys*}'))->expand($variables),
         );
     }
 

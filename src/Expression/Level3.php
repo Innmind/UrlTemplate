@@ -26,12 +26,10 @@ final class Level3 implements Expression
     /**
      * @param Sequence<Name> $names
      */
-    public function __construct(Sequence $names)
+    private function __construct(Sequence $names)
     {
         $this->names = $names;
-        $this->expressions = $this->names->map(
-            static fn(Name $name) => new Level1($name),
-        );
+        $this->expressions = $this->names->map(Level1::named(...));
     }
 
     /**
@@ -47,7 +45,8 @@ final class Level3 implements Expression
             $string
                 ->trim('{}')
                 ->split(',')
-                ->map(static fn($name) => new Name($name->toString())),
+                ->map(static fn($name) => $name->toString())
+                ->map(Name::of(...)),
         );
     }
 

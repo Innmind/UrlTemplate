@@ -5,14 +5,12 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level3;
 
 use Innmind\UrlTemplate\{
     Expression\Level3\Reserved,
-    Expression\Name,
     Expression,
     Exception\DomainException,
 };
 use Innmind\Immutable\{
     Map,
     Str,
-    Sequence,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -22,7 +20,7 @@ class ReservedTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Reserved(Sequence::of(new Name('foo'), new Name('bar'))),
+            Reserved::of(Str::of('{+foo,bar}')),
         );
     }
 
@@ -30,7 +28,7 @@ class ReservedTest extends TestCase
     {
         $this->assertSame(
             '{+foo,bar}',
-            (new Reserved(Sequence::of(new Name('foo'), new Name('bar'))))->toString(),
+            Reserved::of(Str::of('{+foo,bar}'))->toString(),
         );
     }
 
@@ -46,11 +44,11 @@ class ReservedTest extends TestCase
 
         $this->assertSame(
             '1024,Hello%20World!,768',
-            (new Reserved(Sequence::of(new Name('x'), new Name('hello'), new Name('y'))))->expand($variables),
+            Reserved::of(Str::of('{+x,hello,y}'))->expand($variables),
         );
         $this->assertSame(
             '/foo/bar,1024',
-            (new Reserved(Sequence::of(new Name('path'), new Name('x'))))->expand($variables),
+            Reserved::of(Str::of('{+path,x}'))->expand($variables),
         );
     }
 
@@ -66,9 +64,9 @@ class ReservedTest extends TestCase
     public function testThrowWhenInvalidPattern()
     {
         $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('{+foo}');
+        $this->expectExceptionMessage('{foo}');
 
-        Reserved::of(Str::of('{+foo}'));
+        Reserved::of(Str::of('{foo}'));
     }
 
     public function testRegex()

@@ -5,7 +5,6 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level2;
 
 use Innmind\UrlTemplate\{
     Expression\Level2\Reserved,
-    Expression\Name,
     Expression,
     Exception\DomainException,
     Exception\OnlyScalarCanBeExpandedForExpression,
@@ -22,18 +21,18 @@ class ReservedTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Reserved(new Name('foo')),
+            Reserved::of(Str::of('{+foo}')),
         );
     }
 
     public function testStringCast()
     {
-        $this->assertSame('{+foo}', (new Reserved(new Name('foo')))->toString());
+        $this->assertSame('{+foo}', Reserved::of(Str::of('{+foo}'))->toString());
     }
 
     public function testExpand()
     {
-        $expression = new Reserved(new Name('foo'));
+        $expression = Reserved::of(Str::of('{+foo}'));
 
         $this->assertSame('value', $expression->expand(
             Map::of(['foo', 'value']),
@@ -76,7 +75,7 @@ class ReservedTest extends TestCase
 
     public function testThrowWhenTryingToExpandWithAnArray()
     {
-        $expression = new Reserved(new Name('foo'));
+        $expression = Reserved::of(Str::of('{+foo}'));
 
         $this->expectException(OnlyScalarCanBeExpandedForExpression::class);
         $this->expectExceptionMessage('foo');

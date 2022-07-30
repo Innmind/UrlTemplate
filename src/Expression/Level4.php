@@ -28,10 +28,10 @@ final class Level4 implements Expression
     private string $lead = '';
     private string $separator = ',';
 
-    public function __construct(Name $name)
+    private function __construct(Name $name)
     {
         $this->name = $name;
-        $this->expression = new Level1($name);
+        $this->expression = Level1::named($name);
     }
 
     /**
@@ -40,11 +40,11 @@ final class Level4 implements Expression
     public static function of(Str $string): Expression
     {
         if ($string->matches('~^\{[a-zA-Z0-9_]+\}$~')) {
-            return new self(new Name($string->trim('{}')->toString()));
+            return new self(Name::of($string->trim('{}')->toString()));
         }
 
         if ($string->matches('~^\{[a-zA-Z0-9_]+\*\}$~')) {
-            return self::explode(new Name($string->trim('{*}')->toString()));
+            return self::explode(Name::of($string->trim('{*}')->toString()));
         }
 
         if ($string->matches('~^\{[a-zA-Z0-9_]+:\d+\}$~')) {
@@ -52,7 +52,7 @@ final class Level4 implements Expression
             [$name, $limit] = $string->split(':')->toList();
 
             return self::limit(
-                new Name($name->toString()),
+                Name::of($name->toString()),
                 (int) $limit->toString(),
             );
         }
@@ -86,6 +86,14 @@ final class Level4 implements Expression
         return $self;
     }
 
+    /**
+     * @psalm-pure
+     */
+    public static function named(Name $name): self
+    {
+        return new self($name);
+    }
+
     public function add(Str $pattern): Composite
     {
         return new Composite(
@@ -115,16 +123,12 @@ final class Level4 implements Expression
      * Not ideal technic but didn't find a better to reduce duplicated code
      * @internal
      *
-     * @param class-string<Expression> $expression
+     * @param pure-callable(Name): Expression $expression
      */
-    public function withExpression(string $expression): self
+    public function withExpression(callable $expression): self
     {
-        if (!\is_a($expression, Expression::class, true)) {
-            throw new DomainException($expression);
-        }
-
         $self = clone $this;
-        $self->expression = new $expression($self->name);
+        $self->expression = $expression($self->name);
 
         return $self;
     }
@@ -261,7 +265,7 @@ final class Level4 implements Expression
 
                 if (isset($name)) {
                     /** @psalm-suppress MixedArgument */
-                    $name = new Name($name);
+                    $name = Name::of($name);
                     $value = \sprintf(
                         '%s=%s',
                         $name->toString(),

@@ -41,7 +41,7 @@ final class NamedValues implements Expression
                 ->names
                 ->map(static fn($name) => [
                     $name->toString(),
-                    new Level1($name),
+                    Level1::named($name),
                 ])
                 ->toList(),
         );
@@ -98,7 +98,7 @@ final class NamedValues implements Expression
                     '%s=%s%s',
                     $name->toString(),
                     $this->keyOnlyWhenEmpty ? '?' : '',
-                    (new Level1($name))->regex(),
+                    Level1::named($name)->regex(),
                 ),
             ))
             ->prepend('\\'.$this->lead)

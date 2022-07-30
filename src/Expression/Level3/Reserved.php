@@ -28,13 +28,11 @@ final class Reserved implements Expression
     /**
      * @param Sequence<Name> $names
      */
-    public function __construct(Sequence $names)
+    private function __construct(Sequence $names)
     {
         $this->names = $names;
         /** @var Sequence<Expression> */
-        $this->expressions = $this->names->map(
-            static fn(Name $name) => new Level2\Reserved($name),
-        );
+        $this->expressions = $this->names->map(Level2\Reserved::named(...));
     }
 
     /**
@@ -42,7 +40,7 @@ final class Reserved implements Expression
      */
     public static function of(Str $string): Expression
     {
-        if (!$string->matches('~^\{\+[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)+\}$~')) {
+        if (!$string->matches('~^\{\+[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)*\}$~')) {
             throw new DomainException($string->toString());
         }
 
@@ -50,7 +48,8 @@ final class Reserved implements Expression
             $string
                 ->trim('{+}')
                 ->split(',')
-                ->map(static fn($name) => new Name($name->toString())),
+                ->map(static fn($name) => $name->toString())
+                ->map(Name::of(...)),
         );
     }
 

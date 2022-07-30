@@ -5,14 +5,12 @@ namespace Tests\Innmind\UrlTemplate\Expression;
 
 use Innmind\UrlTemplate\{
     Expression\Level3,
-    Expression\Name,
     Expression,
     Exception\DomainException,
 };
 use Innmind\Immutable\{
     Map,
     Str,
-    Sequence,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -22,7 +20,7 @@ class Level3Test extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Level3(Sequence::of(new Name('foo'), new Name('bar'))),
+            Level3::of(Str::of('{foo,bar}')),
         );
     }
 
@@ -30,7 +28,7 @@ class Level3Test extends TestCase
     {
         $this->assertSame(
             '{foo,bar}',
-            (new Level3(Sequence::of(new Name('foo'), new Name('bar'))))->toString(),
+            Level3::of(Str::of('{foo,bar}'))->toString(),
         );
     }
 
@@ -46,11 +44,11 @@ class Level3Test extends TestCase
 
         $this->assertSame(
             '1024,768',
-            (new Level3(Sequence::of(new Name('x'), new Name('y'))))->expand($variables),
+            Level3::of(Str::of('{x,y}'))->expand($variables),
         );
         $this->assertSame(
             '1024,Hello%20World%21,768',
-            (new Level3(Sequence::of(new Name('x'), new Name('hello'), new Name('y'))))->expand($variables),
+            Level3::of(Str::of('{x,hello,y}'))->expand($variables),
         );
     }
 

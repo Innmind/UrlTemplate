@@ -5,7 +5,6 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level4;
 
 use Innmind\UrlTemplate\{
     Expression\Level4\Fragment,
-    Expression\Name,
     Expression,
     Exception\DomainException,
     Exception\LogicException,
@@ -28,23 +27,23 @@ class FragmentTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Fragment(new Name('foo')),
+            Fragment::of(Str::of('{#foo}')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Fragment::explode(new Name('foo')),
+            Fragment::of(Str::of('{#foo*}')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Fragment::limit(new Name('foo'), 42),
+            Fragment::of(Str::of('{#foo:42}')),
         );
     }
 
     public function testStringCast()
     {
-        $this->assertSame('{#foo}', (new Fragment(new Name('foo')))->toString());
-        $this->assertSame('{#foo*}', Fragment::explode(new Name('foo'))->toString());
-        $this->assertSame('{#foo:42}', Fragment::limit(new Name('foo'), 42)->toString());
+        $this->assertSame('{#foo}', Fragment::of(Str::of('{#foo}'))->toString());
+        $this->assertSame('{#foo*}', Fragment::of(Str::of('{#foo*}'))->toString());
+        $this->assertSame('{#foo:42}', Fragment::of(Str::of('{#foo:42}'))->toString());
     }
 
     public function testThrowWhenNegativeLimit()
@@ -54,7 +53,7 @@ class FragmentTest extends TestCase
             ->then(function(int $int): void {
                 $this->expectException(DomainException::class);
 
-                Fragment::limit(new Name('foo'), $int);
+                Fragment::of(Str::of("{#list:$int}"));
             });
     }
 
@@ -69,23 +68,23 @@ class FragmentTest extends TestCase
 
         $this->assertSame(
             '#/foo/b',
-            Fragment::limit(new Name('path'), 6)->expand($variables),
+            Fragment::of(Str::of('{#path:6}'))->expand($variables),
         );
         $this->assertSame(
             '#red,green,blue',
-            (new Fragment(new Name('list')))->expand($variables),
+            Fragment::of(Str::of('{#list}'))->expand($variables),
         );
         $this->assertSame(
             '#red,green,blue',
-            Fragment::explode(new Name('list'))->expand($variables),
+            Fragment::of(Str::of('{#list*}'))->expand($variables),
         );
         $this->assertSame(
             '#semi,;,dot,.,comma,,',
-            (new Fragment(new Name('keys')))->expand($variables),
+            Fragment::of(Str::of('{#keys}'))->expand($variables),
         );
         $this->assertSame(
             '#semi=;,dot=.,comma=,',
-            Fragment::explode(new Name('keys'))->expand($variables),
+            Fragment::of(Str::of('{#keys*}'))->expand($variables),
         );
     }
 

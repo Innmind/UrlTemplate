@@ -5,14 +5,12 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level3;
 
 use Innmind\UrlTemplate\{
     Expression\Level3\Query,
-    Expression\Name,
     Expression,
     Exception\DomainException,
 };
 use Innmind\Immutable\{
     Map,
     Str,
-    Sequence,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -22,7 +20,7 @@ class QueryTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Query(Sequence::of(new Name('foo'), new Name('bar'))),
+            Query::of(Str::of('{?foo,bar}')),
         );
     }
 
@@ -30,7 +28,7 @@ class QueryTest extends TestCase
     {
         $this->assertSame(
             '{?foo,bar}',
-            (new Query(Sequence::of(new Name('foo'), new Name('bar'))))->toString(),
+            Query::of(Str::of('{?foo,bar}'))->toString(),
         );
     }
 
@@ -46,11 +44,11 @@ class QueryTest extends TestCase
 
         $this->assertSame(
             '?x=1024&y=768',
-            (new Query(Sequence::of(new Name('x'), new Name('y'))))->expand($variables),
+            Query::of(Str::of('{?x,y}'))->expand($variables),
         );
         $this->assertSame(
             '?x=1024&y=768&empty=',
-            (new Query(Sequence::of(new Name('x'), new Name('y'), new Name('empty'))))->expand($variables),
+            Query::of(Str::of('{?x,y,empty}'))->expand($variables),
         );
     }
 
@@ -66,9 +64,9 @@ class QueryTest extends TestCase
     public function testThrowWhenInvalidPattern()
     {
         $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('{?foo}');
+        $this->expectExceptionMessage('{foo}');
 
-        Query::of(Str::of('{?foo}'));
+        Query::of(Str::of('{foo}'));
     }
 
     public function testRegex()

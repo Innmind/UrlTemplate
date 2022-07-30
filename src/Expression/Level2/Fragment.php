@@ -23,7 +23,7 @@ final class Fragment implements Expression
     private Name $name;
     private UrlEncode $encode;
 
-    public function __construct(Name $name)
+    private function __construct(Name $name)
     {
         $this->name = $name;
         $this->encode = UrlEncode::allowReservedCharacters();
@@ -38,7 +38,7 @@ final class Fragment implements Expression
             throw new DomainException($string->toString());
         }
 
-        return new self(new Name($string->trim('{#}')->toString()));
+        return new self(Name::of($string->trim('{#}')->toString()));
     }
 
     public function expand(Map $variables): string

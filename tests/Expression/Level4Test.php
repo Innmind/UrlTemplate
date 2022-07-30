@@ -5,7 +5,6 @@ namespace Tests\Innmind\UrlTemplate\Expression;
 
 use Innmind\UrlTemplate\{
     Expression\Level4,
-    Expression\Name,
     Expression,
     Exception\DomainException,
     Exception\LogicException,
@@ -28,23 +27,23 @@ class Level4Test extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Level4(new Name('foo')),
+            Level4::of(Str::of('{foo}')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Level4::explode(new Name('foo')),
+            Level4::of(Str::of('{foo*}')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Level4::limit(new Name('foo'), 42),
+            Level4::of(Str::of('{foo:42}')),
         );
     }
 
     public function testStringCast()
     {
-        $this->assertSame('{foo}', (new Level4(new Name('foo')))->toString());
-        $this->assertSame('{foo*}', Level4::explode(new Name('foo'))->toString());
-        $this->assertSame('{foo:42}', Level4::limit(new Name('foo'), 42)->toString());
+        $this->assertSame('{foo}', Level4::of(Str::of('{foo}'))->toString());
+        $this->assertSame('{foo*}', Level4::of(Str::of('{foo*}'))->toString());
+        $this->assertSame('{foo:42}', Level4::of(Str::of('{foo:42}'))->toString());
     }
 
     public function testThrowWhenNegativeLimit()
@@ -54,7 +53,7 @@ class Level4Test extends TestCase
             ->then(function(int $int): void {
                 $this->expectException(DomainException::class);
 
-                Level4::limit(new Name('foo'), $int);
+                Level4::of(Str::of("{foo:$int}"));
             });
     }
 
@@ -69,31 +68,31 @@ class Level4Test extends TestCase
 
         $this->assertSame(
             'val',
-            Level4::limit(new Name('var'), 3)->expand($variables),
+            Level4::of(Str::of('{var:3}'))->expand($variables),
         );
         $this->assertSame(
             'value',
-            Level4::limit(new Name('var'), 30)->expand($variables),
+            Level4::of(Str::of('{var:30}'))->expand($variables),
         );
         $this->assertSame(
             '%2Ffoo',
-            Level4::limit(new Name('path'), 4)->expand($variables),
+            Level4::of(Str::of('{path:4}'))->expand($variables),
         );
         $this->assertSame(
             'red,green,blue',
-            (new Level4(new Name('list')))->expand($variables),
+            Level4::of(Str::of('{list}'))->expand($variables),
         );
         $this->assertSame(
             'red,green,blue',
-            Level4::explode(new Name('list'))->expand($variables),
+            Level4::of(Str::of('{list*}'))->expand($variables),
         );
         $this->assertSame(
             'semi,%3B,dot,.,comma,%2C',
-            (new Level4(new Name('keys')))->expand($variables),
+            Level4::of(Str::of('{keys}'))->expand($variables),
         );
         $this->assertSame(
             'semi=%3B,dot=.,comma=%2C',
-            Level4::explode(new Name('keys'))->expand($variables),
+            Level4::of(Str::of('{keys*}'))->expand($variables),
         );
     }
 

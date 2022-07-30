@@ -24,7 +24,7 @@ final class Parameters implements Expression
     /**
      * @param Sequence<Name> $names
      */
-    public function __construct(Sequence $names)
+    private function __construct(Sequence $names)
     {
         $this->expression = NamedValues::keyOnlyWhenEmpty(';', ';', $names);
     }
@@ -42,8 +42,17 @@ final class Parameters implements Expression
             $string
                 ->trim('{;}')
                 ->split(',')
-                ->map(static fn($name) => new Name($name->toString())),
+                ->map(static fn($name) => $name->toString())
+                ->map(Name::of(...)),
         );
+    }
+
+    /**
+     * @psalm-pure
+     */
+    public static function named(Name $name): self
+    {
+        return new self(Sequence::of($name));
     }
 
     public function expand(Map $variables): string

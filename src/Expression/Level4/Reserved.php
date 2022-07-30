@@ -27,11 +27,11 @@ final class Reserved implements Expression
     private bool $explode = false;
     private Expression $expression;
 
-    public function __construct(Name $name)
+    private function __construct(Name $name)
     {
         $this->name = $name;
-        $this->expression = (new Level4($name))->withExpression(
-            Level2\Reserved::class,
+        $this->expression = Level4::named($name)->withExpression(
+            Level2\Reserved::named(...),
         );
     }
 
@@ -41,11 +41,11 @@ final class Reserved implements Expression
     public static function of(Str $string): Expression
     {
         if ($string->matches('~^\{\+[a-zA-Z0-9_]+\}$~')) {
-            return new self(new Name($string->trim('{+}')->toString()));
+            return new self(Name::of($string->trim('{+}')->toString()));
         }
 
         if ($string->matches('~^\{\+[a-zA-Z0-9_]+\*\}$~')) {
-            return self::explode(new Name($string->trim('{+*}')->toString()));
+            return self::explode(Name::of($string->trim('{+*}')->toString()));
         }
 
         if ($string->matches('~^\{\+[a-zA-Z0-9_]+:\d+\}$~')) {
@@ -53,7 +53,7 @@ final class Reserved implements Expression
             [$name, $limit] = $string->split(':')->toList();
 
             return self::limit(
-                new Name($name->toString()),
+                Name::of($name->toString()),
                 (int) $limit->toString(),
             );
         }
@@ -73,7 +73,7 @@ final class Reserved implements Expression
         $self = new self($name);
         $self->limit = $limit;
         $self->expression = Level4::limit($name, $limit)->withExpression(
-            Level2\Reserved::class,
+            Level2\Reserved::named(...),
         );
 
         return $self;
@@ -87,7 +87,7 @@ final class Reserved implements Expression
         $self = new self($name);
         $self->explode = true;
         $self->expression = Level4::explode($name)->withExpression(
-            Level2\Reserved::class,
+            Level2\Reserved::named(...),
         );
 
         return $self;

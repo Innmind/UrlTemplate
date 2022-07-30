@@ -5,7 +5,6 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level4;
 
 use Innmind\UrlTemplate\{
     Expression\Level4\QueryContinuation,
-    Expression\Name,
     Expression,
     Exception\DomainException,
     Exception\LogicException,
@@ -28,23 +27,23 @@ class QueryContinuationTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new QueryContinuation(new Name('foo')),
+            QueryContinuation::of(Str::of('{&foo}')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            QueryContinuation::explode(new Name('foo')),
+            QueryContinuation::of(Str::of('{&foo*}')),
         );
         $this->assertInstanceOf(
             Expression::class,
-            QueryContinuation::limit(new Name('foo'), 42),
+            QueryContinuation::of(Str::of('{&foo:42}')),
         );
     }
 
     public function testStringCast()
     {
-        $this->assertSame('{&foo}', (new QueryContinuation(new Name('foo')))->toString());
-        $this->assertSame('{&foo*}', QueryContinuation::explode(new Name('foo'))->toString());
-        $this->assertSame('{&foo:42}', QueryContinuation::limit(new Name('foo'), 42)->toString());
+        $this->assertSame('{&foo}', QueryContinuation::of(Str::of('{&foo}'))->toString());
+        $this->assertSame('{&foo*}', QueryContinuation::of(Str::of('{&foo*}'))->toString());
+        $this->assertSame('{&foo:42}', QueryContinuation::of(Str::of('{&foo:42}'))->toString());
     }
 
     public function testThrowWhenNegativeLimit()
@@ -54,7 +53,7 @@ class QueryContinuationTest extends TestCase
             ->then(function(int $int): void {
                 $this->expectException(DomainException::class);
 
-                QueryContinuation::limit(new Name('foo'), $int);
+                QueryContinuation::of(Str::of("{&foo:$int}"));
             });
     }
 
@@ -69,23 +68,23 @@ class QueryContinuationTest extends TestCase
 
         $this->assertSame(
             '&var=val',
-            QueryContinuation::limit(new Name('var'), 3)->expand($variables),
+            QueryContinuation::of(Str::of('{&var:3}'))->expand($variables),
         );
         $this->assertSame(
             '&list=red,green,blue',
-            (new QueryContinuation(new Name('list')))->expand($variables),
+            QueryContinuation::of(Str::of('{&list}'))->expand($variables),
         );
         $this->assertSame(
             '&list=red&list=green&list=blue',
-            QueryContinuation::explode(new Name('list'))->expand($variables),
+            QueryContinuation::of(Str::of('{&list*}'))->expand($variables),
         );
         $this->assertSame(
             '&keys=semi,%3B,dot,.,comma,%2C',
-            (new QueryContinuation(new Name('keys')))->expand($variables),
+            QueryContinuation::of(Str::of('{&keys}'))->expand($variables),
         );
         $this->assertSame(
             '&semi=%3B&dot=.&comma=%2C',
-            QueryContinuation::explode(new Name('keys'))->expand($variables),
+            QueryContinuation::of(Str::of('{&keys*}'))->expand($variables),
         );
     }
 

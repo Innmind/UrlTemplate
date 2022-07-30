@@ -5,14 +5,12 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level3;
 
 use Innmind\UrlTemplate\{
     Expression\Level3\Label,
-    Expression\Name,
     Expression,
     Exception\DomainException,
 };
 use Innmind\Immutable\{
     Map,
     Str,
-    Sequence,
 };
 use PHPUnit\Framework\TestCase;
 
@@ -22,7 +20,7 @@ class LabelTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Label(Sequence::of(new Name('foo'), new Name('bar'))),
+            Label::of(Str::of('{.foo,bar}')),
         );
     }
 
@@ -30,7 +28,7 @@ class LabelTest extends TestCase
     {
         $this->assertSame(
             '{.foo,bar}',
-            (new Label(Sequence::of(new Name('foo'), new Name('bar'))))->toString(),
+            Label::of(Str::of('{.foo,bar}'))->toString(),
         );
     }
 
@@ -46,11 +44,11 @@ class LabelTest extends TestCase
 
         $this->assertSame(
             '.1024.768',
-            (new Label(Sequence::of(new Name('x'), new Name('y'))))->expand($variables),
+            Label::of(Str::of('{.x,y}'))->expand($variables),
         );
         $this->assertSame(
             '.value',
-            (new Label(Sequence::of(new Name('var'))))->expand($variables),
+            Label::of(Str::of('{.var}'))->expand($variables),
         );
     }
 
@@ -66,9 +64,9 @@ class LabelTest extends TestCase
     public function testThrowWhenInvalidPattern()
     {
         $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('{.foo}');
+        $this->expectExceptionMessage('{foo}');
 
-        Label::of(Str::of('{.foo}'));
+        Label::of(Str::of('{foo}'));
     }
 
     public function testRegex()

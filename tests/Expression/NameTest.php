@@ -26,7 +26,7 @@ class NameTest extends TestCase
                 }),
             )
             ->then(function(string $string): void {
-                $this->assertSame($string, (new Name($string))->toString());
+                $this->assertSame($string, Name::of($string)->toString());
             });
     }
 
@@ -42,7 +42,7 @@ class NameTest extends TestCase
                 $this->expectException(DomainException::class);
                 $this->expectExceptionMessage($string);
 
-                new Name($string);
+                Name::of($string);
             });
     }
 }

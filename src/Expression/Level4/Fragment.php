@@ -24,11 +24,11 @@ final class Fragment implements Expression
 {
     private Expression $expression;
 
-    public function __construct(Name $name)
+    private function __construct(Name $name)
     {
-        $this->expression = (new Level4($name))
+        $this->expression = Level4::named($name)
             ->withLead('#')
-            ->withExpression(Level2\Reserved::class);
+            ->withExpression(Level2\Reserved::named(...));
     }
 
     /**
@@ -37,11 +37,11 @@ final class Fragment implements Expression
     public static function of(Str $string): Expression
     {
         if ($string->matches('~^\{#[a-zA-Z0-9_]+\}$~')) {
-            return new self(new Name($string->trim('{#}')->toString()));
+            return new self(Name::of($string->trim('{#}')->toString()));
         }
 
         if ($string->matches('~^\{#[a-zA-Z0-9_]+\*\}$~')) {
-            return self::explode(new Name($string->trim('{#*}')->toString()));
+            return self::explode(Name::of($string->trim('{#*}')->toString()));
         }
 
         if ($string->matches('~^\{#[a-zA-Z0-9_]+:\d+\}$~')) {
@@ -49,7 +49,7 @@ final class Fragment implements Expression
             [$name, $limit] = $string->split(':')->toList();
 
             return self::limit(
-                new Name($name->toString()),
+                Name::of($name->toString()),
                 (int) $limit->toString(),
             );
         }
@@ -69,7 +69,7 @@ final class Fragment implements Expression
         $self = new self($name);
         $self->expression = Level4::limit($name, $limit)
             ->withLead('#')
-            ->withExpression(Level2\Reserved::class);
+            ->withExpression(Level2\Reserved::named(...));
 
         return $self;
     }
@@ -82,7 +82,7 @@ final class Fragment implements Expression
         $self = new self($name);
         $self->expression = Level4::explode($name)
             ->withLead('#')
-            ->withExpression(Level2\Reserved::class);
+            ->withExpression(Level2\Reserved::named(...));
 
         return $self;
     }
