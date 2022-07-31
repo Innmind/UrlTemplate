@@ -117,40 +117,28 @@ final class Template
     private function regex(): string
     {
         try {
-            $i = 0;
-            $j = 0;
             $template = $this
                 ->expressions
                 ->reduce(
                     $this->template->replace('~', '\~'),
-                    static function(Str $template, Expression $expression) use (&$i): Str {
-                        /**
-                         * @psalm-suppress MixedOperand
-                         * @psalm-suppress MixedAssignment
-                         */
-                        ++$i;
-
-                        return $template->replace(
-                            $expression->toString(),
-                            "__innmind_expression_{$i}__",
-                        );
-                    },
+                    static fn(Str $template, $expression) => $template->replace(
+                        $expression->toString(),
+                        \sprintf(
+                            '__innmind_expression_%s__',
+                            \spl_object_hash($expression),
+                        ),
+                    ),
                 )
                 ->pregQuote();
             $template = $this->expressions->reduce(
                 $template,
-                static function(Str $template, Expression $expression) use (&$j): Str {
-                    /**
-                     * @psalm-suppress MixedOperand
-                     * @psalm-suppress MixedAssignment
-                     */
-                    ++$j;
-
-                    return $template->replace(
-                        "__innmind_expression_{$j}__",
-                        $expression->regex(),
-                    );
-                },
+                static fn(Str $template, $expression) => $template->replace(
+                    \sprintf(
+                        '__innmind_expression_%s__',
+                        \spl_object_hash($expression),
+                    ),
+                    $expression->regex(),
+                ),
             );
         } catch (LogicException $e) {
             throw new ExtractionNotSupported('', 0, $e);
