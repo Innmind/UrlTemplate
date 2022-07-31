@@ -71,15 +71,15 @@ enum Expansion
         ));
     }
 
-    private function regex(): string
+    public function continuation(): self
     {
         return match ($this) {
-            self::simple => '',
-            default => '\\'.$this->toString(),
+            self::query => self::queryContinuation,
+            default => $this,
         };
     }
 
-    private function toString(): string
+    public function toString(): string
     {
         return match ($this) {
             self::simple => '',
@@ -90,6 +90,14 @@ enum Expansion
             self::parameter => ';',
             self::query => '?',
             self::queryContinuation => '&',
+        };
+    }
+
+    private function regex(): string
+    {
+        return match ($this) {
+            self::simple => '',
+            default => '\\'.$this->toString(),
         };
     }
 }

@@ -6,6 +6,7 @@ namespace Innmind\UrlTemplate\Expression\Level3;
 use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
+    Expression\Expansion,
     Expression\Level1,
 };
 use Innmind\Immutable\{
@@ -31,10 +32,10 @@ final class NamedValues implements Expression
     /**
      * @param Sequence<Name> $names
      */
-    public function __construct(string $lead, string $separator, Sequence $names)
+    public function __construct(Expansion $expansion, Sequence $names)
     {
-        $this->lead = $lead;
-        $this->separator = $separator;
+        $this->lead = $expansion->toString();
+        $this->separator = $expansion->continuation()->toString();
         $this->names = $names;
         /** @var Map<string, Expression> */
         $this->expressions = Map::of(
@@ -61,9 +62,9 @@ final class NamedValues implements Expression
      *
      * @param Sequence<Name> $names
      */
-    public static function keyOnlyWhenEmpty(string $lead, string $separator, Sequence $names): self
+    public static function keyOnlyWhenEmpty(Expansion $expansion, Sequence $names): self
     {
-        $self = new self($lead, $separator, $names);
+        $self = new self($expansion, $names);
         $self->keyOnlyWhenEmpty = true;
 
         return $self;

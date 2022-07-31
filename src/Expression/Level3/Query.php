@@ -27,7 +27,7 @@ final class Query implements Expression
      */
     private function __construct(Sequence $names)
     {
-        $this->expression = new NamedValues('?', '&', $names);
+        $this->expression = new NamedValues(Expansion::query, $names);
     }
 
     /**

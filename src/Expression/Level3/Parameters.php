@@ -27,7 +27,7 @@ final class Parameters implements Expression
      */
     private function __construct(Sequence $names)
     {
-        $this->expression = NamedValues::keyOnlyWhenEmpty(';', ';', $names);
+        $this->expression = NamedValues::keyOnlyWhenEmpty(Expansion::parameter, $names);
     }
 
     /**
