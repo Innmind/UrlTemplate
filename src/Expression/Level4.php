@@ -26,13 +26,14 @@ final class Level4 implements Expression
     /** @var ?positive-int */
     private ?int $limit = null;
     private bool $explode = false;
-    private string $lead = '';
+    private Expansion $expansion;
     private string $separator = ',';
 
     private function __construct(Name $name)
     {
         $this->name = $name;
         $this->expression = Level1::named($name);
+        $this->expansion = Expansion::simple;
     }
 
     /**
@@ -93,10 +94,10 @@ final class Level4 implements Expression
         );
     }
 
-    public function withLead(string $lead): self
+    public function withExpansion(Expansion $expansion): self
     {
         $self = clone $this;
-        $self->lead = $lead;
+        $self->expansion = $expansion;
 
         return $self;
     }
@@ -152,7 +153,7 @@ final class Level4 implements Expression
             $value = $this->expression->expand($variables);
         }
 
-        return "{$this->lead}$value";
+        return "{$this->expansion->toString()}$value";
     }
 
     public function regex(): string
@@ -173,7 +174,7 @@ final class Level4 implements Expression
 
         return \sprintf(
             '%s%s',
-            $this->lead ? '\\'.$this->lead : '',
+            $this->expansion->regex(),
             $regex,
         );
     }
@@ -181,14 +182,14 @@ final class Level4 implements Expression
     public function toString(): string
     {
         if ($this->mustLimit()) {
-            return "{{$this->lead}{$this->name->toString()}:{$this->limit}}";
+            return "{{$this->expansion->toString()}{$this->name->toString()}:{$this->limit}}";
         }
 
         if ($this->explode) {
-            return "{{$this->lead}{$this->name->toString()}*}";
+            return "{{$this->expansion->toString()}{$this->name->toString()}*}";
         }
 
-        return "{{$this->lead}{$this->name->toString()}}";
+        return "{{$this->expansion->toString()}{$this->name->toString()}}";
     }
 
     /**
@@ -234,7 +235,7 @@ final class Level4 implements Expression
 
         return Str::of($this->separator)
             ->join($expanded)
-            ->prepend($this->lead)
+            ->prepend($this->expansion->toString())
             ->toString();
     }
 
@@ -272,7 +273,7 @@ final class Level4 implements Expression
 
         return Str::of($this->separator)
             ->join($expanded)
-            ->prepend($this->lead)
+            ->prepend($this->expansion->toString())
             ->toString();
     }
 }

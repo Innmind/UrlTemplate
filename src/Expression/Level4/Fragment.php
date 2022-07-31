@@ -28,7 +28,7 @@ final class Fragment implements Expression
     private function __construct(Name $name)
     {
         $this->expression = Level4::named($name)
-            ->withLead('#')
+            ->withExpansion(Expansion::fragment)
             ->withExpression(Level2\Reserved::named(...));
     }
 
@@ -55,7 +55,7 @@ final class Fragment implements Expression
     {
         $self = new self($name);
         $self->expression = Level4::limit($name, $limit)
-            ->withLead('#')
+            ->withExpansion(Expansion::fragment)
             ->withExpression(Level2\Reserved::named(...));
 
         return $self;
@@ -68,7 +68,7 @@ final class Fragment implements Expression
     {
         $self = new self($name);
         $self->expression = Level4::explode($name)
-            ->withLead('#')
+            ->withExpansion(Expansion::fragment)
             ->withExpression(Level2\Reserved::named(...));
 
         return $self;

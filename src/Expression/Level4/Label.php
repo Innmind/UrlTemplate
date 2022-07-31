@@ -26,7 +26,7 @@ final class Label implements Expression
 
     private function __construct(Name $name)
     {
-        $this->expression = Level4::named($name)->withLead('.');
+        $this->expression = Level4::named($name)->withExpansion(Expansion::label);
     }
 
     /**
@@ -51,7 +51,7 @@ final class Label implements Expression
     public static function limit(Name $name, int $limit): self
     {
         $self = new self($name);
-        $self->expression = Level4::limit($name, $limit)->withLead('.');
+        $self->expression = Level4::limit($name, $limit)->withExpansion(Expansion::label);
 
         return $self;
     }
@@ -63,7 +63,7 @@ final class Label implements Expression
     {
         $self = new self($name);
         $self->expression = Level4::explode($name)
-            ->withLead('.')
+            ->withExpansion(Expansion::label)
             ->withSeparator('.');
 
         return $self;
