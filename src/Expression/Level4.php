@@ -274,10 +274,6 @@ final class Level4 implements Expression
             return Str::of(',');
         }
 
-        return Str::of(match ($this->expansion) {
-            Expansion::label => '.',
-            Expansion::path => '/',
-            default => ',',
-        });
+        return Str::of($this->expansion->explodeSeparator());
     }
 }
