@@ -63,8 +63,7 @@ final class Path implements Expression
     {
         $self = new self($name);
         $self->expression = Level4::explode($name)
-            ->withExpansion(Expansion::path)
-            ->withSeparator('/');
+            ->withExpansion(Expansion::path);
 
         return $self;
     }

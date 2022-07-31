@@ -63,8 +63,7 @@ final class Label implements Expression
     {
         $self = new self($name);
         $self->expression = Level4::explode($name)
-            ->withExpansion(Expansion::label)
-            ->withSeparator('.');
+            ->withExpansion(Expansion::label);
 
         return $self;
     }

@@ -99,13 +99,9 @@ final class Level4 implements Expression
         $self = clone $this;
         $self->expansion = $expansion;
 
-        return $self;
-    }
-
-    public function withSeparator(string $separator): self
-    {
-        $self = clone $this;
-        $self->separator = $separator;
+        if ($this->explode) {
+            $self->separator = $expansion->explodeSeparator();
+        }
 
         return $self;
     }

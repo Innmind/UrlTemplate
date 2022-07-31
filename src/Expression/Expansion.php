@@ -79,6 +79,15 @@ enum Expansion
         };
     }
 
+    public function explodeSeparator(): string
+    {
+        return match ($this) {
+            self::label => '.',
+            self::path => '/',
+            default => ',',
+        };
+    }
+
     public function regex(): string
     {
         return match ($this) {
