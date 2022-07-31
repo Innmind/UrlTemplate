@@ -6,7 +6,6 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level3;
 use Innmind\UrlTemplate\{
     Expression\Level3\Reserved,
     Expression,
-    Exception\DomainException,
 };
 use Innmind\Immutable\{
     Map,
@@ -20,7 +19,10 @@ class ReservedTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            Reserved::of(Str::of('{+foo,bar}')),
+            Reserved::of(Str::of('{+foo,bar}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
     }
 
@@ -28,7 +30,10 @@ class ReservedTest extends TestCase
     {
         $this->assertSame(
             '{+foo,bar}',
-            Reserved::of(Str::of('{+foo,bar}'))->toString(),
+            Reserved::of(Str::of('{+foo,bar}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
         );
     }
 
@@ -44,11 +49,17 @@ class ReservedTest extends TestCase
 
         $this->assertSame(
             '1024,Hello%20World!,768',
-            Reserved::of(Str::of('{+x,hello,y}'))->expand($variables),
+            Reserved::of(Str::of('{+x,hello,y}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '/foo/bar,1024',
-            Reserved::of(Str::of('{+path,x}'))->expand($variables),
+            Reserved::of(Str::of('{+path,x}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
     }
 
@@ -56,24 +67,30 @@ class ReservedTest extends TestCase
     {
         $this->assertInstanceOf(
             Reserved::class,
-            $expression = Reserved::of(Str::of('{+foo,bar}')),
+            $expression = Reserved::of(Str::of('{+foo,bar}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertSame('{+foo,bar}', $expression->toString());
     }
 
-    public function testThrowWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern()
     {
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('{foo}');
-
-        Reserved::of(Str::of('{foo}'));
+        $this->assertNull(Reserved::of(Str::of('{foo}'))->match(
+            static fn($expression) => $expression,
+            static fn() => null,
+        ));
     }
 
     public function testRegex()
     {
         $this->assertSame(
             '(?<foo>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]*),(?<bar>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]*)',
-            Reserved::of(Str::of('{+foo,bar}'))->regex(),
+            Reserved::of(Str::of('{+foo,bar}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
     }
 }

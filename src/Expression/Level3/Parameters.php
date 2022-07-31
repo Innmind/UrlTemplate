@@ -6,12 +6,12 @@ namespace Innmind\UrlTemplate\Expression\Level3;
 use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
-    Exception\DomainException,
 };
 use Innmind\Immutable\{
     Map,
     Sequence,
     Str,
+    Maybe,
 };
 
 /**
@@ -32,19 +32,18 @@ final class Parameters implements Expression
     /**
      * @psalm-pure
      */
-    public static function of(Str $string): Expression
+    public static function of(Str $string): Maybe
     {
-        if (!$string->matches('~^\{;[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)+\}$~')) {
-            throw new DomainException($string->toString());
-        }
-
-        return new self(
-            $string
-                ->trim('{;}')
-                ->split(',')
-                ->map(static fn($name) => $name->toString())
-                ->map(Name::of(...)),
-        );
+        /** @var Maybe<Expression> */
+        return Maybe::just($string)
+            ->filter(static fn($string) => $string->matches('~^\{;[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)*\}$~'))
+            ->map(static fn($string) => $string->trim('{;}')->split(','))
+            ->map(
+                static fn($names) => $names
+                    ->map(static fn($name) => $name->toString())
+                    ->map(Name::of(...)),
+            )
+            ->map(static fn($names) => new self($names));
     }
 
     /**

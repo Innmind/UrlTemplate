@@ -8,11 +8,13 @@ use Innmind\UrlTemplate\{
     Expression\Name,
     Expression\Level2,
     Expression\Level4,
+    Exception\DomainException,
     Exception\LogicException,
 };
 use Innmind\Immutable\{
     Map,
     Str,
+    Maybe,
 };
 
 /**
@@ -32,7 +34,7 @@ final class Fragment implements Expression
     /**
      * @psalm-pure
      */
-    public static function of(Str $string): Expression
+    public static function of(Str $string): Maybe
     {
         return Parse::of(
             $string,
@@ -76,7 +78,10 @@ final class Fragment implements Expression
         return Composite::removeLead(
             ',',
             $this,
-            self::of($pattern->prepend('{#')->append('}')),
+            self::of($pattern->prepend('{#')->append('}'))->match(
+                static fn($expression) => $expression,
+                static fn() => throw new DomainException('todo'),
+            ),
         );
     }
 

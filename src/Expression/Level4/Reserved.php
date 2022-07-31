@@ -8,11 +8,13 @@ use Innmind\UrlTemplate\{
     Expression\Name,
     Expression\Level2,
     Expression\Level4,
+    Exception\DomainException,
     Exception\ExplodeExpressionCantBeMatched,
 };
 use Innmind\Immutable\{
     Map,
     Str,
+    Maybe,
 };
 
 /**
@@ -37,7 +39,7 @@ final class Reserved implements Expression
     /**
      * @psalm-pure
      */
-    public static function of(Str $string): Expression
+    public static function of(Str $string): Maybe
     {
         return Parse::of(
             $string,
@@ -83,7 +85,10 @@ final class Reserved implements Expression
         return new Composite(
             ',',
             $this,
-            self::of($pattern->prepend('{+')->append('}')),
+            self::of($pattern->prepend('{+')->append('}'))->match(
+                static fn($expression) => $expression,
+                static fn() => throw new DomainException('todo'),
+            ),
         );
     }
 

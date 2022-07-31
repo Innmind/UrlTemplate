@@ -7,12 +7,12 @@ use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
     Expressions,
-    Exception\DomainException,
 };
 use Innmind\Immutable\{
     Map,
     Sequence,
     Str,
+    Maybe,
 };
 
 /**
@@ -53,32 +53,27 @@ final class Composite implements Expression
     /**
      * @psalm-pure
      */
-    public static function of(Str $string): Expression
+    public static function of(Str $string): Maybe
     {
-        if (!$string->matches('~^\{[\+#\./;\?&]?[a-zA-Z0-9_]+(\*|:\d*)?(,[a-zA-Z0-9_]+(\*|:\d*)?)+\}$~')) {
-            throw new DomainException($string->toString());
-        }
-
-        $pieces = $string
-            ->trim('{}')
-            ->split(',');
-        $first = $pieces->first()->match(
-            static fn($first) => $first,
-            static fn() => throw new DomainException($string->toString()),
-        );
-
         /**
-         * @psalm-suppress UndefinedInterfaceMethod
          * @psalm-suppress MixedInferredReturnType
+         * @psalm-suppress MixedReturnStatement
+         * @psalm-suppress UndefinedInterfaceMethod
          */
-        return $pieces
-            ->drop(1)
-            ->reduce(
-                Expressions::of($first->prepend('{')->append('}')),
-                static function(Expression $level4, Str $expression): Expression {
-                    /** @psalm-suppress MixedReturnStatement */
-                    return $level4->add($expression);
-                },
+        return Maybe::just($string)
+            ->filter(static fn($string) => $string->matches('~^\{[\+#\./;\?&]?[a-zA-Z0-9_]+(\*|:\d*)?(,[a-zA-Z0-9_]+(\*|:\d*)?)+\}$~'))
+            ->map(static fn($string) => $string->trim('{}')->split(','))
+            ->flatMap(
+                static fn($pieces) => $pieces
+                    ->first()
+                    ->map(static fn($first) => $first->prepend('{')->append('}'))
+                    ->map(Expressions::of(...))
+                    ->map(
+                        static fn($first) => $pieces->drop(1)->reduce(
+                            $first,
+                            static fn(Expression $level4, $expression): Expression => $level4->add($expression),
+                        ),
+                    ),
             );
     }
 

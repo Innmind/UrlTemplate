@@ -3,13 +3,10 @@ declare(strict_types = 1);
 
 namespace Innmind\UrlTemplate;
 
-use Innmind\UrlTemplate\{
-    Expression\Name,
-    Exception\DomainException,
-};
 use Innmind\Immutable\{
     Map,
     Str,
+    Maybe,
 };
 
 /**
@@ -20,9 +17,9 @@ interface Expression
     /**
      * @psalm-pure
      *
-     * @throws DomainException
+     * @return Maybe<self>
      */
-    public static function of(Str $string): self;
+    public static function of(Str $string): Maybe;
 
     /**
      * @param Map<string, scalar|array> $variables

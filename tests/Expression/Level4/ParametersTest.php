@@ -6,7 +6,6 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level4;
 use Innmind\UrlTemplate\{
     Expression\Level4\Parameters,
     Expression,
-    Exception\DomainException,
     Exception\LogicException,
 };
 use Innmind\Immutable\{
@@ -27,33 +26,61 @@ class ParametersTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            Parameters::of(Str::of('{;foo}')),
+            Parameters::of(Str::of('{;foo}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Parameters::of(Str::of('{;foo*}')),
+            Parameters::of(Str::of('{;foo*}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Parameters::of(Str::of('{;foo:42}')),
+            Parameters::of(Str::of('{;foo:42}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
     }
 
     public function testStringCast()
     {
-        $this->assertSame('{;foo}', Parameters::of(Str::of('{;foo}'))->toString());
-        $this->assertSame('{;foo*}', Parameters::of(Str::of('{;foo*}'))->toString());
-        $this->assertSame('{;foo:42}', Parameters::of(Str::of('{;foo:42}'))->toString());
+        $this->assertSame(
+            '{;foo}',
+            Parameters::of(Str::of('{;foo}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
+        );
+        $this->assertSame(
+            '{;foo*}',
+            Parameters::of(Str::of('{;foo*}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
+        );
+        $this->assertSame(
+            '{;foo:42}',
+            Parameters::of(Str::of('{;foo:42}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
+        );
     }
 
-    public function testThrowWhenNegativeLimit()
+    public function testReturnNothingWhenNegativeLimit()
     {
         $this
             ->forAll(Set\Integers::below(1))
             ->then(function(int $int): void {
-                $this->expectException(DomainException::class);
-
-                Parameters::of(Str::of("{;foo:$int}"));
+                $this->assertNull(Parameters::of(Str::of("{;foo:$int}"))->match(
+                    static fn($expression) => $expression,
+                    static fn() => null,
+                ));
             });
     }
 
@@ -68,23 +95,38 @@ class ParametersTest extends TestCase
 
         $this->assertSame(
             ';hello=Hello',
-            Parameters::of(Str::of('{;hello:5}'))->expand($variables),
+            Parameters::of(Str::of('{;hello:5}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             ';list=red,green,blue',
-            Parameters::of(Str::of('{;list}'))->expand($variables),
+            Parameters::of(Str::of('{;list}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             ';list=red;list=green;list=blue',
-            Parameters::of(Str::of('{;list*}'))->expand($variables),
+            Parameters::of(Str::of('{;list*}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             ';keys=semi,%3B,dot,.,comma,%2C',
-            Parameters::of(Str::of('{;keys}'))->expand($variables),
+            Parameters::of(Str::of('{;keys}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             ';semi=%3B;dot=.;comma=%2C',
-            Parameters::of(Str::of('{;keys*}'))->expand($variables),
+            Parameters::of(Str::of('{;keys*}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
     }
 
@@ -92,45 +134,63 @@ class ParametersTest extends TestCase
     {
         $this->assertInstanceOf(
             Parameters::class,
-            $expression = Parameters::of(Str::of('{;foo}')),
+            $expression = Parameters::of(Str::of('{;foo}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertSame('{;foo}', $expression->toString());
         $this->assertInstanceOf(
             Parameters::class,
-            $expression = Parameters::of(Str::of('{;foo*}')),
+            $expression = Parameters::of(Str::of('{;foo*}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertSame('{;foo*}', $expression->toString());
         $this->assertInstanceOf(
             Parameters::class,
-            $expression = Parameters::of(Str::of('{;foo:42}')),
+            $expression = Parameters::of(Str::of('{;foo:42}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertSame('{;foo:42}', $expression->toString());
     }
 
-    public function testThrowWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern()
     {
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('{foo}');
-
-        Parameters::of(Str::of('{foo}'));
+        $this->assertNull(Parameters::of(Str::of('{foo}'))->match(
+            static fn($expression) => $expression,
+            static fn() => null,
+        ));
     }
 
     public function testThrowExplodeRegex()
     {
         $this->expectException(LogicException::class);
 
-        Parameters::of(Str::of('{;foo*}'))->regex();
+        Parameters::of(Str::of('{;foo*}'))->match(
+            static fn($expression) => $expression->regex(),
+            static fn() => null,
+        );
     }
 
     public function testRegex()
     {
         $this->assertSame(
             '\;foo=(?<foo>[a-zA-Z0-9\%\-\.\_\~]*)',
-            Parameters::of(Str::of('{;foo}'))->regex(),
+            Parameters::of(Str::of('{;foo}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '\;foo=(?<foo>[a-zA-Z0-9\%\-\.\_\~]{2})',
-            Parameters::of(Str::of('{;foo:2}'))->regex(),
+            Parameters::of(Str::of('{;foo:2}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
     }
 }

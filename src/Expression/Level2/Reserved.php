@@ -7,12 +7,12 @@ use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
     UrlEncode,
-    Exception\DomainException,
     Exception\OnlyScalarCanBeExpandedForExpression,
 };
 use Innmind\Immutable\{
     Map,
     Str,
+    Maybe,
 };
 
 /**
@@ -32,13 +32,14 @@ final class Reserved implements Expression
     /**
      * @psalm-pure
      */
-    public static function of(Str $string): Expression
+    public static function of(Str $string): Maybe
     {
-        if (!$string->matches('~^\{\+[a-zA-Z0-9_]+\}$~')) {
-            throw new DomainException($string->toString());
-        }
-
-        return new self(Name::of($string->trim('{+}')->toString()));
+        /** @var Maybe<Expression> */
+        return Maybe::just($string)
+            ->filter(static fn($string) => $string->matches('~^\{\+[a-zA-Z0-9_]+\}$~'))
+            ->map(static fn($string) => $string->trim('{+}')->toString())
+            ->map(Name::of(...))
+            ->map(static fn($name) => new self($name));
     }
 
     /**

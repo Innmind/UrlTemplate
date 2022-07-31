@@ -6,7 +6,6 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level2;
 use Innmind\UrlTemplate\{
     Expression\Level2\Fragment,
     Expression,
-    Exception\DomainException,
     Exception\OnlyScalarCanBeExpandedForExpression,
 };
 use Innmind\Immutable\{
@@ -21,18 +20,30 @@ class FragmentTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            Fragment::of(Str::of('{#foo}')),
+            Fragment::of(Str::of('{#foo}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
     }
 
     public function testStringCast()
     {
-        $this->assertSame('{#foo}', Fragment::of(Str::of('{#foo}'))->toString());
+        $this->assertSame(
+            '{#foo}',
+            Fragment::of(Str::of('{#foo}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
+        );
     }
 
     public function testExpand()
     {
-        $expression = Fragment::of(Str::of('{#foo}'));
+        $expression = Fragment::of(Str::of('{#foo}'))->match(
+            static fn($expression) => $expression,
+            static fn() => null,
+        );
 
         $this->assertSame('#value', $expression->expand(
             Map::of(['foo', 'value']),
@@ -52,30 +63,39 @@ class FragmentTest extends TestCase
     {
         $this->assertInstanceOf(
             Fragment::class,
-            $expression = Fragment::of(Str::of('{#foo}')),
+            $expression = Fragment::of(Str::of('{#foo}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertSame('{#foo}', $expression->toString());
     }
 
-    public function testThrowWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern()
     {
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('foo');
-
-        Fragment::of(Str::of('foo'));
+        $this->assertNull(Fragment::of(Str::of('foo'))->match(
+            static fn($expression) => $expression,
+            static fn() => null,
+        ));
     }
 
     public function testRegex()
     {
         $this->assertSame(
             '\#(?<foo>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]*)',
-            Fragment::of(Str::of('{#foo}'))->regex(),
+            Fragment::of(Str::of('{#foo}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
     }
 
     public function testThrowWhenTryingToExpandWithAnArray()
     {
-        $expression = Fragment::of(Str::of('{#foo}'));
+        $expression = Fragment::of(Str::of('{#foo}'))->match(
+            static fn($expression) => $expression,
+            static fn() => null,
+        );
 
         $this->expectException(OnlyScalarCanBeExpandedForExpression::class);
         $this->expectExceptionMessage('foo');

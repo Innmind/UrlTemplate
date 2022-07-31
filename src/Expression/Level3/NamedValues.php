@@ -12,6 +12,7 @@ use Innmind\Immutable\{
     Map,
     Sequence,
     Str,
+    Maybe,
 };
 
 /**
@@ -50,7 +51,7 @@ final class NamedValues implements Expression
     /**
      * @psalm-pure
      */
-    public static function of(Str $string): Expression
+    public static function of(Str $string): Maybe
     {
         throw new \LogicException('should not be used directly');
     }

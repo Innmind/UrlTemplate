@@ -6,7 +6,6 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level3;
 use Innmind\UrlTemplate\{
     Expression\Level3\Label,
     Expression,
-    Exception\DomainException,
 };
 use Innmind\Immutable\{
     Map,
@@ -20,7 +19,10 @@ class LabelTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            Label::of(Str::of('{.foo,bar}')),
+            Label::of(Str::of('{.foo,bar}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
     }
 
@@ -28,7 +30,10 @@ class LabelTest extends TestCase
     {
         $this->assertSame(
             '{.foo,bar}',
-            Label::of(Str::of('{.foo,bar}'))->toString(),
+            Label::of(Str::of('{.foo,bar}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
         );
     }
 
@@ -44,11 +49,17 @@ class LabelTest extends TestCase
 
         $this->assertSame(
             '.1024.768',
-            Label::of(Str::of('{.x,y}'))->expand($variables),
+            Label::of(Str::of('{.x,y}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '.value',
-            Label::of(Str::of('{.var}'))->expand($variables),
+            Label::of(Str::of('{.var}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
     }
 
@@ -56,24 +67,30 @@ class LabelTest extends TestCase
     {
         $this->assertInstanceOf(
             Label::class,
-            $expression = Label::of(Str::of('{.foo,bar}')),
+            $expression = Label::of(Str::of('{.foo,bar}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertSame('{.foo,bar}', $expression->toString());
     }
 
-    public function testThrowWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern()
     {
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('{foo}');
-
-        Label::of(Str::of('{foo}'));
+        $this->assertNull(Label::of(Str::of('{foo}'))->match(
+            static fn($expression) => $expression,
+            static fn() => null,
+        ));
     }
 
     public function testRegex()
     {
         $this->assertSame(
             '\.(?<foo>[a-zA-Z0-9\%\-\_\~]*).(?<bar>[a-zA-Z0-9\%\-\_\~]*)',
-            Label::of(Str::of('{.foo,bar}'))->regex(),
+            Label::of(Str::of('{.foo,bar}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
     }
 }
