@@ -27,7 +27,6 @@ final class Level4 implements Expression
     private ?int $limit = null;
     private bool $explode = false;
     private Expansion $expansion;
-    private string $separator = ',';
 
     private function __construct(Name $name)
     {
@@ -98,10 +97,6 @@ final class Level4 implements Expression
     {
         $self = clone $this;
         $self->expansion = $expansion;
-
-        if ($this->explode) {
-            $self->separator = $expansion->explodeSeparator();
-        }
 
         return $self;
     }
@@ -229,7 +224,7 @@ final class Level4 implements Expression
             },
         );
 
-        return Str::of($this->separator)
+        return $this->separator()
             ->join($expanded)
             ->prepend($this->expansion->toString())
             ->toString();
@@ -267,9 +262,22 @@ final class Level4 implements Expression
             },
         );
 
-        return Str::of($this->separator)
+        return $this->separator()
             ->join($expanded)
             ->prepend($this->expansion->toString())
             ->toString();
+    }
+
+    private function separator(): Str
+    {
+        if (!$this->explode) {
+            return Str::of(',');
+        }
+
+        return Str::of(match ($this->expansion) {
+            Expansion::label => '.',
+            Expansion::path => '/',
+            default => ',',
+        });
     }
 }
