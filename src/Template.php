@@ -24,16 +24,13 @@ final class Template
     /** @var Sequence<Expression> */
     private Sequence $expressions;
 
-    private function __construct(string $template)
+    /**
+     * @param Sequence<Expression> $expressions
+     */
+    private function __construct(Str $template, Sequence $expressions)
     {
-        $this->template = Str::of($template);
-        $this->expressions = $this
-            ->extractExpressions(
-                Sequence::of(),
-                $this->template,
-            )
-            ->map(Str::of(...))
-            ->map(Expressions::of(...));
+        $this->template = $template;
+        $this->expressions = $expressions;
     }
 
     /**
@@ -41,7 +38,9 @@ final class Template
      */
     public static function of(string $template): self
     {
-        return new self($template);
+        $template = Str::of($template);
+
+        return new self($template, self::parse($template));
     }
 
     /**
@@ -94,31 +93,6 @@ final class Template
         return $this->template->toString();
     }
 
-    /**
-     * Recursively find the expressions as Str::capture doesnt capture all of
-     * them at the same time
-     * @param Sequence<string> $expressions
-     *
-     * @return Sequence<string>
-     */
-    private function extractExpressions(
-        Sequence $expressions,
-        Str $template,
-    ): Sequence {
-        $captured = $template->capture('~(\{[\+#\./;\?&]?[a-zA-Z0-9_]+(\*|:\d+)?(,[a-zA-Z0-9_]+(\*|:\d+)?)*\})~');
-
-        return $captured
-            ->values()
-            ->first()
-            ->match(
-                fn($value) => $this->extractExpressions(
-                    $expressions->add($value->toString()),
-                    $template->replace($value->toString(), ''),
-                ),
-                static fn() => $expressions,
-            );
-    }
-
     private function regex(): string
     {
         try {
@@ -162,5 +136,35 @@ final class Template
         }
 
         return $template->prepend('~^')->append('$~')->toString();
+    }
+
+    /**
+     * @psalm-pure
+     *
+     * Recursively find the expressions as Str::capture doesnt capture all of
+     * them at the same time
+     *
+     * @return Sequence<Expression>
+     */
+    private static function parse(Str $template): Sequence
+    {
+        /** @var Sequence<Str> */
+        $expressions = Sequence::of();
+
+        do {
+            $captured = $template->capture('~(\{[\+#\./;\?&]?[a-zA-Z0-9_]+(\*|:\d+)?(,[a-zA-Z0-9_]+(\*|:\d+)?)*\})~');
+
+            [$expressions, $template] = $captured
+                ->get(0)
+                ->match(
+                    static fn($value) => [
+                        ($expressions)($value),
+                        $template->replace($value->toString(), ''),
+                    ],
+                    static fn() => [$expressions, $template],
+                );
+        } while (!$captured->empty());
+
+        return $expressions->map(Expressions::of(...));
     }
 }
