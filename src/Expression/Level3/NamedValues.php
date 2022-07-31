@@ -21,8 +21,7 @@ use Innmind\Immutable\{
  */
 final class NamedValues implements Expression
 {
-    private string $lead;
-    private string $separator;
+    private Expansion $expansion;
     /** @var Sequence<Name> */
     private Sequence $names;
     /** @var Map<string, Expression> */
@@ -34,8 +33,7 @@ final class NamedValues implements Expression
      */
     public function __construct(Expansion $expansion, Sequence $names)
     {
-        $this->lead = $expansion->toString();
-        $this->separator = $expansion->continuation()->toString();
+        $this->expansion = $expansion;
         $this->names = $names;
         /** @var Map<string, Expression> */
         $this->expressions = Map::of(
@@ -86,15 +84,15 @@ final class NamedValues implements Expression
             },
         );
 
-        return Str::of($this->separator)
+        return Str::of($this->expansion->continuation()->toString())
             ->join($expanded)
-            ->prepend($this->lead)
+            ->prepend($this->expansion->toString())
             ->toString();
     }
 
     public function regex(): string
     {
-        return Str::of('\\'.$this->separator)
+        return Str::of($this->expansion->continuation()->regex())
             ->join($this->names->map(
                 fn($name) => \sprintf(
                     '%s=%s%s',
@@ -103,7 +101,7 @@ final class NamedValues implements Expression
                     Level1::named($name)->regex(),
                 ),
             ))
-            ->prepend('\\'.$this->lead)
+            ->prepend($this->expansion->regex())
             ->toString();
     }
 
@@ -113,7 +111,7 @@ final class NamedValues implements Expression
             ->join($this->names->map(
                 static fn($element) => $element->toString(),
             ))
-            ->prepend('{'.$this->lead)
+            ->prepend('{'.$this->expansion->toString())
             ->append('}')
             ->toString();
     }
