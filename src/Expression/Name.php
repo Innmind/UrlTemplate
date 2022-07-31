@@ -37,31 +37,31 @@ final class Name
     /**
      * @psalm-pure
      *
-     * @param ?non-empty-string $lead
-     *
      * @return Maybe<self>
      */
     public static function one(
         Str $value,
-        string $lead = null,
+        Expansion $expansion,
     ): Maybe {
-        return self::find($value, $lead)
+        return Maybe::just($value)
+            ->filter($expansion->matches(...))
+            ->map($expansion->clean(...))
             ->map(static fn($value) => $value->toString())
             ->map(static fn($value) => new self($value));
     }
 
     /**
      * @psalm-pure
-     *
-     * @param ?non-empty-string $lead
      *
      * @return Maybe<self>
      */
     public static function explode(
         Str $value,
-        string $lead = null,
+        Expansion $expansion,
     ): Maybe {
-        return self::find($value, $lead, '\\*')
+        return Maybe::just($value)
+            ->filter($expansion->matchesExplode(...))
+            ->map($expansion->cleanExplode(...))
             ->map(static fn($value) => $value->toString())
             ->map(static fn($value) => new self($value));
     }
@@ -69,15 +69,15 @@ final class Name
     /**
      * @psalm-pure
      *
-     * @param ?non-empty-string $lead
-     *
      * @return Maybe<array{self, positive-int}>
      */
     public static function limit(
         Str $value,
-        string $lead = null,
+        Expansion $expansion,
     ): Maybe {
-        return self::find($value, $lead, ':\d+')
+        return Maybe::just($value)
+            ->filter($expansion->matchesLimit(...))
+            ->map($expansion->clean(...))
             ->map(static fn($value) => $value->split(':'))
             ->map(static fn($pieces) => $pieces->map(static fn($piece) => $piece->toString()))
             ->flatMap(
@@ -98,28 +98,18 @@ final class Name
     /**
      * @psalm-pure
      *
-     * @param ?non-empty-string $lead
-     *
      * @return Maybe<Sequence<self>>
      */
     public static function many(
         Str $value,
-        string $lead = null,
+        Expansion $expansion,
     ): Maybe {
-        $drop = match ($lead) {
-            null => 1,
-            default => 2,
-        };
-        $lead = match ($lead) {
-            null => '',
-            default => "\\$lead",
-        };
-
         return Maybe::just($value)
-            ->filter(static fn($value) => $value->matches("~^\{{$lead}[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)*\}\$~"))
-            ->map(static fn($value) => $value->drop($drop)->dropEnd(1)->split(','))
+            ->filter($expansion->matchesMany(...))
+            ->map($expansion->clean(...))
             ->map(
-                static fn($values) => $values
+                static fn($value) => $value
+                    ->split(',')
                     ->map(static fn($value) => $value->toString())
                     ->map(static fn($value) => new self($value)),
             );
@@ -128,36 +118,5 @@ final class Name
     public function toString(): string
     {
         return $this->value;
-    }
-
-    /**
-     * @psalm-pure
-     *
-     * @param ?non-empty-string $lead
-     * @param ?non-empty-string $extra
-     *
-     * @return Maybe<Str>
-     */
-    private static function find(
-        Str $value,
-        string $lead = null,
-        string $extra = null,
-    ): Maybe {
-        $drop = match ($lead) {
-            null => 1,
-            default => 2,
-        };
-        $dropEnd = match ($extra) {
-            '\\*' => 2,
-            default => 1,
-        };
-        $lead = match ($lead) {
-            null => '',
-            default => "\\$lead",
-        };
-
-        return Maybe::just($value)
-            ->filter(static fn($value) => $value->matches("~^\{{$lead}[a-zA-Z0-9_]+{$extra}\}\$~"))
-            ->map(static fn($value) => $value->drop($drop)->dropEnd($dropEnd));
     }
 }

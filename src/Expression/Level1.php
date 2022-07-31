@@ -34,7 +34,9 @@ final class Level1 implements Expression
     public static function of(Str $string): Maybe
     {
         /** @var Maybe<Expression> */
-        return Name::one($string)->map(static fn($name) => new self($name));
+        return Name::one($string, Expansion::simple)->map(
+            static fn($name) => new self($name),
+        );
     }
 
     /**

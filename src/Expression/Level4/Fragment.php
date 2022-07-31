@@ -6,6 +6,7 @@ namespace Innmind\UrlTemplate\Expression\Level4;
 use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
+    Expression\Expansion,
     Expression\Level2,
     Expression\Level4,
     Exception\DomainException,
@@ -41,7 +42,7 @@ final class Fragment implements Expression
             static fn(Name $name) => new self($name),
             self::explode(...),
             self::limit(...),
-            '#',
+            Expansion::fragment,
         );
     }
 

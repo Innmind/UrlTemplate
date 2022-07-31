@@ -6,6 +6,7 @@ namespace Innmind\UrlTemplate\Expression\Level2;
 use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
+    Expression\Expansion,
     UrlEncode,
     Exception\OnlyScalarCanBeExpandedForExpression,
 };
@@ -35,7 +36,9 @@ final class Fragment implements Expression
     public static function of(Str $string): Maybe
     {
         /** @var Maybe<Expression> */
-        return Name::one($string, '#')->map(static fn($name) => new self($name));
+        return Name::one($string, Expansion::fragment)->map(
+            static fn($name) => new self($name),
+        );
     }
 
     public function expand(Map $variables): string

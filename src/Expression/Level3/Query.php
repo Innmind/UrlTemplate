@@ -6,6 +6,7 @@ namespace Innmind\UrlTemplate\Expression\Level3;
 use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
+    Expression\Expansion,
 };
 use Innmind\Immutable\{
     Map,
@@ -35,7 +36,9 @@ final class Query implements Expression
     public static function of(Str $string): Maybe
     {
         /** @var Maybe<Expression> */
-        return Name::many($string, '?')->map(static fn($names) => new self($names));
+        return Name::many($string, Expansion::query)->map(
+            static fn($names) => new self($names),
+        );
     }
 
     /**

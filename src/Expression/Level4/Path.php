@@ -6,6 +6,7 @@ namespace Innmind\UrlTemplate\Expression\Level4;
 use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
+    Expression\Expansion,
     Expression\Level1,
     Expression\Level4,
     Exception\DomainException,
@@ -38,7 +39,7 @@ final class Path implements Expression
             static fn(Name $name) => new self($name),
             self::explode(...),
             self::limit(...),
-            '/',
+            Expansion::path,
         );
     }
 

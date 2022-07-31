@@ -6,6 +6,7 @@ namespace Innmind\UrlTemplate\Expression\Level4;
 use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
+    Expression\Expansion,
 };
 use Innmind\Immutable\{
     Str,
@@ -20,7 +21,6 @@ final class Parse
      * @param pure-callable(Name): Expression $standard
      * @param pure-callable(Name): Expression $explode
      * @param pure-callable(Name, positive-int): Expression $limit
-     * @param ?non-empty-string $lead
      *
      * @return Maybe<Expression>
      */
@@ -29,44 +29,42 @@ final class Parse
         callable $standard,
         callable $explode,
         callable $limit,
-        string $lead = null,
+        Expansion $expansion,
     ): Maybe {
-        return Name::one($string, $lead)
+        return Name::one($string, $expansion)
             ->map($standard)
-            ->otherwise(static fn() => self::explode($string, $explode, $lead))
-            ->otherwise(static fn() => self::limit($string, $limit, $lead));
+            ->otherwise(static fn() => self::explode($string, $explode, $expansion))
+            ->otherwise(static fn() => self::limit($string, $limit, $expansion));
     }
 
     /**
      * @psalm-pure
      *
      * @param pure-callable(Name): Expression $explode
-     * @param ?non-empty-string $lead
      *
      * @return Maybe<Expression>
      */
     private static function explode(
         Str $string,
         callable $explode,
-        string $lead = null,
+        Expansion $expansion,
     ): Maybe {
-        return Name::explode($string, $lead)->map($explode);
+        return Name::explode($string, $expansion)->map($explode);
     }
 
     /**
      * @psalm-pure
      *
      * @param pure-callable(Name, positive-int): Expression $limit
-     * @param ?non-empty-string $lead
      *
      * @return Maybe<Expression>
      */
     private static function limit(
         Str $string,
         callable $limit,
-        string $lead = null,
+        Expansion $expansion,
     ): Maybe {
-        return Name::limit($string, $lead)->map(
+        return Name::limit($string, $expansion)->map(
             static fn($tuple) => $limit($tuple[0], $tuple[1]),
         );
     }

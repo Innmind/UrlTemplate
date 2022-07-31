@@ -6,6 +6,7 @@ namespace Innmind\UrlTemplate\Expression\Level3;
 use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
+    Expression\Expansion,
     Expression\Level2,
 };
 use Innmind\Immutable\{
@@ -41,7 +42,9 @@ final class Reserved implements Expression
     public static function of(Str $string): Maybe
     {
         /** @var Maybe<Expression> */
-        return Name::many($string, '+')->map(static fn($names) => new self($names));
+        return Name::many($string, Expansion::reserved)->map(
+            static fn($names) => new self($names),
+        );
     }
 
     public function expand(Map $variables): string
