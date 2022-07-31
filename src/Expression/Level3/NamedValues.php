@@ -68,6 +68,11 @@ final class NamedValues implements Expression
         return $self;
     }
 
+    public function expansion(): Expansion
+    {
+        return $this->expansion;
+    }
+
     public function expand(Map $variables): string
     {
         /** @var Sequence<string> */

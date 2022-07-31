@@ -47,6 +47,11 @@ final class Reserved implements Expression
         );
     }
 
+    public function expansion(): Expansion
+    {
+        return Expansion::reserved;
+    }
+
     public function expand(Map $variables): string
     {
         $expanded = $this->expressions->map(

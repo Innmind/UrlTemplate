@@ -21,6 +21,8 @@ interface Expression
      */
     public static function of(Str $string): Maybe;
 
+    public function expansion(): Expression\Expansion;
+
     /**
      * @param Map<string, scalar|array> $variables
      */

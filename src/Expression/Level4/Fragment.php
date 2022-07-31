@@ -86,6 +86,11 @@ final class Fragment implements Expression
         );
     }
 
+    public function expansion(): Expansion
+    {
+        return Expansion::fragment;
+    }
+
     public function regex(): string
     {
         return $this->expression->regex();

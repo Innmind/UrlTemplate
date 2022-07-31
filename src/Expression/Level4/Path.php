@@ -68,6 +68,11 @@ final class Path implements Expression
         return $self;
     }
 
+    public function expansion(): Expansion
+    {
+        return Expansion::path;
+    }
+
     public function add(Str $pattern): Composite
     {
         return new Composite(

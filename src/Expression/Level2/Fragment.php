@@ -41,6 +41,11 @@ final class Fragment implements Expression
         );
     }
 
+    public function expansion(): Expansion
+    {
+        return Expansion::fragment;
+    }
+
     public function expand(Map $variables): string
     {
         return $variables

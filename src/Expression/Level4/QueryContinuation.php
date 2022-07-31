@@ -75,6 +75,11 @@ final class QueryContinuation implements Expression
         return $self;
     }
 
+    public function expansion(): Expansion
+    {
+        return Expansion::queryContinuation;
+    }
+
     public function add(Str $pattern): Composite
     {
         return new Composite(

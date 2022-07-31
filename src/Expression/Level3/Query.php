@@ -49,6 +49,11 @@ final class Query implements Expression
         return new self(Sequence::of($name));
     }
 
+    public function expansion(): Expansion
+    {
+        return Expansion::query;
+    }
+
     public function expand(Map $variables): string
     {
         return $this->expression->expand($variables);

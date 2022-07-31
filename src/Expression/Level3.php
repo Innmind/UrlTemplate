@@ -41,6 +41,11 @@ final class Level3 implements Expression
         );
     }
 
+    public function expansion(): Expansion
+    {
+        return Expansion::simple;
+    }
+
     public function expand(Map $variables): string
     {
         $expanded = $this->expressions->map(

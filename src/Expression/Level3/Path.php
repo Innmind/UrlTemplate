@@ -47,6 +47,11 @@ final class Path implements Expression
         );
     }
 
+    public function expansion(): Expansion
+    {
+        return Expansion::path;
+    }
+
     public function expand(Map $variables): string
     {
         return Str::of('/')

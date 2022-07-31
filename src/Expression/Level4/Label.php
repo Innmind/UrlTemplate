@@ -68,6 +68,11 @@ final class Label implements Expression
         return $self;
     }
 
+    public function expansion(): Expansion
+    {
+        return Expansion::label;
+    }
+
     public function add(Str $pattern): Composite
     {
         return new Composite(

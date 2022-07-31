@@ -75,6 +75,11 @@ final class Parameters implements Expression
         return $self;
     }
 
+    public function expansion(): Expansion
+    {
+        return Expansion::parameter;
+    }
+
     public function add(Str $pattern): Composite
     {
         return new Composite(

@@ -81,6 +81,11 @@ final class Reserved implements Expression
         return $self;
     }
 
+    public function expansion(): Expansion
+    {
+        return Expansion::reserved;
+    }
+
     public function add(Str $pattern): Composite
     {
         return new Composite(

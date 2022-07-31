@@ -81,6 +81,11 @@ final class Level4 implements Expression
         return new self($name);
     }
 
+    public function expansion(): Expansion
+    {
+        return Expansion::simple;
+    }
+
     public function add(Str $pattern): Composite
     {
         return new Composite(

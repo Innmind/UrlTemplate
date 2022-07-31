@@ -6,6 +6,7 @@ namespace Innmind\UrlTemplate\Expression\Level4;
 use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
+    Expression\Expansion,
     Expressions,
 };
 use Innmind\Immutable\{
@@ -21,6 +22,7 @@ use Innmind\Immutable\{
 final class Composite implements Expression
 {
     private string $separator;
+    private Expression $first;
     /** @var Sequence<Expression> */
     private Sequence $expressions;
     private bool $removeLead = false;
@@ -31,6 +33,7 @@ final class Composite implements Expression
         Expression ...$expressions,
     ) {
         $this->separator = $separator;
+        $this->first = $level4;
         $this->expressions = Sequence::of($level4, ...$expressions);
     }
 
@@ -73,6 +76,11 @@ final class Composite implements Expression
                         ),
                     ),
             );
+    }
+
+    public function expansion(): Expansion
+    {
+        return $this->first->expansion();
     }
 
     public function expand(Map $variables): string

@@ -47,6 +47,11 @@ final class Label implements Expression
         );
     }
 
+    public function expansion(): Expansion
+    {
+        return Expansion::label;
+    }
+
     public function expand(Map $variables): string
     {
         $expanded = $this->expressions->map(
