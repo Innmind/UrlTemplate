@@ -21,7 +21,6 @@ use Innmind\Immutable\{
 final class Composite implements Expression
 {
     private string $separator;
-    private string $type;
     /** @var Sequence<Expression> */
     private Sequence $expressions;
     private bool $removeLead = false;
@@ -32,7 +31,6 @@ final class Composite implements Expression
         Expression ...$expressions,
     ) {
         $this->separator = $separator;
-        $this->type = \get_class($level4);
         $this->expressions = Sequence::of($level4, ...$expressions);
     }
 
