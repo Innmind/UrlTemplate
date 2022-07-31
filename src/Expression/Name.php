@@ -27,7 +27,9 @@ final class Name
      */
     public static function of(string $value): self
     {
-        if (!Str::of($value)->matches('~[a-zA-Z0-9_]+~')) {
+        $characters = self::characters();
+
+        if (!Str::of($value)->matches("~{$characters}~")) {
             throw new DomainException($value);
         }
 
@@ -113,6 +115,14 @@ final class Name
                     ->map(static fn($value) => $value->toString())
                     ->map(static fn($value) => new self($value)),
             );
+    }
+
+    /**
+     * @psalm-pure
+     */
+    public static function characters(): string
+    {
+        return '[a-zA-Z0-9_]+';
     }
 
     public function toString(): string

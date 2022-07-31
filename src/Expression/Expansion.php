@@ -36,22 +36,39 @@ enum Expansion
 
     public function matches(Str $value): bool
     {
-        return $value->matches("~^\{{$this->regex()}[a-zA-Z0-9_]+\}\$~");
+        return $value->matches(\sprintf(
+            '~^\{%s%s\}$~',
+            $this->regex(),
+            Name::characters(),
+        ));
     }
 
     public function matchesExplode(Str $value): bool
     {
-        return $value->matches("~^\{{$this->regex()}[a-zA-Z0-9_]+\*\}\$~");
+        return $value->matches(\sprintf(
+            '~^\{%s%s\*\}$~',
+            $this->regex(),
+            Name::characters(),
+        ));
     }
 
     public function matchesLimit(Str $value): bool
     {
-        return $value->matches("~^\{{$this->regex()}[a-zA-Z0-9_]+:\d+\}\$~");
+        return $value->matches(\sprintf(
+            '~^\{%s%s:\d+\}$~',
+            $this->regex(),
+            Name::characters(),
+        ));
     }
 
     public function matchesMany(Str $value): bool
     {
-        return $value->matches("~^\{{$this->regex()}[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)*\}\$~");
+        return $value->matches(\sprintf(
+            '~^\{%s%s(,%s)*\}$~',
+            $this->regex(),
+            Name::characters(),
+            Name::characters(),
+        ));
     }
 
     private function regex(): string
