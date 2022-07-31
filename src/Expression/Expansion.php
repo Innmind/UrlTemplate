@@ -19,6 +19,18 @@ enum Expansion
     case query;
     case queryContinuation;
 
+    /**
+     * @psalm-pure
+     */
+    public static function matchesLevel4(Str $value): bool
+    {
+        return $value->matches(\sprintf(
+            '~^\{[\+#\./;\?&]?%s(\*|:\d*)?(,%s(\*|:\d*)?)*\}$~',
+            Name::characters(),
+            Name::characters(),
+        ));
+    }
+
     public function clean(Str $value): Str
     {
         $drop = match ($this) {
@@ -76,6 +88,24 @@ enum Expansion
         return match ($this) {
             self::query => self::queryContinuation,
             default => $this,
+        };
+    }
+
+    public function separator(): string
+    {
+        return match ($this) {
+            self::simple => ',',
+            self::reserved => ',',
+            self::fragment => ',',
+            default => '',
+        };
+    }
+
+    public function separatorRegex(): string
+    {
+        return match ($this->separator()) {
+            '' => '',
+            ',' => '\\,',
         };
     }
 

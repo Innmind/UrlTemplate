@@ -86,18 +86,6 @@ final class Level4 implements Expression
         return Expansion::simple;
     }
 
-    public function add(Str $pattern): Composite
-    {
-        return new Composite(
-            ',',
-            $this,
-            self::of($pattern->prepend('{')->append('}'))->match(
-                static fn($expression) => $expression,
-                static fn() => throw new DomainException('todo'),
-            ),
-        );
-    }
-
     public function withExpansion(Expansion $expansion): self
     {
         $self = clone $this;

@@ -21,9 +21,9 @@ class CompositeTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Composite(
-                '/',
-                $this->createMock(Expression::class),
+            Composite::of(Str::of('{var}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
             ),
         );
     }
@@ -32,31 +32,17 @@ class CompositeTest extends TestCase
     {
         $this->assertSame(
             '{/var:1,var}',
-            (new Composite(
-                '/',
-                Path::of(Str::of('{/var:1}'))->match(
-                    static fn($expression) => $expression,
-                    static fn() => null,
-                ),
-                Level4::of(Str::of('{var}'))->match(
-                    static fn($expression) => $expression,
-                    static fn() => null,
-                ),
-            ))->toString(),
+            Composite::of(Str::of('{/var:1,var}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '{/list*,path:4}',
-            (new Composite(
-                '/',
-                Path::of(Str::of('{/list*}'))->match(
-                    static fn($expression) => $expression,
-                    static fn() => null,
-                ),
-                Level4::of(Str::of('{path:4}'))->match(
-                    static fn($expression) => $expression,
-                    static fn() => null,
-                ),
-            ))->toString(),
+            Composite::of(Str::of('{/list*,path:4}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
         );
     }
 
@@ -71,31 +57,17 @@ class CompositeTest extends TestCase
 
         $this->assertSame(
             '/v/value',
-            (new Composite(
-                '/',
-                Path::of(Str::of('{/var:1}'))->match(
-                    static fn($expression) => $expression,
-                    static fn() => null,
-                ),
-                Level4::of(Str::of('{var}'))->match(
-                    static fn($expression) => $expression,
-                    static fn() => null,
-                ),
-            ))->expand($variables),
+            Composite::of(Str::of('{/var:1,var}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '/red/green/blue/%2Ffoo',
-            (new Composite(
-                '/',
-                Path::of(Str::of('{/list*}'))->match(
-                    static fn($expression) => $expression,
-                    static fn() => null,
-                ),
-                Level4::of(Str::of('{path:4}'))->match(
-                    static fn($expression) => $expression,
-                    static fn() => null,
-                ),
-            ))->expand($variables),
+            Composite::of(Str::of('{/list*,path:4}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
     }
 

@@ -73,18 +73,6 @@ final class Label implements Expression
         return Expansion::label;
     }
 
-    public function add(Str $pattern): Composite
-    {
-        return new Composite(
-            '',
-            $this,
-            self::of($pattern->prepend('{.')->append('}'))->match(
-                static fn($expression) => $expression,
-                static fn() => throw new DomainException('todo'),
-            ),
-        );
-    }
-
     public function expand(Map $variables): string
     {
         return $this->expression->expand($variables);

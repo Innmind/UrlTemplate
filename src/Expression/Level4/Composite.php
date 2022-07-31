@@ -21,34 +21,17 @@ use Innmind\Immutable\{
  */
 final class Composite implements Expression
 {
-    private string $separator;
-    private Expression $first;
+    private Expansion $expansion;
     /** @var Sequence<Expression> */
     private Sequence $expressions;
-    private bool $removeLead = false;
-
-    public function __construct(
-        string $separator,
-        Expression $level4,
-        Expression ...$expressions,
-    ) {
-        $this->separator = $separator;
-        $this->first = $level4;
-        $this->expressions = Sequence::of($level4, ...$expressions);
-    }
 
     /**
-     * @psalm-pure
+     * @param Sequence<Expression> $expressions
      */
-    public static function removeLead(
-        string $separator,
-        Expression $level4,
-        Expression ...$expressions,
-    ): self {
-        $self = new self($separator, $level4, ...$expressions);
-        $self->removeLead = true;
-
-        return $self;
+    private function __construct(Expansion $expansion, Sequence $expressions)
+    {
+        $this->expansion = $expansion;
+        $this->expressions = $expressions;
     }
 
     /**
@@ -56,31 +39,29 @@ final class Composite implements Expression
      */
     public static function of(Str $string): Maybe
     {
-        /**
-         * @psalm-suppress MixedInferredReturnType
-         * @psalm-suppress MixedReturnStatement
-         * @psalm-suppress UndefinedInterfaceMethod
-         */
+        /** @var Maybe<Expression> */
         return Maybe::just($string)
-            ->filter(static fn($string) => $string->matches('~^\{[\+#\./;\?&]?[a-zA-Z0-9_]+(\*|:\d*)?(,[a-zA-Z0-9_]+(\*|:\d*)?)+\}$~'))
-            ->map(static fn($string) => $string->trim('{}')->split(','))
+            ->filter(Expansion::matchesLevel4(...))
+            ->map(Expansion::simple->clean(...))
+            ->map(static fn($string) => $string->split(','))
             ->flatMap(
-                static fn($pieces) => $pieces
+                static fn($expressions) => $expressions
                     ->first()
                     ->map(static fn($first) => $first->prepend('{')->append('}'))
                     ->flatMap(Expressions::of(...))
-                    ->map(
-                        static fn($first) => $pieces->drop(1)->reduce(
-                            $first,
-                            static fn(Expression $level4, $expression): Expression => $level4->add($expression),
-                        ),
+                    ->flatMap(
+                        static fn($first) => self::parse($first, $expressions->drop(1))
+                            ->map(static fn($expressions) => new self(
+                                $first->expansion(),
+                                $expressions,
+                            )),
                     ),
             );
     }
 
     public function expansion(): Expansion
     {
-        return $this->first->expansion();
+        return $this->expansion;
     }
 
     public function expand(Map $variables): string
@@ -96,7 +77,7 @@ final class Composite implements Expression
             ->take(1)
             ->append(
                 $expanded->drop(1)->map(function(string $value): string {
-                    if ($this->removeLead) {
+                    if ($this->removeLead()) {
                         return Str::of($value)->drop(1)->toString();
                     }
 
@@ -104,7 +85,7 @@ final class Composite implements Expression
                 }),
             );
 
-        return Str::of($this->separator)->join($expanded)->toString();
+        return Str::of($this->expansion()->separator())->join($expanded)->toString();
     }
 
     public function regex(): string
@@ -113,14 +94,14 @@ final class Composite implements Expression
             ->expressions
             ->drop(1)
             ->map(function(Expression $expression): string {
-                if ($this->removeLead) {
+                if ($this->removeLead()) {
                     return Str::of($expression->regex())->drop(2)->toString();
                 }
 
                 return $expression->regex();
             });
 
-        return Str::of($this->separator ? '\\'.$this->separator : '')
+        return Str::of($this->expansion()->separatorRegex())
             ->join(
                 $this
                     ->expressions
@@ -156,5 +137,31 @@ final class Composite implements Expression
             ->prepend('{')
             ->append('}')
             ->toString();
+    }
+
+    /**
+     * @psalm-pure
+     *
+     * @param Sequence<Str> $expressions
+     *
+     * @return Maybe<Sequence<Expression>>
+     */
+    private static function parse(Expression $first, Sequence $expressions): Maybe
+    {
+        /** @var Maybe<Sequence<Expression>> */
+        return Maybe::all(
+            Maybe::just($first),
+            ...$expressions
+                ->map(static fn($expression) => $expression->prepend($first->expansion()->continuation()->toString()))
+                ->map(static fn($expression) => $expression->prepend('{')->append('}'))
+                ->map(Expressions::of(...))
+                ->toList(),
+        )
+            ->map(Sequence::of(...));
+    }
+
+    private function removeLead(): bool
+    {
+        return $this->expansion() === Expansion::fragment;
     }
 }

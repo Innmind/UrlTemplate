@@ -80,18 +80,6 @@ final class Parameters implements Expression
         return Expansion::parameter;
     }
 
-    public function add(Str $pattern): Composite
-    {
-        return new Composite(
-            '',
-            $this,
-            self::of($pattern->prepend('{;')->append('}'))->match(
-                static fn($expression) => $expression,
-                static fn() => throw new DomainException('todo'),
-            ),
-        );
-    }
-
     /**
      * @param Map<string, scalar|array> $variables
      */

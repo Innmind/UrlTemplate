@@ -74,18 +74,6 @@ final class Fragment implements Expression
         return $self;
     }
 
-    public function add(Str $pattern): Composite
-    {
-        return Composite::removeLead(
-            ',',
-            $this,
-            self::of($pattern->prepend('{#')->append('}'))->match(
-                static fn($expression) => $expression,
-                static fn() => throw new DomainException('todo'),
-            ),
-        );
-    }
-
     public function expansion(): Expansion
     {
         return Expansion::fragment;

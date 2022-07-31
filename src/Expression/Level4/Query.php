@@ -80,18 +80,6 @@ final class Query implements Expression
         return Expansion::query;
     }
 
-    public function add(Str $pattern): Composite
-    {
-        return new Composite(
-            '',
-            $this,
-            QueryContinuation::of($pattern->prepend('{&')->append('}'))->match(
-                static fn($expression) => $expression,
-                static fn() => throw new DomainException('todo'),
-            ),
-        );
-    }
-
     /**
      * @param Map<string, scalar|array> $variables
      */
