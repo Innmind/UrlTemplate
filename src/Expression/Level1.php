@@ -34,11 +34,7 @@ final class Level1 implements Expression
     public static function of(Str $string): Maybe
     {
         /** @var Maybe<Expression> */
-        return Maybe::just($string)
-            ->filter(static fn($string) => $string->matches('~^\{[a-zA-Z0-9_]+\}$~'))
-            ->map(static fn($string) => $string->trim('{}')->toString())
-            ->map(Name::of(...))
-            ->map(static fn($name) => new self($name));
+        return Name::one($string)->map(static fn($name) => new self($name));
     }
 
     /**

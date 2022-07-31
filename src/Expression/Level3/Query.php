@@ -35,15 +35,7 @@ final class Query implements Expression
     public static function of(Str $string): Maybe
     {
         /** @var Maybe<Expression> */
-        return Maybe::just($string)
-            ->filter(static fn($string) => $string->matches('~^\{\?[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)*\}$~'))
-            ->map(static fn($string) => $string->trim('{?}')->split(','))
-            ->map(
-                static fn($names) => $names
-                    ->map(static fn($name) => $name->toString())
-                    ->map(Name::of(...)),
-            )
-            ->map(static fn($names) => new self($names));
+        return Name::many($string, '?')->map(static fn($names) => new self($names));
     }
 
     /**

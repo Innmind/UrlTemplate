@@ -77,7 +77,7 @@ class Level3Test extends TestCase
 
     public function testReturnNothingWhenInvalidPattern()
     {
-        $this->assertNull(Level3::of(Str::of('{foo}'))->match(
+        $this->assertNull(Level3::of(Str::of('{foo'))->match(
             static fn($expression) => $expression,
             static fn() => null,
         ));
