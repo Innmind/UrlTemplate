@@ -67,7 +67,7 @@ final class Composite implements Expression
                 static fn($pieces) => $pieces
                     ->first()
                     ->map(static fn($first) => $first->prepend('{')->append('}'))
-                    ->map(Expressions::of(...))
+                    ->flatMap(Expressions::of(...))
                     ->map(
                         static fn($first) => $pieces->drop(1)->reduce(
                             $first,

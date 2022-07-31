@@ -7,7 +7,6 @@ use Innmind\UrlTemplate\{
     Expressions,
     Expression\Level4,
     Expression\Level3,
-    Exception\DomainException,
 };
 use Innmind\Immutable\Str;
 use PHPUnit\Framework\TestCase;
@@ -21,20 +20,26 @@ class ExpressionsTest extends TestCase
     {
         $this->assertInstanceOf(
             $expected,
-            Expressions::of(Str::of($string)),
+            Expressions::of(Str::of($string))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             $string,
-            Expressions::of(Str::of($string))->toString(),
+            Expressions::of(Str::of($string))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
         );
     }
 
-    public function testThrowWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern()
     {
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('foo');
-
-        Expressions::of(Str::of('foo'));
+        $this->assertNull(Expressions::of(Str::of('foo'))->match(
+            static fn($expression) => $expression,
+            static fn() => null,
+        ));
     }
 
     public function cases(): array

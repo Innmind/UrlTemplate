@@ -3,7 +3,6 @@ declare(strict_types = 1);
 
 namespace Innmind\UrlTemplate;
 
-use Innmind\UrlTemplate\Exception\DomainException;
 use Innmind\Immutable\{
     Sequence,
     Str,
@@ -17,21 +16,21 @@ final class Expressions
 {
     /**
      * @psalm-pure
+     *
+     * @return Maybe<Expression>
      */
-    public static function of(Str $string): Expression
+    public static function of(Str $string): Maybe
     {
-        /** @psalm-suppress MixedArgumentTypeCoercion */
-        return self::expressions()
-            ->reduce(
-                Maybe::nothing(),
-                static fn(Maybe $expression, $attempt) => $expression->otherwise(
-                    static fn() => $attempt($string),
-                ),
-            )
-            ->match(
-                static fn(Expression $expression): Expression => $expression,
-                static fn() => throw new DomainException($string->toString()),
-            );
+        /**
+         * @psalm-suppress MixedReturnTypeCoercion
+         * @var Maybe<Expression>
+         */
+        return self::expressions()->reduce(
+            Maybe::nothing(),
+            static fn(Maybe $expression, $attempt) => $expression->otherwise(
+                static fn() => $attempt($string),
+            ),
+        );
     }
 
     /**

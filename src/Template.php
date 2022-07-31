@@ -6,6 +6,7 @@ namespace Innmind\UrlTemplate;
 use Innmind\UrlTemplate\Exception\{
     UrlDoesntMatchTemplate,
     ExtractionNotSupported,
+    DomainException,
     LogicException,
 };
 use Innmind\Url\Url;
@@ -13,6 +14,7 @@ use Innmind\Immutable\{
     Map,
     Sequence,
     Str,
+    Maybe,
 };
 
 /**
@@ -35,12 +37,31 @@ final class Template
 
     /**
      * @psalm-pure
+     *
+     * @param literal-string $template
+     *
+     * @throws DomainException
      */
     public static function of(string $template): self
     {
+        return self::maybe($template)->match(
+            static fn($self) => $self,
+            static fn() => throw new DomainException($template),
+        );
+    }
+
+    /**
+     * @psalm-pure
+     *
+     *  @return Maybe<self>
+     */
+    public static function maybe(string $template): Maybe
+    {
         $template = Str::of($template);
 
-        return new self($template, self::parse($template));
+        return self::parse($template)->map(
+            static fn($expressions) => new self($template, $expressions),
+        );
     }
 
     /**
@@ -144,9 +165,9 @@ final class Template
      * Recursively find the expressions as Str::capture doesnt capture all of
      * them at the same time
      *
-     * @return Sequence<Expression>
+     * @return Maybe<Sequence<Expression>>
      */
-    private static function parse(Str $template): Sequence
+    private static function parse(Str $template): Maybe
     {
         /** @var Sequence<Str> */
         $expressions = Sequence::of();
@@ -165,6 +186,14 @@ final class Template
                 );
         } while (!$captured->empty());
 
-        return $expressions->map(Expressions::of(...));
+        /** @var Maybe<Sequence<Expression>> */
+        return $expressions
+            ->map(Expressions::of(...))
+            ->match(
+                static fn($first, $rest) => Maybe::all($first, ...$rest->toList())->map(
+                    Sequence::of(...),
+                ),
+                static fn() => Maybe::just(Sequence::of()),
+            );
     }
 }
