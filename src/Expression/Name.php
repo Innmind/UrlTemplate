@@ -29,7 +29,7 @@ final class Name
     {
         $characters = self::characters();
 
-        if (!Str::of($value)->matches("~{$characters}~")) {
+        if (!Str::of($value)->matches("~^{$characters}\$~")) {
             throw new DomainException($value);
         }
 
