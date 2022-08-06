@@ -5,9 +5,7 @@ namespace Tests\Innmind\UrlTemplate\Expression;
 
 use Innmind\UrlTemplate\{
     Expression\Level3,
-    Expression\Name,
     Expression,
-    Exception\DomainException,
 };
 use Innmind\Immutable\{
     Map,
@@ -21,7 +19,10 @@ class Level3Test extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Level3(new Name('foo'), new Name('bar'))
+            Level3::of(Str::of('{foo,bar}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
     }
 
@@ -29,13 +30,16 @@ class Level3Test extends TestCase
     {
         $this->assertSame(
             '{foo,bar}',
-            (new Level3(new Name('foo'), new Name('bar')))->toString(),
+            Level3::of(Str::of('{foo,bar}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
         );
     }
 
     public function testExpand()
     {
-        $variables = Map::of('string', 'variable')
+        $variables = Map::of()
             ('var', 'value')
             ('hello', 'Hello World!')
             ('empty', '')
@@ -45,11 +49,17 @@ class Level3Test extends TestCase
 
         $this->assertSame(
             '1024,768',
-            (new Level3(new Name('x'), new Name('y')))->expand($variables)
+            Level3::of(Str::of('{x,y}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '1024,Hello%20World%21,768',
-            (new Level3(new Name('x'), new Name('hello'), new Name('y')))->expand($variables)
+            Level3::of(Str::of('{x,hello,y}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
     }
 
@@ -57,24 +67,30 @@ class Level3Test extends TestCase
     {
         $this->assertInstanceOf(
             Level3::class,
-            $expression = Level3::of(Str::of('{foo,bar}'))
+            $expression = Level3::of(Str::of('{foo,bar}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertSame('{foo,bar}', $expression->toString());
     }
 
-    public function testThrowWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern()
     {
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('{foo}');
-
-        Level3::of(Str::of('{foo}'));
+        $this->assertNull(Level3::of(Str::of('{foo'))->match(
+            static fn($expression) => $expression,
+            static fn() => null,
+        ));
     }
 
     public function testRegex()
     {
         $this->assertSame(
             '(?<foo>[a-zA-Z0-9\%\-\.\_\~]*),(?<bar>[a-zA-Z0-9\%\-\.\_\~]*)',
-            Level3::of(Str::of('{foo,bar}'))->regex()
+            Level3::of(Str::of('{foo,bar}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
     }
 }

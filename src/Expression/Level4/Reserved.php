@@ -6,91 +6,84 @@ namespace Innmind\UrlTemplate\Expression\Level4;
 use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
+    Expression\Expansion,
     Expression\Level2,
     Expression\Level4,
     Exception\DomainException,
     Exception\ExplodeExpressionCantBeMatched,
-    Exception\ExpressionLimitCantBeNegative,
 };
 use Innmind\Immutable\{
     Map,
     Str,
+    Maybe,
 };
-use function Innmind\Immutable\unwrap;
 
+/**
+ * @psalm-immutable
+ */
 final class Reserved implements Expression
 {
     private Name $name;
+    /** @var ?positive-int */
     private ?int $limit = null;
     private bool $explode = false;
     private Expression $expression;
-    private ?string $regex = null;
-    private ?string $string = null;
 
-    public function __construct(Name $name)
+    private function __construct(Name $name)
     {
         $this->name = $name;
-        $this->expression = (new Level4($name))->withExpression(
-            Level2\Reserved::class,
+        $this->expression = Level4::named($name)->withExpression(
+            Level2\Reserved::named(...),
         );
     }
 
-    public static function of(Str $string): Expression
+    /**
+     * @psalm-pure
+     */
+    public static function of(Str $string): Maybe
     {
-        if ($string->matches('~^\{\+[a-zA-Z0-9_]+\}$~')) {
-            return new self(new Name($string->trim('{+}')->toString()));
-        }
-
-        if ($string->matches('~^\{\+[a-zA-Z0-9_]+\*\}$~')) {
-            return self::explode(new Name($string->trim('{+*}')->toString()));
-        }
-
-        if ($string->matches('~^\{\+[a-zA-Z0-9_]+:\d+\}$~')) {
-            $string = $string->trim('{+}');
-            [$name, $limit] = unwrap($string->split(':'));
-
-            return self::limit(
-                new Name($name->toString()),
-                (int) $limit->toString(),
-            );
-        }
-
-        throw new DomainException($string->toString());
+        return Parse::of(
+            $string,
+            static fn(Name $name) => new self($name),
+            self::explode(...),
+            self::limit(...),
+            Expansion::reserved,
+        );
     }
 
+    /**
+     * @psalm-pure
+     *
+     * @param positive-int $limit
+     */
     public static function limit(Name $name, int $limit): self
     {
-        if ($limit < 0) {
-            throw new ExpressionLimitCantBeNegative($limit);
-        }
-
         $self = new self($name);
         $self->limit = $limit;
         $self->expression = Level4::limit($name, $limit)->withExpression(
-            Level2\Reserved::class,
+            Level2\Reserved::named(...),
         );
 
         return $self;
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function explode(Name $name): self
     {
         $self = new self($name);
         $self->explode = true;
         $self->expression = Level4::explode($name)->withExpression(
-            Level2\Reserved::class,
+            Level2\Reserved::named(...),
         );
 
         return $self;
     }
 
-    public function add(Str $pattern): Composite
+    public function expansion(): Expansion
     {
-        return new Composite(
-            ',',
-            $this,
-            self::of($pattern->prepend('{+')->append('}')),
-        );
+        return Expansion::reserved;
     }
 
     public function expand(Map $variables): string
@@ -100,35 +93,27 @@ final class Reserved implements Expression
 
     public function regex(): string
     {
-        if (\is_string($this->regex)) {
-            return $this->regex;
-        }
-
         if ($this->explode) {
             throw new ExplodeExpressionCantBeMatched;
         }
 
         if (\is_int($this->limit)) {
-            return $this->regex = "(?<{$this->name->toString()}>[a-zA-Z0-9\%:/\?#\[\]@!\$&'\(\)\*\+,;=\-\.\_\~]{{$this->limit}})";
+            return "(?<{$this->name->toString()}>[a-zA-Z0-9\%:/\?#\[\]@!\$&'\(\)\*\+,;=\-\.\_\~]{{$this->limit}})";
         }
 
-        return $this->regex = $this->expression->regex();
+        return $this->expression->regex();
     }
 
     public function toString(): string
     {
-        if (\is_string($this->string)) {
-            return $this->string;
-        }
-
         if (\is_int($this->limit)) {
-            return $this->string = "{+{$this->name->toString()}:{$this->limit}}";
+            return "{+{$this->name->toString()}:{$this->limit}}";
         }
 
         if ($this->explode) {
-            return $this->string = "{+{$this->name->toString()}*}";
+            return "{+{$this->name->toString()}*}";
         }
 
-        return $this->string = "{+{$this->name->toString()}}";
+        return "{+{$this->name->toString()}}";
     }
 }

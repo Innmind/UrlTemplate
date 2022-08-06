@@ -3,16 +3,24 @@ declare(strict_types = 1);
 
 namespace Innmind\UrlTemplate;
 
-use Innmind\Immutable\Str;
-use function Innmind\Immutable\join;
+use Innmind\Immutable\{
+    Str,
+    Sequence,
+    Monoid\Concat,
+};
 
+/**
+ * @psalm-immutable
+ * @internal
+ */
 final class UrlEncode
 {
-    private Str $safeCharacters;
+    /** @var Sequence<string> */
+    private Sequence $safeCharacters;
 
     public function __construct()
     {
-        $this->safeCharacters = Str::of('');
+        $this->safeCharacters = Sequence::strings();
     }
 
     public function __invoke(string $string): string
@@ -21,38 +29,50 @@ final class UrlEncode
             return \rawurlencode($string);
         }
 
-        $string = Str::of($string);
-
-        if ($string->length() > 1) {
-            $characters = $string
-                ->split()
-                ->map(function(Str $character): Str {
-                    return Str::of($this($character->toString()));
-                })
-                ->mapTo(
-                    'string',
-                    static fn(Str $character): string => $character->toString(),
-                );
-
-            return join('', $characters)->toString();
-        }
-
-        if ($string->empty()) {
-            return '';
-        }
-
-        if ($this->safeCharacters->contains($string->toString())) {
-            return $string->toString();
-        }
-
-        return \rawurlencode($string->toString());
+        return Str::of($string)
+            ->split()
+            ->map(static fn($char) => $char->toString())
+            ->map($this->encode(...))
+            ->map(Str::of(...))
+            ->fold(new Concat)
+            ->toString();
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function allowReservedCharacters(): self
     {
         $self = new self;
-        $self->safeCharacters = Str::of(':/?#[]@!$&\'()*+,;=');
+        $self->safeCharacters = Sequence::strings(
+            ':',
+            '/',
+            '?',
+            '#',
+            '[',
+            ']',
+            '@',
+            '!',
+            '$',
+            '&',
+            "'",
+            '(',
+            ')',
+            '*',
+            '+',
+            ',',
+            ';',
+            '=',
+        );
 
         return $self;
+    }
+
+    private function encode(string $char): string
+    {
+        return match ($this->safeCharacters->contains($char)) {
+            true => $char,
+            false => \rawurlencode($char),
+        };
     }
 }

@@ -6,40 +6,52 @@ namespace Innmind\UrlTemplate\Expression\Level3;
 use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
-    Exception\DomainException,
+    Expression\Expansion,
 };
 use Innmind\Immutable\{
     Map,
     Sequence,
     Str,
+    Maybe,
 };
-use function Innmind\Immutable\unwrap;
 
+/**
+ * @psalm-immutable
+ */
 final class Query implements Expression
 {
     private Expression $expression;
 
-    public function __construct(Name ...$names)
+    /**
+     * @param Sequence<Name> $names
+     */
+    private function __construct(Sequence $names)
     {
-        $this->expression = new NamedValues('?', '&', ...$names);
+        $this->expression = new NamedValues(Expansion::query, $names);
     }
 
-    public static function of(Str $string): Expression
+    /**
+     * @psalm-pure
+     */
+    public static function of(Str $string): Maybe
     {
-        if (!$string->matches('~^\{\?[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)+\}$~')) {
-            throw new DomainException($string->toString());
-        }
+        /** @var Maybe<Expression> */
+        return Name::many($string, Expansion::query)->map(
+            static fn($names) => new self($names),
+        );
+    }
 
-        /** @var Sequence<Name> $names */
-        $names = $string
-            ->trim('{?}')
-            ->split(',')
-            ->reduce(
-                Sequence::of(Name::class),
-                static fn(Sequence $names, Str $name): Sequence => ($names)(new Name($name->toString())),
-            );
+    /**
+     * @psalm-pure
+     */
+    public static function named(Name $name): self
+    {
+        return new self(Sequence::of($name));
+    }
 
-        return new self(...unwrap($names));
+    public function expansion(): Expansion
+    {
+        return Expansion::query;
     }
 
     public function expand(Map $variables): string

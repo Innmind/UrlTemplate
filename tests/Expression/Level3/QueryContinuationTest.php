@@ -5,9 +5,7 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level3;
 
 use Innmind\UrlTemplate\{
     Expression\Level3\QueryContinuation,
-    Expression\Name,
     Expression,
-    Exception\DomainException,
 };
 use Innmind\Immutable\{
     Map,
@@ -21,7 +19,10 @@ class QueryContinuationTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new QueryContinuation(new Name('foo'), new Name('bar'))
+            QueryContinuation::of(Str::of('{&foo,bar}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
     }
 
@@ -29,13 +30,16 @@ class QueryContinuationTest extends TestCase
     {
         $this->assertSame(
             '{&foo,bar}',
-            (new QueryContinuation(new Name('foo'), new Name('bar')))->toString(),
+            QueryContinuation::of(Str::of('{&foo,bar}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
         );
     }
 
     public function testExpand()
     {
-        $variables = Map::of('string', 'variable')
+        $variables = Map::of()
             ('var', 'value')
             ('hello', 'Hello World!')
             ('empty', '')
@@ -45,11 +49,17 @@ class QueryContinuationTest extends TestCase
 
         $this->assertSame(
             '&x=1024&y=768',
-            (new QueryContinuation(new Name('x'), new Name('y')))->expand($variables)
+            QueryContinuation::of(Str::of('{&x,y}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '&x=1024&y=768&empty=',
-            (new QueryContinuation(new Name('x'), new Name('y'), new Name('empty')))->expand($variables)
+            QueryContinuation::of(Str::of('{&x,y,empty}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
     }
 
@@ -57,24 +67,30 @@ class QueryContinuationTest extends TestCase
     {
         $this->assertInstanceOf(
             QueryContinuation::class,
-            $expression = QueryContinuation::of(Str::of('{&foo,bar}'))
+            $expression = QueryContinuation::of(Str::of('{&foo,bar}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertSame('{&foo,bar}', $expression->toString());
     }
 
-    public function testThrowWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern()
     {
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('{&foo}');
-
-        QueryContinuation::of(Str::of('{&foo}'));
+        $this->assertNull(QueryContinuation::of(Str::of('{foo}'))->match(
+            static fn($expression) => $expression,
+            static fn() => null,
+        ));
     }
 
     public function testRegex()
     {
         $this->assertSame(
             '\&foo=(?<foo>[a-zA-Z0-9\%\-\.\_\~]*)\&bar=(?<bar>[a-zA-Z0-9\%\-\.\_\~]*)',
-            QueryContinuation::of(Str::of('{&foo,bar}'))->regex()
+            QueryContinuation::of(Str::of('{&foo,bar}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
     }
 }

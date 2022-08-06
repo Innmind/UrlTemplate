@@ -5,9 +5,7 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level3;
 
 use Innmind\UrlTemplate\{
     Expression\Level3\Path,
-    Expression\Name,
     Expression,
-    Exception\DomainException,
 };
 use Innmind\Immutable\{
     Map,
@@ -21,7 +19,10 @@ class PathTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Path(new Name('foo'), new Name('bar'))
+            Path::of(Str::of('{/foo,bar}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
     }
 
@@ -29,13 +30,16 @@ class PathTest extends TestCase
     {
         $this->assertSame(
             '{/foo,bar}',
-            (new Path(new Name('foo'), new Name('bar')))->toString(),
+            Path::of(Str::of('{/foo,bar}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
         );
     }
 
     public function testExpand()
     {
-        $variables = Map::of('string', 'variable')
+        $variables = Map::of()
             ('var', 'value')
             ('hello', 'Hello World!')
             ('empty', '')
@@ -45,11 +49,17 @@ class PathTest extends TestCase
 
         $this->assertSame(
             '/value',
-            (new Path(new Name('var')))->expand($variables)
+            Path::of(Str::of('{/var}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '/value/1024',
-            (new Path(new Name('var'), new Name('x')))->expand($variables)
+            Path::of(Str::of('{/var,x}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
     }
 
@@ -57,24 +67,30 @@ class PathTest extends TestCase
     {
         $this->assertInstanceOf(
             Path::class,
-            $expression = Path::of(Str::of('{/foo,bar}'))
+            $expression = Path::of(Str::of('{/foo,bar}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertSame('{/foo,bar}', $expression->toString());
     }
 
-    public function testThrowWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern()
     {
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('{/foo}');
-
-        Path::of(Str::of('{/foo}'));
+        $this->assertNull(Path::of(Str::of('{foo}'))->match(
+            static fn($expression) => $expression,
+            static fn() => null,
+        ));
     }
 
     public function testRegex()
     {
         $this->assertSame(
             '/(?<foo>[a-zA-Z0-9\%\-\.\_\~]*)/(?<bar>[a-zA-Z0-9\%\-\.\_\~]*)',
-            Path::of(Str::of('{/foo,bar}'))->regex()
+            Path::of(Str::of('{/foo,bar}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
     }
 }

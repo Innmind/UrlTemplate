@@ -21,12 +21,15 @@ class NameTest extends TestCase
     {
         $this
             ->forAll(
-                Set\Strings::atLeast(1)->filter(static function(string $string): bool {
-                    return (bool) \preg_match('~[a-zA-Z0-9_]+~', $string);
-                }),
+                Set\Strings::madeOf(
+                    Set\Chars::lowercaseLetter(),
+                    Set\Chars::uppercaseLetter(),
+                    Set\Chars::number(),
+                    Set\Elements::of('_'),
+                )->atLeast(1),
             )
             ->then(function(string $string): void {
-                $this->assertSame($string, (new Name($string))->toString());
+                $this->assertSame($string, Name::of($string)->toString());
             });
     }
 
@@ -35,14 +38,14 @@ class NameTest extends TestCase
         $this
             ->forAll(
                 Set\Strings::any()->filter(static function(string $string): bool {
-                    return (bool) !\preg_match('~[a-zA-Z0-9_]+~', $string);
+                    return (bool) !\preg_match('~^[a-zA-Z0-9_]+$~', $string);
                 }),
             )
             ->then(function(string $string): void {
                 $this->expectException(DomainException::class);
                 $this->expectExceptionMessage($string);
 
-                new Name($string);
+                Name::of($string);
             });
     }
 }

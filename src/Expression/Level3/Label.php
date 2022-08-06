@@ -6,78 +6,70 @@ namespace Innmind\UrlTemplate\Expression\Level3;
 use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
+    Expression\Expansion,
     Expression\Level1,
-    Exception\DomainException,
 };
 use Innmind\Immutable\{
     Map,
     Sequence,
     Str,
-};
-use function Innmind\Immutable\{
-    join,
-    unwrap,
+    Maybe,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class Label implements Expression
 {
     /** @var Sequence<Name> */
     private Sequence $names;
     /** @var Sequence<Expression> */
     private Sequence $expressions;
-    private ?string $regex = null;
-    private ?string $string = null;
 
-    public function __construct(Name ...$names)
+    /**
+     * @param Sequence<Name> $names
+     */
+    private function __construct(Sequence $names)
     {
-        /** @var Sequence<Name> */
-        $this->names = Sequence::of(Name::class, ...$names);
+        $this->names = $names;
         /** @var Sequence<Expression> */
-        $this->expressions = $this->names->mapTo(
-            Expression::class,
-            static fn(Name $name) => new Level1($name),
+        $this->expressions = $this->names->map(Level1::named(...));
+    }
+
+    /**
+     * @psalm-pure
+     */
+    public static function of(Str $string): Maybe
+    {
+        /** @var Maybe<Expression> */
+        return Name::many($string, Expansion::label)->map(
+            static fn($names) => new self($names),
         );
     }
 
-    public static function of(Str $string): Expression
+    public function expansion(): Expansion
     {
-        if (!$string->matches('~^\{\.[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)+\}$~')) {
-            throw new DomainException($string->toString());
-        }
-
-        /** @var Sequence<Name> $names */
-        $names = $string
-            ->trim('{.}')
-            ->split(',')
-            ->reduce(
-                Sequence::of(Name::class),
-                static fn(Sequence $names, Str $name): Sequence => ($names)(new Name($name->toString())),
-            );
-
-        return new self(...unwrap($names));
+        return Expansion::label;
     }
 
     public function expand(Map $variables): string
     {
-        $expanded = $this->expressions->mapTo(
-            'string',
+        $expanded = $this->expressions->map(
             static fn($expression) => $expression->expand($variables),
         );
 
-        return join('.', $expanded)
+        return Str::of('.')
+            ->join($expanded)
             ->prepend('.')
             ->toString();
     }
 
     public function regex(): string
     {
-        return $this->regex ?? $this->regex = join(
-            '.',
-            $this->expressions->mapTo(
-                'string',
+        return Str::of('.')
+            ->join($this->expressions->map(
                 static fn($expression) => $expression->regex(),
-            ),
-        )
+            ))
             ->replace('\.', '')
             ->prepend('\.')
             ->toString();
@@ -85,13 +77,11 @@ final class Label implements Expression
 
     public function toString(): string
     {
-        return $this->string ?? $this->string = join(
-            ',',
-            $this->names->mapTo(
-                'string',
+        /** @psalm-suppress InvalidArgument */
+        return Str::of(',')
+            ->join($this->names->map(
                 static fn($element) => $element->toString(),
-            ),
-        )
+            ))
             ->prepend('{.')
             ->append('}')
             ->toString();

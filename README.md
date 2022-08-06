@@ -20,8 +20,7 @@ use Innmind\Immutable\Map;
 use Innmind\Url\Url;
 
 $url = Template::of('http://example.com/dictionary/{term:1}/{term}')->expand(
-    Map::of('string', 'scalar|array')
-        ('term', 'dog')
+    Map::of(['term', 'dog']),
 );
 $url instanceof Url; // true
 $url->toString(); // http://example.com/dictionary/d/dog

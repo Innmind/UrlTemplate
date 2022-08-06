@@ -3,89 +3,75 @@ declare(strict_types = 1);
 
 namespace Innmind\UrlTemplate\Expression;
 
-use Innmind\UrlTemplate\{
-    Expression,
-    Exception\DomainException,
-};
+use Innmind\UrlTemplate\Expression;
 use Innmind\Immutable\{
     Map,
     Sequence,
     Str,
-};
-use function Innmind\Immutable\{
-    unwrap,
-    join,
+    Maybe,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class Level3 implements Expression
 {
     /** @var Sequence<Name> */
     private Sequence $names;
     /** @var Sequence<Level1> */
     private Sequence $expressions;
-    private ?string $regex = null;
-    private ?string $string = null;
 
-    public function __construct(Name ...$names)
+    /**
+     * @param Sequence<Name> $names
+     */
+    private function __construct(Sequence $names)
     {
-        /** @var Sequence<Name> */
-        $this->names = Sequence::of(Name::class, ...$names);
-        /** @var Sequence<Level1> */
-        $this->expressions = $this->names->mapTo(
-            Level1::class,
-            static fn(Name $name) => new Level1($name),
+        $this->names = $names;
+        $this->expressions = $this->names->map(Level1::named(...));
+    }
+
+    /**
+     * @psalm-pure
+     */
+    public static function of(Str $string): Maybe
+    {
+        /** @var Maybe<Expression> */
+        return Name::many($string, Expansion::simple)->map(
+            static fn($names) => new self($names),
         );
     }
 
-    public static function of(Str $string): Expression
+    public function expansion(): Expansion
     {
-        if (!$string->matches('~^\{[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)+\}$~')) {
-            throw new DomainException($string->toString());
-        }
-
-        /** @var Sequence<Name> $names */
-        $names = $string
-            ->trim('{}')
-            ->split(',')
-            ->reduce(
-                Sequence::of(Name::class),
-                static fn(Sequence $names, Str $name): Sequence => ($names)(new Name($name->toString())),
-            );
-
-        return new self(...unwrap($names));
+        return Expansion::simple;
     }
 
     public function expand(Map $variables): string
     {
-        $expanded = $this->expressions->mapTo(
-            'string',
+        $expanded = $this->expressions->map(
             static fn($expression) => $expression->expand($variables),
         );
 
-        return join(',', $expanded)->toString();
+        return Str::of(',')->join($expanded)->toString();
     }
 
     public function regex(): string
     {
         /** @psalm-suppress InvalidArgument */
-        return $this->regex ?? $this->regex = join(
-            ',',
-            $this->names->mapTo(
-                'string',
+        return Str::of(',')
+            ->join($this->names->map(
                 static fn(Name $name) => "(?<{$name->toString()}>[a-zA-Z0-9\%\-\.\_\~]*)",
-            ),
-        )->toString();
+            ))
+            ->toString();
     }
 
     public function toString(): string
     {
-        return $this->string ?? $this->string = join(
-            ',',
-            $this->names->mapTo(
-                'string',
+        /** @psalm-suppress InvalidArgument */
+        return Str::of(',')
+            ->join($this->names->map(
                 static fn($name) => $name->toString(),
-            ),
-        )
+            ))
             ->prepend('{')
             ->append('}')
             ->toString();

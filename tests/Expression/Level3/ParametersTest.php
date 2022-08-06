@@ -5,9 +5,7 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level3;
 
 use Innmind\UrlTemplate\{
     Expression\Level3\Parameters,
-    Expression\Name,
     Expression,
-    Exception\DomainException,
 };
 use Innmind\Immutable\{
     Map,
@@ -21,7 +19,10 @@ class ParametersTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Parameters(new Name('foo'), new Name('bar'))
+            Parameters::of(Str::of('{;foo,bar}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
     }
 
@@ -29,13 +30,16 @@ class ParametersTest extends TestCase
     {
         $this->assertSame(
             '{;foo,bar}',
-            (new Parameters(new Name('foo'), new Name('bar')))->toString(),
+            Parameters::of(Str::of('{;foo,bar}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
         );
     }
 
     public function testExpand()
     {
-        $variables = Map::of('string', 'variable')
+        $variables = Map::of()
             ('var', 'value')
             ('hello', 'Hello World!')
             ('empty', '')
@@ -45,11 +49,17 @@ class ParametersTest extends TestCase
 
         $this->assertSame(
             ';x=1024;y=768',
-            (new Parameters(new Name('x'), new Name('y')))->expand($variables)
+            Parameters::of(Str::of('{;x,y}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             ';x=1024;y=768;empty',
-            (new Parameters(new Name('x'), new Name('y'), new Name('empty')))->expand($variables)
+            Parameters::of(Str::of('{;x,y,empty}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
     }
 
@@ -57,24 +67,30 @@ class ParametersTest extends TestCase
     {
         $this->assertInstanceOf(
             Parameters::class,
-            $expression = Parameters::of(Str::of('{;foo,bar}'))
+            $expression = Parameters::of(Str::of('{;foo,bar}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertSame('{;foo,bar}', $expression->toString());
     }
 
-    public function testThrowWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern()
     {
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('{;foo}');
-
-        Parameters::of(Str::of('{;foo}'));
+        $this->assertNull(Parameters::of(Str::of('{foo}'))->match(
+            static fn($expression) => $expression,
+            static fn() => null,
+        ));
     }
 
     public function testRegex()
     {
         $this->assertSame(
             '\;foo=?(?<foo>[a-zA-Z0-9\%\-\.\_\~]*)\;bar=?(?<bar>[a-zA-Z0-9\%\-\.\_\~]*)',
-            Parameters::of(Str::of('{;foo,bar}'))->regex()
+            Parameters::of(Str::of('{;foo,bar}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
     }
 }

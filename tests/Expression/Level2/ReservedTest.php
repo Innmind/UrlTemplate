@@ -5,10 +5,7 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level2;
 
 use Innmind\UrlTemplate\{
     Expression\Level2\Reserved,
-    Expression\Name,
     Expression,
-    Exception\DomainException,
-    Exception\OnlyScalarCanBeExpandedForExpression,
 };
 use Innmind\Immutable\{
     Map,
@@ -22,30 +19,42 @@ class ReservedTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Reserved(new Name('foo'))
+            Reserved::of(Str::of('{+foo}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
     }
 
     public function testStringCast()
     {
-        $this->assertSame('{+foo}', (new Reserved(new Name('foo')))->toString());
+        $this->assertSame(
+            '{+foo}',
+            Reserved::of(Str::of('{+foo}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
+        );
     }
 
     public function testExpand()
     {
-        $expression = new Reserved(new Name('foo'));
+        $expression = Reserved::of(Str::of('{+foo}'))->match(
+            static fn($expression) => $expression,
+            static fn() => null,
+        );
 
         $this->assertSame('value', $expression->expand(
-            Map::of('string', 'variable')('foo', 'value')
+            Map::of(['foo', 'value']),
         ));
         $this->assertSame('Hello%20World!', $expression->expand(
-            Map::of('string', 'variable')('foo', 'Hello World!')
+            Map::of(['foo', 'Hello World!']),
         ));
         $this->assertSame('/foo/bar', $expression->expand(
-            Map::of('string', 'variable')('foo', '/foo/bar')
+            Map::of(['foo', '/foo/bar']),
         ));
         $this->assertSame('', $expression->expand(
-            Map::of('string', 'variable')
+            Map::of(),
         ));
     }
 
@@ -53,36 +62,42 @@ class ReservedTest extends TestCase
     {
         $this->assertInstanceOf(
             Reserved::class,
-            $expression = Reserved::of(Str::of('{+foo}'))
+            $expression = Reserved::of(Str::of('{+foo}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertSame('{+foo}', $expression->toString());
     }
 
-    public function testThrowWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern()
     {
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('foo');
-
-        Reserved::of(Str::of('foo'));
+        $this->assertNull(Reserved::of(Str::of('foo'))->match(
+            static fn($expression) => $expression,
+            static fn() => null,
+        ));
     }
 
     public function testRegex()
     {
         $this->assertSame(
             '(?<foo>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]*)',
-            Reserved::of(Str::of('{+foo}'))->regex()
+            Reserved::of(Str::of('{+foo}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
     }
 
-    public function testThrowWhenTryingToExpandWithAnArray()
+    public function testReturnEmptyStringWhenTryingToExpandWithAnArray()
     {
-        $expression = new Reserved(new Name('foo'));
-
-        $this->expectException(OnlyScalarCanBeExpandedForExpression::class);
-        $this->expectExceptionMessage('foo');
-
-        $expression->expand(
-            Map::of('string', 'variable')('foo', ['value'])
+        $expression = Reserved::of(Str::of('{+foo}'))->match(
+            static fn($expression) => $expression,
+            static fn() => null,
         );
+
+        $this->assertSame('', $expression->expand(
+            Map::of(['foo', ['value']]),
+        ));
     }
 }
