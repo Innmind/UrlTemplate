@@ -60,11 +60,11 @@ final class Reserved implements Expression
             ->get($this->name->toString())
             ->match(
                 function($variable) {
-                    if (\is_array($variable)) {
+                    if (!\is_string($variable)) {
                         throw new OnlyScalarCanBeExpandedForExpression($this->name->toString());
                     }
 
-                    return ($this->encode)((string) $variable);
+                    return ($this->encode)($variable);
                 },
                 static fn() => '',
             );

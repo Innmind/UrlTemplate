@@ -67,6 +67,7 @@ final class Level3 implements Expression
 
     public function toString(): string
     {
+        /** @psalm-suppress InvalidArgument */
         return Str::of(',')
             ->join($this->names->map(
                 static fn($name) => $name->toString(),

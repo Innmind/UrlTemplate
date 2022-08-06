@@ -110,7 +110,6 @@ final class Level4 implements Expression
 
     public function expand(Map $variables): string
     {
-        /** @var scalar|array{0:string, 1:scalar}|null */
         $variable = $variables->get($this->name->toString())->match(
             static fn($variable) => $variable,
             static fn() => null,
@@ -129,7 +128,7 @@ final class Level4 implements Expression
         }
 
         if ($this->mustLimit()) {
-            $value = Str::of((string) $variable)->take($this->limit);
+            $value = Str::of($variable)->take($this->limit);
             $value = $this->expression->expand(
                 ($variables)($this->name->toString(), $value->toString()),
             );
@@ -186,8 +185,8 @@ final class Level4 implements Expression
 
     /**
      * @no-named-arguments
-     * @param Map<string, scalar|array> $variables
-     * @param array<scalar|array{0:scalar, 1:scalar}> $variablesToExpand
+     * @param Map<non-empty-string, string|list<string>|list<array{string, string}>> $variables
+     * @param list<string>|list<array{string, string}> $variablesToExpand
      */
     private function expandList(Map $variables, ...$variablesToExpand): string
     {
@@ -224,8 +223,8 @@ final class Level4 implements Expression
     }
 
     /**
-     * @param Map<string, scalar|array> $variables
-     * @param array<scalar|array{0:scalar, 1:scalar}> $variablesToExpand
+     * @param Map<non-empty-string, string|list<string>|list<array{string, string}>> $variables
+     * @param list<string>|list<array{string, string}> $variablesToExpand
      */
     private function explodeList(Map $variables, array $variablesToExpand): string
     {

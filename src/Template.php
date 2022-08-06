@@ -65,7 +65,7 @@ final class Template
     }
 
     /**
-     * @param Map<string, scalar|array> $variables
+     * @param Map<non-empty-string, string|list<string>|list<array{string, string}>> $variables
      */
     public function expand(Map $variables): Url
     {

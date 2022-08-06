@@ -24,7 +24,7 @@ interface Expression
     public function expansion(): Expression\Expansion;
 
     /**
-     * @param Map<string, scalar|array> $variables
+     * @param Map<non-empty-string, string|list<string>|list<array{string, string}>> $variables
      */
     public function expand(Map $variables): string;
     public function regex(): string;

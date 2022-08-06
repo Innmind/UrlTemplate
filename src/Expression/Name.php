@@ -15,8 +15,12 @@ use Innmind\Immutable\{
  */
 final class Name
 {
+    /** @var non-empty-string */
     private string $value;
 
+    /**
+     * @param non-empty-string $value
+     */
     private function __construct(string $value)
     {
         $this->value = $value;
@@ -33,6 +37,7 @@ final class Name
             throw new DomainException($value);
         }
 
+        /** @psalm-suppress ArgumentTypeCoercion Because of the non-empty-string */
         return new self($value);
     }
 
@@ -45,6 +50,7 @@ final class Name
         Str $value,
         Expansion $expansion,
     ): Maybe {
+        /** @psalm-suppress ArgumentTypeCoercion Because of the non-empty-string */
         return Maybe::just($value)
             ->filter($expansion->matches(...))
             ->map($expansion->clean(...))
@@ -61,6 +67,7 @@ final class Name
         Str $value,
         Expansion $expansion,
     ): Maybe {
+        /** @psalm-suppress ArgumentTypeCoercion Because of the non-empty-string */
         return Maybe::just($value)
             ->filter($expansion->matchesExplode(...))
             ->map($expansion->cleanExplode(...))
@@ -77,6 +84,7 @@ final class Name
         Str $value,
         Expansion $expansion,
     ): Maybe {
+        /** @psalm-suppress ArgumentTypeCoercion Because of the non-empty-string */
         return Maybe::just($value)
             ->filter($expansion->matchesLimit(...))
             ->map($expansion->clean(...))
@@ -106,6 +114,7 @@ final class Name
         Str $value,
         Expansion $expansion,
     ): Maybe {
+        /** @psalm-suppress ArgumentTypeCoercion Because of the non-empty-string */
         return Maybe::just($value)
             ->filter($expansion->matchesMany(...))
             ->map($expansion->clean(...))
@@ -125,6 +134,9 @@ final class Name
         return '[a-zA-Z0-9_]+';
     }
 
+    /**
+     * @return non-empty-string
+     */
     public function toString(): string
     {
         return $this->value;
