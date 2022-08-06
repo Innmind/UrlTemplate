@@ -5,9 +5,7 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level4;
 
 use Innmind\UrlTemplate\{
     Expression\Level4\Reserved,
-    Expression\Name,
     Expression,
-    Exception\DomainException,
     Exception\LogicException,
 };
 use Innmind\Immutable\{
@@ -28,39 +26,67 @@ class ReservedTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Reserved(new Name('foo'))
+            Reserved::of(Str::of('{+foo}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Reserved::explode(new Name('foo'))
+            Reserved::of(Str::of('{+foo*}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Reserved::limit(new Name('foo'), 42)
+            Reserved::of(Str::of('{+foo:42}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
     }
 
     public function testStringCast()
     {
-        $this->assertSame('{+foo}', (new Reserved(new Name('foo')))->toString());
-        $this->assertSame('{+foo*}', Reserved::explode(new Name('foo'))->toString());
-        $this->assertSame('{+foo:42}', Reserved::limit(new Name('foo'), 42)->toString());
+        $this->assertSame(
+            '{+foo}',
+            Reserved::of(Str::of('{+foo}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
+        );
+        $this->assertSame(
+            '{+foo*}',
+            Reserved::of(Str::of('{+foo*}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
+        );
+        $this->assertSame(
+            '{+foo:42}',
+            Reserved::of(Str::of('{+foo:42}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
+        );
     }
 
-    public function testThrowWhenNegativeLimit()
+    public function testReturnNothingWhenNegativeLimit()
     {
         $this
             ->forAll(Set\Integers::below(1))
             ->then(function(int $int): void {
-                $this->expectException(DomainException::class);
-
-                Reserved::limit(new Name('foo'), $int);
+                $this->assertNull(Reserved::of(Str::of("{+foo:$int}"))->match(
+                    static fn($expression) => $expression,
+                    static fn() => null,
+                ));
             });
     }
 
     public function testExpand()
     {
-        $variables = Map::of('string', 'variable')
+        $variables = Map::of()
             ('var', 'value')
             ('hello', 'Hello World!')
             ('path', '/foo/bar')
@@ -69,23 +95,38 @@ class ReservedTest extends TestCase
 
         $this->assertSame(
             '/foo/b',
-            Reserved::limit(new Name('path'), 6)->expand($variables)
+            Reserved::of(Str::of('{+path:6}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             'red,green,blue',
-            (new Reserved(new Name('list')))->expand($variables)
+            Reserved::of(Str::of('{+list}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             'red,green,blue',
-            Reserved::explode(new Name('list'))->expand($variables)
+            Reserved::of(Str::of('{+list*}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             'semi,;,dot,.,comma,,',
-            (new Reserved(new Name('keys')))->expand($variables)
+            Reserved::of(Str::of('{+keys}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             'semi=;,dot=.,comma=,',
-            Reserved::explode(new Name('keys'))->expand($variables)
+            Reserved::of(Str::of('{+keys*}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
     }
 
@@ -93,45 +134,63 @@ class ReservedTest extends TestCase
     {
         $this->assertInstanceOf(
             Reserved::class,
-            $expression = Reserved::of(Str::of('{+foo}'))
+            $expression = Reserved::of(Str::of('{+foo}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertSame('{+foo}', $expression->toString());
         $this->assertInstanceOf(
             Reserved::class,
-            $expression = Reserved::of(Str::of('{+foo*}'))
+            $expression = Reserved::of(Str::of('{+foo*}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertSame('{+foo*}', $expression->toString());
         $this->assertInstanceOf(
             Reserved::class,
-            $expression = Reserved::of(Str::of('{+foo:42}'))
+            $expression = Reserved::of(Str::of('{+foo:42}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertSame('{+foo:42}', $expression->toString());
     }
 
-    public function testThrowWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern()
     {
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('{foo}');
-
-        Reserved::of(Str::of('{foo}'));
+        $this->assertNull(Reserved::of(Str::of('{foo}'))->match(
+            static fn($expression) => $expression,
+            static fn() => null,
+        ));
     }
 
     public function testThrowExplodeRegex()
     {
         $this->expectException(LogicException::class);
 
-        Reserved::of(Str::of('{+foo*}'))->regex();
+        Reserved::of(Str::of('{+foo*}'))->match(
+            static fn($expression) => $expression->regex(),
+            static fn() => null,
+        );
     }
 
     public function testRegex()
     {
         $this->assertSame(
             '(?<foo>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]*)',
-            Reserved::of(Str::of('{+foo}'))->regex()
+            Reserved::of(Str::of('{+foo}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '(?<foo>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]{2})',
-            Reserved::of(Str::of('{+foo:2}'))->regex()
+            Reserved::of(Str::of('{+foo:2}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
     }
 }

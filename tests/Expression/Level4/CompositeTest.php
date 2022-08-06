@@ -7,9 +7,7 @@ use Innmind\UrlTemplate\{
     Expression\Level4\Composite,
     Expression\Level4\Path,
     Expression\Level4,
-    Expression\Name,
     Expression,
-    Exception\DomainException,
 };
 use Innmind\Immutable\{
     Map,
@@ -23,10 +21,10 @@ class CompositeTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Composite(
-                '/',
-                $this->createMock(Expression::class)
-            )
+            Composite::of(Str::of('{var}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
     }
 
@@ -34,25 +32,23 @@ class CompositeTest extends TestCase
     {
         $this->assertSame(
             '{/var:1,var}',
-            (new Composite(
-                '/',
-                Path::limit(new Name('var'), 1),
-                new Level4(new Name('var'))
-            ))->toString()
+            Composite::of(Str::of('{/var:1,var}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '{/list*,path:4}',
-            (new Composite(
-                '/',
-                Path::explode(new Name('list')),
-                Level4::limit(new Name('path'), 4)
-            ))->toString()
+            Composite::of(Str::of('{/list*,path:4}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
         );
     }
 
     public function testExpand()
     {
-        $variables = Map::of('string', 'variable')
+        $variables = Map::of()
             ('var', 'value')
             ('hello', 'Hello World!')
             ('path', '/foo/bar')
@@ -61,19 +57,17 @@ class CompositeTest extends TestCase
 
         $this->assertSame(
             '/v/value',
-            (new Composite(
-                '/',
-                Path::limit(new Name('var'), 1),
-                new Level4(new Name('var'))
-            ))->expand($variables)
+            Composite::of(Str::of('{/var:1,var}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '/red/green/blue/%2Ffoo',
-            (new Composite(
-                '/',
-                Path::explode(new Name('list')),
-                Level4::limit(new Name('path'), 4)
-            ))->expand($variables)
+            Composite::of(Str::of('{/list*,path:4}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
     }
 
@@ -82,64 +76,94 @@ class CompositeTest extends TestCase
      */
     public function testOf($pattern, $expected)
     {
-        $variables = Map::of('string', 'variable')
+        $variables = Map::of()
             ('var', 'value')
             ('hello', 'Hello World!')
             ('path', '/foo/bar')
             ('list', ['red', 'green', 'blue'])
             ('keys', [['semi', ';'], ['dot', '.'], ['comma', ',']]);
 
-        $expression = Composite::of(Str::of($pattern));
+        $expression = Composite::of(Str::of($pattern))->match(
+            static fn($expression) => $expression,
+            static fn() => null,
+        );
 
         $this->assertSame($pattern, $expression->toString());
         $this->assertSame($expected, $expression->expand($variables));
     }
 
-    public function testThrowWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern()
     {
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('foo');
-
-        Composite::of(Str::of('foo'));
+        $this->assertNull(Composite::of(Str::of('foo'))->match(
+            static fn($expression) => $expression,
+            static fn() => null,
+        ));
     }
 
     public function testRegex()
     {
         $this->assertSame(
             '(?<var>[a-zA-Z0-9\%\-\.\_\~]*)\,(?<hello>[a-zA-Z0-9\%\-\.\_\~]*)',
-            Composite::of(Str::of('{var,hello}'))->regex()
+            Composite::of(Str::of('{var,hello}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '(?<var>[a-zA-Z0-9\%\-\.\_\~]*)\,(?<hello>[a-zA-Z0-9\%\-\.\_\~]{5})',
-            Composite::of(Str::of('{var,hello:5}'))->regex()
+            Composite::of(Str::of('{var,hello:5}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '(?<var>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]*)\,(?<hello>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]{5})',
-            Composite::of(Str::of('{+var,hello:5}'))->regex()
+            Composite::of(Str::of('{+var,hello:5}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '\#(?<var>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]*)\,(?<hello>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]{5})',
-            Composite::of(Str::of('{#var,hello:5}'))->regex()
+            Composite::of(Str::of('{#var,hello:5}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '\.(?<var>[a-zA-Z0-9\%\-\.\_\~]*)\.(?<hello>[a-zA-Z0-9\%\-\.\_\~]{5})',
-            Composite::of(Str::of('{.var,hello:5}'))->regex()
+            Composite::of(Str::of('{.var,hello:5}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '\/(?<var>[a-zA-Z0-9\%\-\.\_\~]*)\/(?<hello>[a-zA-Z0-9\%\-\.\_\~]{5})',
-            Composite::of(Str::of('{/var,hello:5}'))->regex()
+            Composite::of(Str::of('{/var,hello:5}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '\;var=(?<var>[a-zA-Z0-9\%\-\.\_\~]*)\;hello=(?<hello>[a-zA-Z0-9\%\-\.\_\~]{5})',
-            Composite::of(Str::of('{;var,hello:5}'))->regex()
+            Composite::of(Str::of('{;var,hello:5}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '\?var=(?<var>[a-zA-Z0-9\%\-\.\_\~]*)\&hello=(?<hello>[a-zA-Z0-9\%\-\.\_\~]{5})',
-            Composite::of(Str::of('{?var,hello:5}'))->regex()
+            Composite::of(Str::of('{?var,hello:5}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '\&var=(?<var>[a-zA-Z0-9\%\-\.\_\~]*)\&hello=(?<hello>[a-zA-Z0-9\%\-\.\_\~]{5})',
-            Composite::of(Str::of('{&var,hello:5}'))->regex()
+            Composite::of(Str::of('{&var,hello:5}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
     }
 

@@ -6,78 +6,71 @@ namespace Innmind\UrlTemplate\Expression\Level4;
 use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
+    Expression\Expansion,
     Expression\Level1,
     Expression\Level4,
     Exception\DomainException,
-    Exception\ExpressionLimitCantBeNegative,
 };
 use Innmind\Immutable\{
     Map,
     Str,
+    Maybe,
 };
-use function Innmind\Immutable\unwrap;
 
+/**
+ * @psalm-immutable
+ */
 final class Label implements Expression
 {
     private Expression $expression;
 
-    public function __construct(Name $name)
+    private function __construct(Name $name)
     {
-        $this->expression = (new Level4($name))->withLead('.');
+        $this->expression = Level4::named($name)->withExpansion(Expansion::label);
     }
 
-    public static function of(Str $string): Expression
+    /**
+     * @psalm-pure
+     */
+    public static function of(Str $string): Maybe
     {
-        if ($string->matches('~^\{\.[a-zA-Z0-9_]+\}$~')) {
-            return new self(new Name($string->trim('{.}')->toString()));
-        }
-
-        if ($string->matches('~^\{\.[a-zA-Z0-9_]+\*\}$~')) {
-            return self::explode(new Name($string->trim('{.*}')->toString()));
-        }
-
-        if ($string->matches('~^\{\.[a-zA-Z0-9_]+:\d+\}$~')) {
-            $string = $string->trim('{.}');
-            [$name, $limit] = unwrap($string->split(':'));
-
-            return self::limit(
-                new Name($name->toString()),
-                (int) $limit->toString(),
-            );
-        }
-
-        throw new DomainException($string->toString());
+        return Parse::of(
+            $string,
+            static fn(Name $name) => new self($name),
+            self::explode(...),
+            self::limit(...),
+            Expansion::label,
+        );
     }
 
+    /**
+     * @psalm-pure
+     *
+     * @param positive-int $limit
+     */
     public static function limit(Name $name, int $limit): self
     {
-        if ($limit < 0) {
-            throw new ExpressionLimitCantBeNegative($limit);
-        }
-
         $self = new self($name);
-        $self->expression = Level4::limit($name, $limit)->withLead('.');
+        $self->expression = Level4::limit($name, $limit)->withExpansion(Expansion::label);
 
         return $self;
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function explode(Name $name): self
     {
         $self = new self($name);
         $self->expression = Level4::explode($name)
-            ->withLead('.')
-            ->withSeparator('.');
+            ->withExpansion(Expansion::label);
 
         return $self;
     }
 
-    public function add(Str $pattern): Composite
+    public function expansion(): Expansion
     {
-        return new Composite(
-            '',
-            $this,
-            self::of($pattern->prepend('{.')->append('}')),
-        );
+        return Expansion::label;
     }
 
     public function expand(Map $variables): string

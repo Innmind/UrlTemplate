@@ -6,59 +6,78 @@ namespace Innmind\UrlTemplate\Expression\Level3;
 use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
+    Expression\Expansion,
     Expression\Level1,
 };
 use Innmind\Immutable\{
     Map,
     Sequence,
     Str,
+    Maybe,
 };
-use function Innmind\Immutable\join;
 
+/**
+ * @psalm-immutable
+ */
 final class NamedValues implements Expression
 {
-    private string $lead;
-    private string $separator;
+    private Expansion $expansion;
     /** @var Sequence<Name> */
     private Sequence $names;
     /** @var Map<string, Expression> */
     private Map $expressions;
     private bool $keyOnlyWhenEmpty = false;
-    private ?string $regex = null;
-    private ?string $string = null;
 
-    public function __construct(string $lead, string $separator, Name ...$names)
+    /**
+     * @param Sequence<Name> $names
+     */
+    public function __construct(Expansion $expansion, Sequence $names)
     {
-        $this->lead = $lead;
-        $this->separator = $separator;
-        /** @var Sequence<Name> */
-        $this->names = Sequence::of(Name::class, ...$names);
+        $this->expansion = $expansion;
+        $this->names = $names;
         /** @var Map<string, Expression> */
-        $this->expressions = $this->names->toMapOf(
-            'string',
-            Expression::class,
-            static fn(Name $name): \Generator => yield $name->toString() => new Level1($name),
+        $this->expressions = Map::of(
+            ...$this
+                ->names
+                ->map(static fn($name) => [
+                    $name->toString(),
+                    Level1::named($name),
+                ])
+                ->toList(),
         );
     }
 
-    public static function of(Str $string): Expression
+    /**
+     * @psalm-pure
+     */
+    public static function of(Str $string): Maybe
     {
         throw new \LogicException('should not be used directly');
     }
 
-    public static function keyOnlyWhenEmpty(string $lead, string $separator, Name ...$names): self
+    /**
+     * @psalm-pure
+     *
+     * @param Sequence<Name> $names
+     */
+    public static function keyOnlyWhenEmpty(Expansion $expansion, Sequence $names): self
     {
-        $self = new self($lead, $separator, ...$names);
+        $self = new self($expansion, $names);
         $self->keyOnlyWhenEmpty = true;
 
         return $self;
+    }
+
+    public function expansion(): Expansion
+    {
+        return $this->expansion;
     }
 
     public function expand(Map $variables): string
     {
         /** @var Sequence<string> */
         $expanded = $this->expressions->reduce(
-            Sequence::of('string'),
+            Sequence::strings(),
             function(Sequence $expanded, string $name, Expression $expression) use ($variables): Sequence {
                 $value = Str::of($expression->expand($variables));
 
@@ -70,39 +89,35 @@ final class NamedValues implements Expression
             },
         );
 
-        return join($this->separator, $expanded)
-            ->prepend($this->lead)
+        return Str::of($this->expansion->continuation()->toString())
+            ->join($expanded)
+            ->prepend($this->expansion->toString())
             ->toString();
     }
 
     public function regex(): string
     {
-        return $this->regex ?? $this->regex = join(
-            '\\'.$this->separator,
-            $this->names->mapTo(
-                'string',
+        return Str::of($this->expansion->continuation()->regex())
+            ->join($this->names->map(
                 fn($name) => \sprintf(
                     '%s=%s%s',
                     $name->toString(),
                     $this->keyOnlyWhenEmpty ? '?' : '',
-                    (new Level1($name))->regex(),
+                    Level1::named($name)->regex(),
                 ),
-            ),
-        )
-            ->prepend('\\'.$this->lead)
+            ))
+            ->prepend($this->expansion->regex())
             ->toString();
     }
 
     public function toString(): string
     {
-        return $this->string ?? $this->string = join(
-            ',',
-            $this->names->mapTo(
-                'string',
+        /** @psalm-suppress InvalidArgument */
+        return Str::of(',')
+            ->join($this->names->map(
                 static fn($element) => $element->toString(),
-            ),
-        )
-            ->prepend('{'.$this->lead)
+            ))
+            ->prepend('{'.$this->expansion->toString())
             ->append('}')
             ->toString();
     }

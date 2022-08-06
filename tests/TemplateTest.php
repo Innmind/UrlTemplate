@@ -5,8 +5,7 @@ namespace Tests\Innmind\UrlTemplate;
 
 use Innmind\UrlTemplate\{
     Template,
-    Exception\UrlDoesntMatchTemplate,
-    Exception\ExtractionNotSupported,
+    Exception\ExplodeExpressionCantBeMatched,
 };
 use Innmind\Url\Url;
 use Innmind\Immutable\{
@@ -37,7 +36,7 @@ class TemplateTest extends TestCase
      */
     public function testExpand($pattern, $expected)
     {
-        $variables = Map::of('string', 'scalar|array')
+        $variables = Map::of()
             ('var', 'value')
             ('hello', 'Hello World!')
             ('path', '/foo/bar')
@@ -58,28 +57,12 @@ class TemplateTest extends TestCase
         $this->assertSame($expected, $url->toString());
     }
 
-    public function testThrowWhenInvalidVariablesKeyType()
+    public function testReturnEmptyMapWhenUrlDoesntMatchTemplate()
     {
-        $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 1 must be of type Map<string, scalar|array>');
-
-        Template::of('foo')->expand(Map::of('int', 'scalar|array'));
-    }
-
-    public function testThrowWhenInvalidVariablesValueType()
-    {
-        $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 1 must be of type Map<string, scalar|array>');
-
-        Template::of('foo')->expand(Map::of('string', 'string'));
-    }
-
-    public function testThrowWhenUrlDoesntMatchTemplate()
-    {
-        $this->expectException(UrlDoesntMatchTemplate::class);
-        $this->expectExceptionMessage('/hello%20world%21/foo');
-
-        Template::of('/{foo}')->extract(Url::of('/hello%20world%21/foo'));
+        $this->assertCount(
+            0,
+            Template::of('/{foo}')->extract(Url::of('/hello%20world%21/foo')),
+        );
     }
 
     public function testLevel1Extraction()
@@ -87,11 +70,15 @@ class TemplateTest extends TestCase
         $variables = Template::of('/{foo}/{bar}')->extract(Url::of('/hello%20world%21/foo'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(2, $variables);
-        $this->assertSame('hello world!', $variables->get('foo'));
-        $this->assertSame('foo', $variables->get('bar'));
+        $this->assertSame('hello world!', $variables->get('foo')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('foo', $variables->get('bar')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
     }
 
     public function testLevel2Extraction()
@@ -99,18 +86,20 @@ class TemplateTest extends TestCase
         $variables = Template::of('{+path}/here')->extract(Url::of('/foo/bar/here'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(1, $variables);
-        $this->assertSame('/foo/bar', $variables->get('path'));
+        $this->assertSame('/foo/bar', $variables->get('path')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
 
         $variables = Template::of('X{#hello}')->extract(Url::of('X#Hello%20World!'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(1, $variables);
-        $this->assertSame('Hello World!', $variables->get('hello'));
+        $this->assertSame('Hello World!', $variables->get('hello')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
     }
 
     public function testLevel3Extraction()
@@ -118,133 +107,204 @@ class TemplateTest extends TestCase
         $variables = Template::of('/map?{x,y}')->extract(Url::of('/map?1024,768'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(2, $variables);
-        $this->assertSame('1024', $variables->get('x'));
-        $this->assertSame('768', $variables->get('y'));
+        $this->assertSame('1024', $variables->get('x')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('768', $variables->get('y')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
 
         $variables = Template::of('/{x,hello,y}')->extract(Url::of('/1024,Hello%20World%21,768'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(3, $variables);
-        $this->assertSame('1024', $variables->get('x'));
-        $this->assertSame('Hello World!', $variables->get('hello'));
-        $this->assertSame('768', $variables->get('y'));
+        $this->assertSame('1024', $variables->get('x')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('Hello World!', $variables->get('hello')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('768', $variables->get('y')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
 
         $variables = Template::of('/{+x,hello,y}')->extract(Url::of('/1024,Hello%20World!,768'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(3, $variables);
-        $this->assertSame('1024', $variables->get('x'));
-        $this->assertSame('Hello World!', $variables->get('hello'));
-        $this->assertSame('768', $variables->get('y'));
+        $this->assertSame('1024', $variables->get('x')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('Hello World!', $variables->get('hello')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('768', $variables->get('y')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
 
         $variables = Template::of('{+path,x}/here')->extract(Url::of('/foo/bar,1024/here'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(2, $variables);
-        $this->assertSame('1024', $variables->get('x'));
-        $this->assertSame('/foo/bar', $variables->get('path'));
+        $this->assertSame('1024', $variables->get('x')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('/foo/bar', $variables->get('path')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
 
         $variables = Template::of('{#x,hello,y}')->extract(Url::of('#1024,Hello%20World!,768'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(3, $variables);
-        $this->assertSame('1024', $variables->get('x'));
-        $this->assertSame('Hello World!', $variables->get('hello'));
-        $this->assertSame('768', $variables->get('y'));
+        $this->assertSame('1024', $variables->get('x')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('Hello World!', $variables->get('hello')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('768', $variables->get('y')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
 
         $variables = Template::of('{#path,x}/here')->extract(Url::of('#/foo/bar,1024/here'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(2, $variables);
-        $this->assertSame('1024', $variables->get('x'));
-        $this->assertSame('/foo/bar', $variables->get('path'));
+        $this->assertSame('1024', $variables->get('x')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('/foo/bar', $variables->get('path')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
 
         $variables = Template::of('{.x,y}')->extract(Url::of('.1024.768'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(2, $variables);
-        $this->assertSame('1024', $variables->get('x'));
-        $this->assertSame('768', $variables->get('y'));
+        $this->assertSame('1024', $variables->get('x')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('768', $variables->get('y')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
 
         $variables = Template::of('{/var,x}/here')->extract(Url::of('/value/1024/here'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(2, $variables);
-        $this->assertSame('value', $variables->get('var'));
-        $this->assertSame('1024', $variables->get('x'));
+        $this->assertSame('value', $variables->get('var')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('1024', $variables->get('x')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
 
         $variables = Template::of('{;x,y}')->extract(Url::of(';x=1024;y=768'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(2, $variables);
-        $this->assertSame('1024', $variables->get('x'));
-        $this->assertSame('768', $variables->get('y'));
+        $this->assertSame('1024', $variables->get('x')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('768', $variables->get('y')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
 
         $variables = Template::of('{;x,y,empty}')->extract(Url::of(';x=1024;y=768;empty'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(3, $variables);
-        $this->assertSame('1024', $variables->get('x'));
-        $this->assertSame('768', $variables->get('y'));
-        $this->assertSame('', $variables->get('empty'));
+        $this->assertSame('1024', $variables->get('x')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('768', $variables->get('y')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('', $variables->get('empty')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
 
         $variables = Template::of('{?x,y}')->extract(Url::of('?x=1024&y=768'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(2, $variables);
-        $this->assertSame('1024', $variables->get('x'));
-        $this->assertSame('768', $variables->get('y'));
+        $this->assertSame('1024', $variables->get('x')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('768', $variables->get('y')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
 
         $variables = Template::of('{?x,y,empty}')->extract(Url::of('?x=1024&y=768&empty='));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(3, $variables);
-        $this->assertSame('1024', $variables->get('x'));
-        $this->assertSame('768', $variables->get('y'));
-        $this->assertSame('', $variables->get('empty'));
+        $this->assertSame('1024', $variables->get('x')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('768', $variables->get('y')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('', $variables->get('empty')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
 
         $variables = Template::of('?fixed=yes{&x}')->extract(Url::of('?fixed=yes&x=1024'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(1, $variables);
-        $this->assertSame('1024', $variables->get('x'));
+        $this->assertSame('1024', $variables->get('x')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
 
         $variables = Template::of('{&x,y,empty}')->extract(Url::of('&x=1024&y=768&empty='));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(3, $variables);
-        $this->assertSame('1024', $variables->get('x'));
-        $this->assertSame('768', $variables->get('y'));
-        $this->assertSame('', $variables->get('empty'));
+        $this->assertSame('1024', $variables->get('x')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('768', $variables->get('y')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('', $variables->get('empty')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
     }
 
     public function testLevel4Extraction()
@@ -252,66 +312,74 @@ class TemplateTest extends TestCase
         $variables = Template::of('{var:3}')->extract(Url::of('val'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(1, $variables);
-        $this->assertSame('val', $variables->get('var'));
+        $this->assertSame('val', $variables->get('var')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
 
         $variables = Template::of('{+path:6}/here')->extract(Url::of('/foo/b/here'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(1, $variables);
-        $this->assertSame('/foo/b', $variables->get('path'));
+        $this->assertSame('/foo/b', $variables->get('path')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
 
         $variables = Template::of('{#path:6}/here')->extract(Url::of('#/foo/b/here'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(1, $variables);
-        $this->assertSame('/foo/b', $variables->get('path'));
+        $this->assertSame('/foo/b', $variables->get('path')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
 
         $variables = Template::of('{.var:3}')->extract(Url::of('.val'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(1, $variables);
-        $this->assertSame('val', $variables->get('var'));
+        $this->assertSame('val', $variables->get('var')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
 
         $variables = Template::of('{/var:1}')->extract(Url::of('/v'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(1, $variables);
-        $this->assertSame('v', $variables->get('var'));
+        $this->assertSame('v', $variables->get('var')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
 
         $variables = Template::of('{;var:5}')->extract(Url::of(';var=hello'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(1, $variables);
-        $this->assertSame('hello', $variables->get('var'));
+        $this->assertSame('hello', $variables->get('var')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
 
         $variables = Template::of('{?var:3}')->extract(Url::of('?var=hel'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(1, $variables);
-        $this->assertSame('hel', $variables->get('var'));
+        $this->assertSame('hel', $variables->get('var')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
 
         $variables = Template::of('{&var:3}')->extract(Url::of('&var=hel'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(1, $variables);
-        $this->assertSame('hel', $variables->get('var'));
+        $this->assertSame('hel', $variables->get('var')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
     }
 
     public function testExtraction()
@@ -320,16 +388,20 @@ class TemplateTest extends TestCase
             ->extract(Url::of('http://example.com/search?q=chien&lang=fr'));
 
         $this->assertInstanceOf(Map::class, $variables);
-        $this->assertSame('string', (string) $variables->keyType());
-        $this->assertSame('string', (string) $variables->valueType());
         $this->assertCount(2, $variables);
-        $this->assertSame('chien', $variables->get('q'));
-        $this->assertSame('fr', $variables->get('lang'));
+        $this->assertSame('chien', $variables->get('q')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
+        $this->assertSame('fr', $variables->get('lang')->match(
+            static fn($value) => $value,
+            static fn() => null,
+        ));
     }
 
     public function testThrowWhenExtractionNotSupportedForTemplate()
     {
-        $this->expectException(ExtractionNotSupported::class);
+        $this->expectException(ExplodeExpressionCantBeMatched::class);
 
         Template::of('{foo*}')->extract(Url::of('foo,bar,baz'));
     }

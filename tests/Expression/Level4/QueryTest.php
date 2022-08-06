@@ -5,9 +5,7 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level4;
 
 use Innmind\UrlTemplate\{
     Expression\Level4\Query,
-    Expression\Name,
     Expression,
-    Exception\DomainException,
     Exception\LogicException,
 };
 use Innmind\Immutable\{
@@ -28,39 +26,67 @@ class QueryTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Query(new Name('foo'))
+            Query::of(Str::of('{?foo}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Query::explode(new Name('foo'))
+            Query::of(Str::of('{?foo*}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertInstanceOf(
             Expression::class,
-            Query::limit(new Name('foo'), 42)
+            Query::of(Str::of('{?foo:42}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
     }
 
     public function testStringCast()
     {
-        $this->assertSame('{?foo}', (new Query(new Name('foo')))->toString());
-        $this->assertSame('{?foo*}', Query::explode(new Name('foo'))->toString());
-        $this->assertSame('{?foo:42}', Query::limit(new Name('foo'), 42)->toString());
+        $this->assertSame(
+            '{?foo}',
+            Query::of(Str::of('{?foo}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
+        );
+        $this->assertSame(
+            '{?foo*}',
+            Query::of(Str::of('{?foo*}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
+        );
+        $this->assertSame(
+            '{?foo:42}',
+            Query::of(Str::of('{?foo:42}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
+        );
     }
 
-    public function testThrowWhenNegativeLimit()
+    public function testReturnNothingWhenNegativeLimit()
     {
         $this
             ->forAll(Set\Integers::below(1))
             ->then(function(int $int): void {
-                $this->expectException(DomainException::class);
-
-                Query::limit(new Name('foo'), $int);
+                $this->assertNull(Query::of(Str::of("{?foo:$int}"))->match(
+                    static fn($expression) => $expression,
+                    static fn() => null,
+                ));
             });
     }
 
     public function testExpand()
     {
-        $variables = Map::of('string', 'variable')
+        $variables = Map::of()
             ('var', 'value')
             ('hello', 'Hello World!')
             ('path', '/foo/bar')
@@ -69,23 +95,38 @@ class QueryTest extends TestCase
 
         $this->assertSame(
             '?var=val',
-            Query::limit(new Name('var'), 3)->expand($variables)
+            Query::of(Str::of('{?var:3}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '?list=red,green,blue',
-            (new Query(new Name('list')))->expand($variables)
+            Query::of(Str::of('{?list}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '?list=red&list=green&list=blue',
-            Query::explode(new Name('list'))->expand($variables)
+            Query::of(Str::of('{?list*}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '?keys=semi,%3B,dot,.,comma,%2C',
-            (new Query(new Name('keys')))->expand($variables)
+            Query::of(Str::of('{?keys}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '?semi=%3B&dot=.&comma=%2C',
-            Query::explode(new Name('keys'))->expand($variables)
+            Query::of(Str::of('{?keys*}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
     }
 
@@ -93,45 +134,63 @@ class QueryTest extends TestCase
     {
         $this->assertInstanceOf(
             Query::class,
-            $expression = Query::of(Str::of('{?foo}'))
+            $expression = Query::of(Str::of('{?foo}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertSame('{?foo}', $expression->toString());
         $this->assertInstanceOf(
             Query::class,
-            $expression = Query::of(Str::of('{?foo*}'))
+            $expression = Query::of(Str::of('{?foo*}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertSame('{?foo*}', $expression->toString());
         $this->assertInstanceOf(
             Query::class,
-            $expression = Query::of(Str::of('{?foo:42}'))
+            $expression = Query::of(Str::of('{?foo:42}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertSame('{?foo:42}', $expression->toString());
     }
 
-    public function testThrowWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern()
     {
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('{foo}');
-
-        Query::of(Str::of('{foo}'));
+        $this->assertNull(Query::of(Str::of('{foo}'))->match(
+            static fn($expression) => $expression,
+            static fn() => null,
+        ));
     }
 
     public function testThrowExplodeRegex()
     {
         $this->expectException(LogicException::class);
 
-        Query::of(Str::of('{?foo*}'))->regex();
+        Query::of(Str::of('{?foo*}'))->match(
+            static fn($expression) => $expression->regex(),
+            static fn() => null,
+        );
     }
 
     public function testRegex()
     {
         $this->assertSame(
             '\?foo=(?<foo>[a-zA-Z0-9\%\-\.\_\~]*)',
-            Query::of(Str::of('{?foo}'))->regex()
+            Query::of(Str::of('{?foo}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '\?foo=(?<foo>[a-zA-Z0-9\%\-\.\_\~]{2})',
-            Query::of(Str::of('{?foo:2}'))->regex()
+            Query::of(Str::of('{?foo:2}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
     }
 }

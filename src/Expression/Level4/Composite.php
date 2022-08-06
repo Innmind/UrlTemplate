@@ -6,77 +6,67 @@ namespace Innmind\UrlTemplate\Expression\Level4;
 use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
+    Expression\Expansion,
     Expressions,
-    Exception\DomainException,
 };
 use Innmind\Immutable\{
     Map,
     Sequence,
     Str,
+    Maybe,
 };
-use function Innmind\Immutable\join;
 
+/**
+ * @psalm-immutable
+ */
 final class Composite implements Expression
 {
-    private string $separator;
-    private string $type;
+    private Expansion $expansion;
     /** @var Sequence<Expression> */
     private Sequence $expressions;
-    private bool $removeLead = false;
-    private ?string $regex = null;
-    private ?string $string = null;
 
-    public function __construct(
-        string $separator,
-        Expression $level4,
-        Expression ...$expressions
-    ) {
-        $this->separator = $separator;
-        $this->type = \get_class($level4);
-        /** @var Sequence<Expression> */
-        $this->expressions = Sequence::of(Expression::class, $level4, ...$expressions);
-    }
-
-    public static function removeLead(
-        string $separator,
-        Expression $level4,
-        Expression ...$expressions
-    ): self {
-        $self = new self($separator, $level4, ...$expressions);
-        $self->removeLead = true;
-
-        return $self;
-    }
-
-    public static function of(Str $string): Expression
+    /**
+     * @param Sequence<Expression> $expressions
+     */
+    private function __construct(Expansion $expansion, Sequence $expressions)
     {
-        if (!$string->matches('~^\{[\+#\./;\?&]?[a-zA-Z0-9_]+(\*|:\d*)?(,[a-zA-Z0-9_]+(\*|:\d*)?)+\}$~')) {
-            throw new DomainException($string->toString());
-        }
+        $this->expansion = $expansion;
+        $this->expressions = $expressions;
+    }
 
-        $pieces = $string
-            ->trim('{}')
-            ->split(',');
-
-        /**
-         * @psalm-suppress UndefinedInterfaceMethod
-         * @psalm-suppress MixedInferredReturnType
-         */
-        return $pieces
-            ->drop(1)
-            ->reduce(
-                Expressions::of($pieces->first()->prepend('{')->append('}')),
-                static function(Expression $level4, Str $expression): Expression {
-                    /** @psalm-suppress MixedReturnStatement */
-                    return $level4->add($expression);
-                },
+    /**
+     * @psalm-pure
+     */
+    public static function of(Str $string): Maybe
+    {
+        /** @var Maybe<Expression> */
+        return Maybe::just($string)
+            ->filter(Expansion::matchesLevel4(...))
+            ->map(Expansion::simple->clean(...))
+            ->map(static fn($string) => $string->split(','))
+            ->flatMap(
+                static fn($expressions) => $expressions
+                    ->first()
+                    ->map(static fn($first) => $first->prepend('{')->append('}'))
+                    ->flatMap(Expressions::of(...))
+                    ->flatMap(
+                        static fn($first) => self::parse($first, $expressions->drop(1))
+                            ->map(static fn($expressions) => new self(
+                                $first->expansion(),
+                                $expressions,
+                            )),
+                    ),
             );
+    }
+
+    public function expansion(): Expansion
+    {
+        return $this->expansion;
     }
 
     public function expand(Map $variables): string
     {
-        $expanded = $this->expressions->mapTo(
-            'string',
+        $expanded = $this->expressions->map(
             static fn($expression) => $expression->expand($variables),
         );
 
@@ -87,58 +77,44 @@ final class Composite implements Expression
             ->take(1)
             ->append(
                 $expanded->drop(1)->map(function(string $value): string {
-                    if ($this->removeLead) {
-                        return Str::of($value)->substring(1)->toString();
+                    if ($this->removeLead()) {
+                        return Str::of($value)->drop(1)->toString();
                     }
 
                     return $value;
                 }),
             );
 
-        return join($this->separator, $expanded)->toString();
+        return Str::of($this->expansion()->separator())->join($expanded)->toString();
     }
 
     public function regex(): string
     {
-        if (\is_string($this->regex)) {
-            return $this->regex;
-        }
-
         $remaining = $this
             ->expressions
             ->drop(1)
-            ->mapTo(
-                'string',
-                function(Expression $expression): string {
-                    if ($this->removeLead) {
-                        return Str::of($expression->regex())->substring(2)->toString();
-                    }
+            ->map(function(Expression $expression): string {
+                if ($this->removeLead()) {
+                    return Str::of($expression->regex())->drop(2)->toString();
+                }
 
-                    return $expression->regex();
-                },
-            );
+                return $expression->regex();
+            });
 
-        return $this->regex = join(
-            $this->separator ? '\\'.$this->separator : '',
-            $this
-                ->expressions
-                ->take(1)
-                ->mapTo(
-                    'string',
-                    static fn($expression) => $expression->regex(),
-                )
-                ->append($remaining)
-        )->toString();
+        return Str::of($this->expansion()->separatorRegex())
+            ->join(
+                $this
+                    ->expressions
+                    ->take(1)
+                    ->map(static fn($expression) => $expression->regex())
+                    ->append($remaining),
+            )
+            ->toString();
     }
 
     public function toString(): string
     {
-        if (\is_string($this->string)) {
-            return $this->string;
-        }
-
-        $expressions = $this->expressions->mapTo(
-            Str::class,
+        $expressions = $this->expressions->map(
             static fn($expression) => Str::of($expression->toString())->trim('{}'),
         );
 
@@ -154,14 +130,38 @@ final class Composite implements Expression
                         return $expression->leftTrim('+#/.;?&');
                     }),
             )
-            ->mapTo(
-                'string',
-                static fn($element) => $element->toString(),
-            );
+            ->map(static fn($element) => $element->toString());
 
-        return $this->string = join(',', $expressions)
+        return Str::of(',')
+            ->join($expressions)
             ->prepend('{')
             ->append('}')
             ->toString();
+    }
+
+    /**
+     * @psalm-pure
+     *
+     * @param Sequence<Str> $expressions
+     *
+     * @return Maybe<Sequence<Expression>>
+     */
+    private static function parse(Expression $first, Sequence $expressions): Maybe
+    {
+        /** @var Maybe<Sequence<Expression>> */
+        return Maybe::all(
+            Maybe::just($first),
+            ...$expressions
+                ->map(static fn($expression) => $expression->prepend($first->expansion()->continuation()->toString()))
+                ->map(static fn($expression) => $expression->prepend('{')->append('}'))
+                ->map(Expressions::of(...))
+                ->toList(),
+        )
+            ->map(Sequence::of(...));
+    }
+
+    private function removeLead(): bool
+    {
+        return $this->expansion() === Expansion::fragment;
     }
 }

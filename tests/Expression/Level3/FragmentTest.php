@@ -5,9 +5,7 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level3;
 
 use Innmind\UrlTemplate\{
     Expression\Level3\Fragment,
-    Expression\Name,
     Expression,
-    Exception\DomainException,
 };
 use Innmind\Immutable\{
     Map,
@@ -21,7 +19,10 @@ class FragmentTest extends TestCase
     {
         $this->assertInstanceOf(
             Expression::class,
-            new Fragment(new Name('foo'), new Name('bar'))
+            Fragment::of(Str::of('{#foo,bar}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
     }
 
@@ -29,13 +30,16 @@ class FragmentTest extends TestCase
     {
         $this->assertSame(
             '{#foo,bar}',
-            (new Fragment(new Name('foo'), new Name('bar')))->toString(),
+            Fragment::of(Str::of('{#foo,bar}'))->match(
+                static fn($expression) => $expression->toString(),
+                static fn() => null,
+            ),
         );
     }
 
     public function testExpand()
     {
-        $variables = Map::of('string', 'variable')
+        $variables = Map::of()
             ('var', 'value')
             ('hello', 'Hello World!')
             ('empty', '')
@@ -45,11 +49,17 @@ class FragmentTest extends TestCase
 
         $this->assertSame(
             '#1024,Hello%20World!,768',
-            (new Fragment(new Name('x'), new Name('hello'), new Name('y')))->expand($variables)
+            Fragment::of(Str::of('{#x,hello,y}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
         $this->assertSame(
             '#/foo/bar,1024',
-            (new Fragment(new Name('path'), new Name('x')))->expand($variables)
+            Fragment::of(Str::of('{#path,x}'))->match(
+                static fn($expression) => $expression->expand($variables),
+                static fn() => null,
+            ),
         );
     }
 
@@ -57,24 +67,30 @@ class FragmentTest extends TestCase
     {
         $this->assertInstanceOf(
             Fragment::class,
-            $expression = Fragment::of(Str::of('{#foo,bar}'))
+            $expression = Fragment::of(Str::of('{#foo,bar}'))->match(
+                static fn($expression) => $expression,
+                static fn() => null,
+            ),
         );
         $this->assertSame('{#foo,bar}', $expression->toString());
     }
 
-    public function testThrowWhenInvalidPattern()
+    public function testReturnNothingWhenInvalidPattern()
     {
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('{#foo}');
-
-        Fragment::of(Str::of('{#foo}'));
+        $this->assertNull(Fragment::of(Str::of('{foo}'))->match(
+            static fn($expression) => $expression,
+            static fn() => null,
+        ));
     }
 
     public function testRegex()
     {
         $this->assertSame(
             '\#(?<foo>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]*),(?<bar>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]*)',
-            Fragment::of(Str::of('{#foo,bar}'))->regex()
+            Fragment::of(Str::of('{#foo,bar}'))->match(
+                static fn($expression) => $expression->regex(),
+                static fn() => null,
+            ),
         );
     }
 }

@@ -46,7 +46,7 @@ class UrlEncodeTest extends TestCase
                 '+',
                 ',',
                 ';',
-                '='
+                '=',
             ))
             ->then(function(string $char): void {
                 $encode = UrlEncode::allowReservedCharacters();
@@ -61,7 +61,7 @@ class UrlEncodeTest extends TestCase
 
         $this->assertSame(
             ':%20)',
-            $encode(': )')
+            $encode(': )'),
         );
     }
 

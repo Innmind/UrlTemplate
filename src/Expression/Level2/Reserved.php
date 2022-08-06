@@ -6,59 +6,72 @@ namespace Innmind\UrlTemplate\Expression\Level2;
 use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
+    Expression\Expansion,
     UrlEncode,
-    Exception\DomainException,
-    Exception\OnlyScalarCanBeExpandedForExpression,
 };
 use Innmind\Immutable\{
     Map,
     Str,
+    Maybe,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class Reserved implements Expression
 {
     private Name $name;
     private UrlEncode $encode;
-    private ?string $regex = null;
-    private ?string $string = null;
 
-    public function __construct(Name $name)
+    private function __construct(Name $name)
     {
         $this->name = $name;
         $this->encode = UrlEncode::allowReservedCharacters();
     }
 
-    public static function of(Str $string): Expression
+    /**
+     * @psalm-pure
+     */
+    public static function of(Str $string): Maybe
     {
-        if (!$string->matches('~^\{\+[a-zA-Z0-9_]+\}$~')) {
-            throw new DomainException($string->toString());
-        }
+        /** @var Maybe<Expression> */
+        return Name::one($string, Expansion::reserved)->map(
+            static fn($name) => new self($name),
+        );
+    }
 
-        return new self(new Name($string->trim('{+}')->toString()));
+    /**
+     * @psalm-pure
+     */
+    public static function named(Name $name): self
+    {
+        return new self($name);
+    }
+
+    public function expansion(): Expansion
+    {
+        return Expansion::reserved;
     }
 
     public function expand(Map $variables): string
     {
-        if (!$variables->contains($this->name->toString())) {
-            return '';
-        }
-
-        $variable = $variables->get($this->name->toString());
-
-        if (\is_array($variable)) {
-            throw new OnlyScalarCanBeExpandedForExpression($this->name->toString());
-        }
-
-        return ($this->encode)((string) $variable);
+        /** @psalm-suppress InvalidArgument Because of the filter */
+        return $variables
+            ->get($this->name->toString())
+            ->filter(\is_string(...))
+            ->match(
+                fn(string $variable) => ($this->encode)($variable),
+                static fn() => '',
+            );
     }
 
     public function regex(): string
     {
-        return $this->regex ?? $this->regex = "(?<{$this->name->toString()}>[a-zA-Z0-9\%:/\?#\[\]@!\$&'\(\)\*\+,;=\-\.\_\~]*)";
+        return "(?<{$this->name->toString()}>[a-zA-Z0-9\%:/\?#\[\]@!\$&'\(\)\*\+,;=\-\.\_\~]*)";
     }
 
     public function toString(): string
     {
-        return $this->string ?? $this->string = "{+{$this->name->toString()}}";
+        return"{+{$this->name->toString()}}";
     }
 }
