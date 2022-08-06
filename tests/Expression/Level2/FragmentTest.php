@@ -6,7 +6,6 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level2;
 use Innmind\UrlTemplate\{
     Expression\Level2\Fragment,
     Expression,
-    Exception\OnlyScalarCanBeExpandedForExpression,
 };
 use Innmind\Immutable\{
     Map,
@@ -90,18 +89,15 @@ class FragmentTest extends TestCase
         );
     }
 
-    public function testThrowWhenTryingToExpandWithAnArray()
+    public function testReturnEmptyStringWhenTryingToExpandWithAnArray()
     {
         $expression = Fragment::of(Str::of('{#foo}'))->match(
             static fn($expression) => $expression,
             static fn() => null,
         );
 
-        $this->expectException(OnlyScalarCanBeExpandedForExpression::class);
-        $this->expectExceptionMessage('foo');
-
-        $expression->expand(
+        $this->assertSame('', $expression->expand(
             Map::of(['foo', ['value']]),
-        );
+        ));
     }
 }

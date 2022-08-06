@@ -6,7 +6,6 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level2;
 use Innmind\UrlTemplate\{
     Expression\Level2\Reserved,
     Expression,
-    Exception\OnlyScalarCanBeExpandedForExpression,
 };
 use Innmind\Immutable\{
     Map,
@@ -90,18 +89,15 @@ class ReservedTest extends TestCase
         );
     }
 
-    public function testThrowWhenTryingToExpandWithAnArray()
+    public function testReturnEmptyStringWhenTryingToExpandWithAnArray()
     {
         $expression = Reserved::of(Str::of('{+foo}'))->match(
             static fn($expression) => $expression,
             static fn() => null,
         );
 
-        $this->expectException(OnlyScalarCanBeExpandedForExpression::class);
-        $this->expectExceptionMessage('foo');
-
-        $expression->expand(
+        $this->assertSame('', $expression->expand(
             Map::of(['foo', ['value']]),
-        );
+        ));
     }
 }

@@ -8,7 +8,6 @@ use Innmind\UrlTemplate\{
     Expression\Name,
     Expression\Expansion,
     UrlEncode,
-    Exception\OnlyScalarCanBeExpandedForExpression,
 };
 use Innmind\Immutable\{
     Map,
@@ -56,16 +55,12 @@ final class Reserved implements Expression
 
     public function expand(Map $variables): string
     {
+        /** @psalm-suppress InvalidArgument Because of the filter */
         return $variables
             ->get($this->name->toString())
+            ->filter(\is_string(...))
             ->match(
-                function($variable) {
-                    if (!\is_string($variable)) {
-                        throw new OnlyScalarCanBeExpandedForExpression($this->name->toString());
-                    }
-
-                    return ($this->encode)($variable);
-                },
+                fn(string $variable) => ($this->encode)($variable),
                 static fn() => '',
             );
     }
