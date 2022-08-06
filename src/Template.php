@@ -4,9 +4,8 @@ declare(strict_types = 1);
 namespace Innmind\UrlTemplate;
 
 use Innmind\UrlTemplate\Exception\{
-    ExtractionNotSupported,
+    ExplodeExpressionCantBeMatched,
     DomainException,
-    LogicException,
 };
 use Innmind\Url\Url;
 use Innmind\Immutable\{
@@ -82,6 +81,8 @@ final class Template
     }
 
     /**
+     * @throws ExplodeExpressionCantBeMatched
+     *
      * @return Map<string, string>
      */
     public function extract(Url $url): Map
@@ -96,6 +97,9 @@ final class Template
             ->map(static fn($_, $variable) => \rawurldecode($variable->toString()));
     }
 
+    /**
+     * @throws ExplodeExpressionCantBeMatched
+     */
     public function matches(Url $url): bool
     {
         $regex = $this->regex();
@@ -109,35 +113,34 @@ final class Template
         return $this->template->toString();
     }
 
+    /**
+     * @throws ExplodeExpressionCantBeMatched
+     */
     private function regex(): string
     {
-        try {
-            $template = $this
-                ->expressions
-                ->reduce(
-                    $this->template->replace('~', '\~'),
-                    static fn(Str $template, $expression) => $template->replace(
-                        $expression->toString(),
-                        \sprintf(
-                            '__innmind_expression_%s__',
-                            \spl_object_hash($expression),
-                        ),
-                    ),
-                )
-                ->pregQuote();
-            $template = $this->expressions->reduce(
-                $template,
+        $template = $this
+            ->expressions
+            ->reduce(
+                $this->template->replace('~', '\~'),
                 static fn(Str $template, $expression) => $template->replace(
+                    $expression->toString(),
                     \sprintf(
                         '__innmind_expression_%s__',
                         \spl_object_hash($expression),
                     ),
-                    $expression->regex(),
                 ),
-            );
-        } catch (LogicException $e) {
-            throw new ExtractionNotSupported('', 0, $e);
-        }
+            )
+            ->pregQuote();
+        $template = $this->expressions->reduce(
+            $template,
+            static fn(Str $template, $expression) => $template->replace(
+                \sprintf(
+                    '__innmind_expression_%s__',
+                    \spl_object_hash($expression),
+                ),
+                $expression->regex(),
+            ),
+        );
 
         return $template->prepend('~^')->append('$~')->toString();
     }
