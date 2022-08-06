@@ -5,7 +5,6 @@ namespace Tests\Innmind\UrlTemplate;
 
 use Innmind\UrlTemplate\{
     Template,
-    Exception\UrlDoesntMatchTemplate,
     Exception\ExtractionNotSupported,
 };
 use Innmind\Url\Url;
@@ -58,12 +57,12 @@ class TemplateTest extends TestCase
         $this->assertSame($expected, $url->toString());
     }
 
-    public function testThrowWhenUrlDoesntMatchTemplate()
+    public function testReturnEmptyMapWhenUrlDoesntMatchTemplate()
     {
-        $this->expectException(UrlDoesntMatchTemplate::class);
-        $this->expectExceptionMessage('/hello%20world%21/foo');
-
-        Template::of('/{foo}')->extract(Url::of('/hello%20world%21/foo'));
+        $this->assertCount(
+            0,
+            Template::of('/{foo}')->extract(Url::of('/hello%20world%21/foo')),
+        );
     }
 
     public function testLevel1Extraction()

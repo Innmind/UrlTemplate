@@ -4,7 +4,6 @@ declare(strict_types = 1);
 namespace Innmind\UrlTemplate;
 
 use Innmind\UrlTemplate\Exception\{
-    UrlDoesntMatchTemplate,
     ExtractionNotSupported,
     DomainException,
     LogicException,
@@ -89,10 +88,6 @@ final class Template
     {
         $regex = $this->regex();
         $url = Str::of($url->toString());
-
-        if (!$url->matches($regex)) {
-            throw new UrlDoesntMatchTemplate($url->toString());
-        }
 
         /** @var Map<string, string> */
         return $url
