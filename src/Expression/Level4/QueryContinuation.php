@@ -92,11 +92,11 @@ final class QueryContinuation implements Expression
         }
 
         if (\is_array($variable)) {
-            return $this->expandList($variables, ...$variable);
+            return $this->expandList($variables, $variable);
         }
 
         if ($this->explode) {
-            return $this->expandList($variables, $variable);
+            return $this->explodeList($variables, [$variable]);
         }
 
         $value = Str::of($this->expression->expand($variables));
@@ -153,11 +153,10 @@ final class QueryContinuation implements Expression
     }
 
     /**
-     * @no-named-arguments
      * @param Map<non-empty-string, string|list<string>|list<array{string, string}>> $variables
      * @param list<string>|list<array{string, string}> $variablesToExpand
      */
-    private function expandList(Map $variables, ...$variablesToExpand): string
+    private function expandList(Map $variables, array $variablesToExpand): string
     {
         if ($this->explode) {
             return $this->explodeList($variables, $variablesToExpand);
@@ -194,7 +193,6 @@ final class QueryContinuation implements Expression
      */
     private function explodeList(Map $variables, array $variablesToExpand): string
     {
-        /** @psalm-suppress NamedArgumentNotAllowed */
         $expanded = Sequence::of(...$variablesToExpand)->map(function($variableToExpand) use ($variables): string {
             $name = $this->name;
 
