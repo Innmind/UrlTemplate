@@ -87,12 +87,9 @@ final class Template
      */
     public function extract(Url $url): Map
     {
-        $regex = $this->regex();
-        $url = Str::of($url->toString());
-
         /** @var Map<string, string> */
-        return $url
-            ->capture($regex)
+        return Str::of($url->toString())
+            ->capture($this->regex())
             ->filter(static fn($key) => \is_string($key))
             ->map(static fn($_, $variable) => \rawurldecode($variable->toString()));
     }
@@ -102,10 +99,7 @@ final class Template
      */
     public function matches(Url $url): bool
     {
-        $regex = $this->regex();
-        $url = Str::of($url->toString());
-
-        return $url->matches($regex);
+        return Str::of($url->toString())->matches($this->regex());
     }
 
     public function toString(): string
