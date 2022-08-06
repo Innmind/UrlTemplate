@@ -11,6 +11,7 @@ use Innmind\Immutable\{
 
 /**
  * @psalm-immutable
+ * @internal
  */
 interface Expression
 {

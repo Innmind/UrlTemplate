@@ -7,6 +7,7 @@ use Innmind\Immutable\Str;
 
 /**
  * @psalm-immutable
+ * @internal
  */
 enum Expansion
 {
