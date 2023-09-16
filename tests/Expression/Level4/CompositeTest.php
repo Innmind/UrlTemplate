@@ -167,7 +167,7 @@ class CompositeTest extends TestCase
         );
     }
 
-    public function cases(): array
+    public static function cases(): array
     {
         return [
             ['{var,hello}', 'value,Hello%20World%21'],

@@ -85,7 +85,10 @@ final class Name
         Str $value,
         Expansion $expansion,
     ): Maybe {
-        /** @psalm-suppress ArgumentTypeCoercion Because of the non-empty-string */
+        /**
+         * @psalm-suppress ArgumentTypeCoercion Because of the non-empty-string
+         * @var Maybe<array{self, positive-int}>
+         */
         return Maybe::just($value)
             ->filter($expansion->matchesLimit(...))
             ->map($expansion->clean(...))

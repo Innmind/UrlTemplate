@@ -42,7 +42,7 @@ class ExpressionsTest extends TestCase
         ));
     }
 
-    public function cases(): array
+    public static function cases(): array
     {
         return [
             ['{foo}', Level4::class],
