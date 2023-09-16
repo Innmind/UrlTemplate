@@ -422,7 +422,7 @@ class TemplateTest extends TestCase
         $this->assertFalse($template->matches(Url::of('/f')));
     }
 
-    public function cases(): array
+    public static function cases(): array
     {
         return [
             ['http://example.com{/list*}{?keys*}', 'http://example.com/red/green/blue?semi=%3B&dot=.&comma=%2C'],
