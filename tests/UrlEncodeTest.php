@@ -17,7 +17,7 @@ class UrlEncodeTest extends TestCase
     public function testStandardEncode(): BlackBox\Proof
     {
         return $this
-            ->forAll(Set\Strings::any())
+            ->forAll(Set::strings())
             ->prove(function(string $string): void {
                 $encode = new UrlEncode;
 
@@ -28,7 +28,7 @@ class UrlEncodeTest extends TestCase
     public function testSafeCharactersAreNotEncoded(): BlackBox\Proof
     {
         return $this
-            ->forAll(Set\Elements::of(
+            ->forAll(Set::of(
                 ':',
                 '/',
                 '?',

@@ -75,7 +75,7 @@ class ParametersTest extends TestCase
     public function testReturnNothingWhenNegativeLimit(): BlackBox\Proof
     {
         return $this
-            ->forAll(Set\Integers::below(1))
+            ->forAll(Set::integers()->below(1))
             ->prove(function(int $int): void {
                 $this->assertNull(Parameters::of(Str::of("{;foo:$int}"))->match(
                     static fn($expression) => $expression,
