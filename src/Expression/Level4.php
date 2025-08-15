@@ -5,8 +5,6 @@ namespace Innmind\UrlTemplate\Expression;
 
 use Innmind\UrlTemplate\{
     Expression,
-    Expression\Level4\Composite,
-    Exception\DomainException,
     Exception\ExplodeExpressionCantBeMatched,
 };
 use Innmind\Immutable\{

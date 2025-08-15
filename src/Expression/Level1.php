@@ -6,7 +6,6 @@ namespace Innmind\UrlTemplate\Expression;
 use Innmind\UrlTemplate\{
     Expression,
     UrlEncode,
-    Exception\OnlyScalarCanBeExpandedForExpression,
 };
 use Innmind\Immutable\{
     Map,

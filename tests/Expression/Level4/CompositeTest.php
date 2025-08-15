@@ -5,8 +5,6 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level4;
 
 use Innmind\UrlTemplate\{
     Expression\Level4\Composite,
-    Expression\Level4\Path,
-    Expression\Level4,
     Expression,
 };
 use Innmind\Immutable\{

@@ -5,7 +5,6 @@ namespace Innmind\UrlTemplate\Expression\Level4;
 
 use Innmind\UrlTemplate\{
     Expression,
-    Expression\Name,
     Expression\Expansion,
     Expressions,
 };

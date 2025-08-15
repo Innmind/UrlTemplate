@@ -7,9 +7,7 @@ use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
     Expression\Expansion,
-    Expression\Level1,
     Expression\Level4,
-    Exception\DomainException,
 };
 use Innmind\Immutable\{
     Map,

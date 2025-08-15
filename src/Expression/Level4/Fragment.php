@@ -9,8 +9,6 @@ use Innmind\UrlTemplate\{
     Expression\Expansion,
     Expression\Level2,
     Expression\Level4,
-    Exception\DomainException,
-    Exception\LogicException,
 };
 use Innmind\Immutable\{
     Map,

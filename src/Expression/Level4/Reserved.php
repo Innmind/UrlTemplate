@@ -9,7 +9,6 @@ use Innmind\UrlTemplate\{
     Expression\Expansion,
     Expression\Level2,
     Expression\Level4,
-    Exception\DomainException,
     Exception\ExplodeExpressionCantBeMatched,
 };
 use Innmind\Immutable\{

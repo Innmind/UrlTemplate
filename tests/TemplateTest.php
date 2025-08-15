@@ -8,10 +8,7 @@ use Innmind\UrlTemplate\{
     Exception\ExplodeExpressionCantBeMatched,
 };
 use Innmind\Url\Url;
-use Innmind\Immutable\{
-    Map,
-    Sequence,
-};
+use Innmind\Immutable\Map;
 use PHPUnit\Framework\TestCase;
 
 class TemplateTest extends TestCase
