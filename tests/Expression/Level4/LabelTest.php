@@ -12,9 +12,9 @@ use Innmind\Immutable\{
     Map,
     Str,
 };
-use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
+    PHPUnit\Framework\TestCase,
     Set,
 };
 
@@ -72,11 +72,11 @@ class LabelTest extends TestCase
         );
     }
 
-    public function testReturnNothingWhenNegativeLimit()
+    public function testReturnNothingWhenNegativeLimit(): BlackBox\Proof
     {
-        $this
-            ->forAll(Set\Integers::below(1))
-            ->then(function(int $int): void {
+        return $this
+            ->forAll(Set::integers()->below(1))
+            ->prove(function(int $int): void {
                 $this->assertNull(Label::of(Str::of("{.foo:$int}"))->match(
                     static fn($expression) => $expression,
                     static fn() => null,

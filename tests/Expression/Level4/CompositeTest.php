@@ -11,7 +11,8 @@ use Innmind\Immutable\{
     Map,
     Str,
 };
-use PHPUnit\Framework\TestCase;
+use Innmind\BlackBox\PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class CompositeTest extends TestCase
 {
@@ -69,9 +70,7 @@ class CompositeTest extends TestCase
         );
     }
 
-    /**
-     * @dataProvider cases
-     */
+    #[DataProvider('cases')]
     public function testOf($pattern, $expected)
     {
         $variables = Map::of()
