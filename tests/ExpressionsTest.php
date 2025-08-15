@@ -9,13 +9,12 @@ use Innmind\UrlTemplate\{
     Expression\Level3,
 };
 use Innmind\Immutable\Str;
-use PHPUnit\Framework\TestCase;
+use Innmind\BlackBox\PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class ExpressionsTest extends TestCase
 {
-    /**
-     * @dataProvider cases
-     */
+    #[DataProvider('cases')]
     public function testOf($string, $expected)
     {
         $this->assertInstanceOf(

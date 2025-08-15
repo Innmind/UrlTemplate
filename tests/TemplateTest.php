@@ -9,7 +9,8 @@ use Innmind\UrlTemplate\{
 };
 use Innmind\Url\Url;
 use Innmind\Immutable\Map;
-use PHPUnit\Framework\TestCase;
+use Innmind\BlackBox\PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class TemplateTest extends TestCase
 {
@@ -28,9 +29,7 @@ class TemplateTest extends TestCase
         $this->assertSame('http://example.com/{/folders}', $template->toString());
     }
 
-    /**
-     * @dataProvider cases
-     */
+    #[DataProvider('cases')]
     public function testExpand($pattern, $expected)
     {
         $variables = Map::of()

@@ -7,9 +7,9 @@ use Innmind\UrlTemplate\{
     Expression\Name,
     Exception\DomainException,
 };
-use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
+    PHPUnit\Framework\TestCase,
     Set,
 };
 
@@ -17,9 +17,9 @@ class NameTest extends TestCase
 {
     use BlackBox;
 
-    public function testInterface()
+    public function testInterface(): BlackBox\Proof
     {
-        $this
+        return $this
             ->forAll(
                 Set\Strings::madeOf(
                     Set\Chars::lowercaseLetter(),
@@ -28,20 +28,20 @@ class NameTest extends TestCase
                     Set\Elements::of('_'),
                 )->atLeast(1),
             )
-            ->then(function(string $string): void {
+            ->prove(function(string $string): void {
                 $this->assertSame($string, Name::of($string)->toString());
             });
     }
 
-    public function testThrowWhenInvalidName()
+    public function testThrowWhenInvalidName(): BlackBox\Proof
     {
-        $this
+        return $this
             ->forAll(
                 Set\Strings::any()->filter(static function(string $string): bool {
                     return (bool) !\preg_match('~^[a-zA-Z0-9_]+$~', $string);
                 }),
             )
-            ->then(function(string $string): void {
+            ->prove(function(string $string): void {
                 $this->expectException(DomainException::class);
                 $this->expectExceptionMessage($string);
 

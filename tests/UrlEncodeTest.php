@@ -4,9 +4,9 @@ declare(strict_types = 1);
 namespace Tests\Innmind\UrlTemplate;
 
 use Innmind\UrlTemplate\UrlEncode;
-use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
+    PHPUnit\Framework\TestCase,
     Set,
 };
 
@@ -14,20 +14,20 @@ class UrlEncodeTest extends TestCase
 {
     use BlackBox;
 
-    public function testStandardEncode()
+    public function testStandardEncode(): BlackBox\Proof
     {
-        $this
+        return $this
             ->forAll(Set\Strings::any())
-            ->then(function(string $string): void {
+            ->prove(function(string $string): void {
                 $encode = new UrlEncode;
 
                 $this->assertSame(\rawurlencode($string), $encode($string));
             });
     }
 
-    public function testSafeCharactersAreNotEncoded()
+    public function testSafeCharactersAreNotEncoded(): BlackBox\Proof
     {
-        $this
+        return $this
             ->forAll(Set\Elements::of(
                 ':',
                 '/',
@@ -48,7 +48,7 @@ class UrlEncodeTest extends TestCase
                 ';',
                 '=',
             ))
-            ->then(function(string $char): void {
+            ->prove(function(string $char): void {
                 $encode = UrlEncode::allowReservedCharacters();
 
                 $this->assertSame($char, $encode($char));
