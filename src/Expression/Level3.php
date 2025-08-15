@@ -33,6 +33,7 @@ final class Level3 implements Expression
     /**
      * @psalm-pure
      */
+    #[\Override]
     public static function of(Str $string): Maybe
     {
         /** @var Maybe<Expression> */
@@ -41,11 +42,13 @@ final class Level3 implements Expression
         );
     }
 
+    #[\Override]
     public function expansion(): Expansion
     {
         return Expansion::simple;
     }
 
+    #[\Override]
     public function expand(Map $variables): string
     {
         $expanded = $this->expressions->map(
@@ -55,6 +58,7 @@ final class Level3 implements Expression
         return Str::of(',')->join($expanded)->toString();
     }
 
+    #[\Override]
     public function regex(): string
     {
         /** @psalm-suppress InvalidArgument */
@@ -65,6 +69,7 @@ final class Level3 implements Expression
             ->toString();
     }
 
+    #[\Override]
     public function toString(): string
     {
         /** @psalm-suppress InvalidArgument */

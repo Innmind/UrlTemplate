@@ -39,6 +39,7 @@ final class Reserved implements Expression
     /**
      * @psalm-pure
      */
+    #[\Override]
     public static function of(Str $string): Maybe
     {
         /** @var Maybe<Expression> */
@@ -47,11 +48,13 @@ final class Reserved implements Expression
         );
     }
 
+    #[\Override]
     public function expansion(): Expansion
     {
         return Expansion::reserved;
     }
 
+    #[\Override]
     public function expand(Map $variables): string
     {
         $expanded = $this->expressions->map(
@@ -61,6 +64,7 @@ final class Reserved implements Expression
         return Str::of(',')->join($expanded)->toString();
     }
 
+    #[\Override]
     public function regex(): string
     {
         return Str::of(',')
@@ -70,6 +74,7 @@ final class Reserved implements Expression
             ->toString();
     }
 
+    #[\Override]
     public function toString(): string
     {
         /** @psalm-suppress InvalidArgument */

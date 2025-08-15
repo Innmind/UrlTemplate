@@ -33,6 +33,7 @@ final class QueryContinuation implements Expression
     /**
      * @psalm-pure
      */
+    #[\Override]
     public static function of(Str $string): Maybe
     {
         /** @var Maybe<Expression> */
@@ -46,21 +47,25 @@ final class QueryContinuation implements Expression
         return new self(Sequence::of($name));
     }
 
+    #[\Override]
     public function expansion(): Expansion
     {
         return Expansion::queryContinuation;
     }
 
+    #[\Override]
     public function expand(Map $variables): string
     {
         return $this->expression->expand($variables);
     }
 
+    #[\Override]
     public function regex(): string
     {
         return $this->expression->regex();
     }
 
+    #[\Override]
     public function toString(): string
     {
         return $this->expression->toString();

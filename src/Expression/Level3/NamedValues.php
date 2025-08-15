@@ -50,6 +50,7 @@ final class NamedValues implements Expression
     /**
      * @psalm-pure
      */
+    #[\Override]
     public static function of(Str $string): Maybe
     {
         throw new \LogicException('should not be used directly');
@@ -68,11 +69,13 @@ final class NamedValues implements Expression
         return $self;
     }
 
+    #[\Override]
     public function expansion(): Expansion
     {
         return $this->expansion;
     }
 
+    #[\Override]
     public function expand(Map $variables): string
     {
         /** @var Sequence<string> */
@@ -95,6 +98,7 @@ final class NamedValues implements Expression
             ->toString();
     }
 
+    #[\Override]
     public function regex(): string
     {
         return Str::of($this->expansion->continuation()->regex())
@@ -110,6 +114,7 @@ final class NamedValues implements Expression
             ->toString();
     }
 
+    #[\Override]
     public function toString(): string
     {
         /** @psalm-suppress InvalidArgument */

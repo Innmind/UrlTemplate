@@ -38,6 +38,7 @@ final class Query implements Expression
     /**
      * @psalm-pure
      */
+    #[\Override]
     public static function of(Str $string): Maybe
     {
         return Parse::of(
@@ -73,11 +74,13 @@ final class Query implements Expression
         return $self;
     }
 
+    #[\Override]
     public function expansion(): Expansion
     {
         return Expansion::query;
     }
 
+    #[\Override]
     public function expand(Map $variables): string
     {
         $variable = $variables->get($this->name->toString())->match(
@@ -106,6 +109,7 @@ final class Query implements Expression
         return "?{$this->name->toString()}={$value->toString()}";
     }
 
+    #[\Override]
     public function regex(): string
     {
         if ($this->explode) {
@@ -129,6 +133,7 @@ final class Query implements Expression
         );
     }
 
+    #[\Override]
     public function toString(): string
     {
         if ($this->mustLimit()) {

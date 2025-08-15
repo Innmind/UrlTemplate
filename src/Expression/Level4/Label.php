@@ -30,6 +30,7 @@ final class Label implements Expression
     /**
      * @psalm-pure
      */
+    #[\Override]
     public static function of(Str $string): Maybe
     {
         return Parse::of(
@@ -66,21 +67,25 @@ final class Label implements Expression
         return $self;
     }
 
+    #[\Override]
     public function expansion(): Expansion
     {
         return Expansion::label;
     }
 
+    #[\Override]
     public function expand(Map $variables): string
     {
         return $this->expression->expand($variables);
     }
 
+    #[\Override]
     public function regex(): string
     {
         return $this->expression->regex();
     }
 
+    #[\Override]
     public function toString(): string
     {
         return $this->expression->toString();

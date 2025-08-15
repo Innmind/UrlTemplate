@@ -39,6 +39,7 @@ final class Label implements Expression
     /**
      * @psalm-pure
      */
+    #[\Override]
     public static function of(Str $string): Maybe
     {
         /** @var Maybe<Expression> */
@@ -47,11 +48,13 @@ final class Label implements Expression
         );
     }
 
+    #[\Override]
     public function expansion(): Expansion
     {
         return Expansion::label;
     }
 
+    #[\Override]
     public function expand(Map $variables): string
     {
         $expanded = $this->expressions->map(
@@ -64,6 +67,7 @@ final class Label implements Expression
             ->toString();
     }
 
+    #[\Override]
     public function regex(): string
     {
         return Str::of('.')
@@ -75,6 +79,7 @@ final class Label implements Expression
             ->toString();
     }
 
+    #[\Override]
     public function toString(): string
     {
         /** @psalm-suppress InvalidArgument */

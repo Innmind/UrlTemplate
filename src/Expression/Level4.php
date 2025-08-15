@@ -36,6 +36,7 @@ final class Level4 implements Expression
     /**
      * @psalm-pure
      */
+    #[\Override]
     public static function of(Str $string): Maybe
     {
         return Level4\Parse::of(
@@ -79,6 +80,7 @@ final class Level4 implements Expression
         return new self($name);
     }
 
+    #[\Override]
     public function expansion(): Expansion
     {
         return Expansion::simple;
@@ -106,6 +108,7 @@ final class Level4 implements Expression
         return $self;
     }
 
+    #[\Override]
     public function expand(Map $variables): string
     {
         $variable = $variables->get($this->name->toString())->match(
@@ -137,6 +140,7 @@ final class Level4 implements Expression
         return "{$this->expansion->toString()}$value";
     }
 
+    #[\Override]
     public function regex(): string
     {
         if ($this->explode) {
@@ -160,6 +164,7 @@ final class Level4 implements Expression
         );
     }
 
+    #[\Override]
     public function toString(): string
     {
         if ($this->mustLimit()) {

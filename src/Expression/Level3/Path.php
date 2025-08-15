@@ -39,6 +39,7 @@ final class Path implements Expression
     /**
      * @psalm-pure
      */
+    #[\Override]
     public static function of(Str $string): Maybe
     {
         /** @var Maybe<Expression> */
@@ -47,11 +48,13 @@ final class Path implements Expression
         );
     }
 
+    #[\Override]
     public function expansion(): Expansion
     {
         return Expansion::path;
     }
 
+    #[\Override]
     public function expand(Map $variables): string
     {
         return Str::of('/')
@@ -62,6 +65,7 @@ final class Path implements Expression
             ->toString();
     }
 
+    #[\Override]
     public function regex(): string
     {
         return Str::of('/')
@@ -72,6 +76,7 @@ final class Path implements Expression
             ->toString();
     }
 
+    #[\Override]
     public function toString(): string
     {
         /** @psalm-suppress InvalidArgument */
