@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Requires `innmind/immutable:~5.18`
+
 ## 3.1.0 - 2023-09-16
 
 ### Added
