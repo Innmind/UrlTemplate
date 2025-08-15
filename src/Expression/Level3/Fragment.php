@@ -39,6 +39,7 @@ final class Fragment implements Expression
     /**
      * @psalm-pure
      */
+    #[\Override]
     public static function of(Str $string): Maybe
     {
         /** @var Maybe<Expression> */
@@ -47,11 +48,13 @@ final class Fragment implements Expression
         );
     }
 
+    #[\Override]
     public function expansion(): Expansion
     {
         return Expansion::fragment;
     }
 
+    #[\Override]
     public function expand(Map $variables): string
     {
         $expanded = $this->expressions->map(
@@ -64,6 +67,7 @@ final class Fragment implements Expression
             ->toString();
     }
 
+    #[\Override]
     public function regex(): string
     {
         return Str::of(',')
@@ -74,6 +78,7 @@ final class Fragment implements Expression
             ->toString();
     }
 
+    #[\Override]
     public function toString(): string
     {
         /** @psalm-suppress InvalidArgument */

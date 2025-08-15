@@ -36,6 +36,7 @@ final class Composite implements Expression
     /**
      * @psalm-pure
      */
+    #[\Override]
     public static function of(Str $string): Maybe
     {
         /** @var Maybe<Expression> */
@@ -58,11 +59,13 @@ final class Composite implements Expression
             );
     }
 
+    #[\Override]
     public function expansion(): Expansion
     {
         return $this->expansion;
     }
 
+    #[\Override]
     public function expand(Map $variables): string
     {
         $expanded = $this->expressions->map(
@@ -87,6 +90,7 @@ final class Composite implements Expression
         return Str::of($this->expansion()->separator())->join($expanded)->toString();
     }
 
+    #[\Override]
     public function regex(): string
     {
         $remaining = $this
@@ -111,6 +115,7 @@ final class Composite implements Expression
             ->toString();
     }
 
+    #[\Override]
     public function toString(): string
     {
         $expressions = $this->expressions->map(

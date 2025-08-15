@@ -39,6 +39,7 @@ final class Reserved implements Expression
     /**
      * @psalm-pure
      */
+    #[\Override]
     public static function of(Str $string): Maybe
     {
         return Parse::of(
@@ -80,16 +81,19 @@ final class Reserved implements Expression
         return $self;
     }
 
+    #[\Override]
     public function expansion(): Expansion
     {
         return Expansion::reserved;
     }
 
+    #[\Override]
     public function expand(Map $variables): string
     {
         return $this->expression->expand($variables);
     }
 
+    #[\Override]
     public function regex(): string
     {
         if ($this->explode) {
@@ -103,6 +107,7 @@ final class Reserved implements Expression
         return $this->expression->regex();
     }
 
+    #[\Override]
     public function toString(): string
     {
         if (\is_int($this->limit)) {

@@ -30,6 +30,7 @@ final class Level1 implements Expression
     /**
      * @psalm-pure
      */
+    #[\Override]
     public static function of(Str $string): Maybe
     {
         /** @var Maybe<Expression> */
@@ -46,11 +47,13 @@ final class Level1 implements Expression
         return new self($name);
     }
 
+    #[\Override]
     public function expansion(): Expansion
     {
         return Expansion::simple;
     }
 
+    #[\Override]
     public function expand(Map $variables): string
     {
         /** @psalm-suppress InvalidArgument Because of the filter */
@@ -63,11 +66,13 @@ final class Level1 implements Expression
             );
     }
 
+    #[\Override]
     public function regex(): string
     {
         return "(?<{$this->name->toString()}>[a-zA-Z0-9\%\-\.\_\~]*)";
     }
 
+    #[\Override]
     public function toString(): string
     {
         return "{{$this->name->toString()}}";
