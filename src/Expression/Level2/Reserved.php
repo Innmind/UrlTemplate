@@ -32,11 +32,11 @@ final class Reserved implements Expression
 
     /**
      * @psalm-pure
+     *
+     * @return Maybe<self>
      */
-    #[\Override]
     public static function of(Str $string): Maybe
     {
-        /** @var Maybe<Expression> */
         return Name::one($string, Expansion::reserved)->map(
             static fn($name) => new self($name),
         );

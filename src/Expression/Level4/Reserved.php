@@ -39,8 +39,9 @@ final class Reserved implements Expression
 
     /**
      * @psalm-pure
+     *
+     * @return Maybe<self>
      */
-    #[\Override]
     public static function of(Str $string): Maybe
     {
         return Parse::of(

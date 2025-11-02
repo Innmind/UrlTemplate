@@ -36,11 +36,11 @@ final class Composite implements Expression
 
     /**
      * @psalm-pure
+     *
+     * @return Maybe<self>
      */
-    #[\Override]
     public static function of(Str $string): Maybe
     {
-        /** @var Maybe<Expression> */
         return Maybe::just($string)
             ->filter(Expansion::matchesLevel4(...))
             ->map(Expansion::simple->clean(...))

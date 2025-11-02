@@ -21,12 +21,13 @@ final class Parse
     /**
      * @psalm-pure
      * @internal
+     * @template T of Expression
      *
-     * @param pure-callable(Name): Expression $standard
-     * @param pure-callable(Name): Expression $explode
-     * @param pure-callable(Name, positive-int): Expression $limit
+     * @param pure-callable(Name): T $standard
+     * @param pure-callable(Name): T $explode
+     * @param pure-callable(Name, positive-int): T $limit
      *
-     * @return Maybe<Expression>
+     * @return Maybe<T>
      */
     public static function of(
         Str $string,
@@ -43,10 +44,11 @@ final class Parse
 
     /**
      * @psalm-pure
+     * @template T of Expression
      *
-     * @param pure-callable(Name): Expression $explode
+     * @param pure-callable(Name): T $explode
      *
-     * @return Maybe<Expression>
+     * @return Maybe<T>
      */
     private static function explode(
         Str $string,
@@ -58,10 +60,11 @@ final class Parse
 
     /**
      * @psalm-pure
+     * @template T of Expression
      *
-     * @param pure-callable(Name, positive-int): Expression $limit
+     * @param pure-callable(Name, positive-int): T $limit
      *
-     * @return Maybe<Expression>
+     * @return Maybe<T>
      */
     private static function limit(
         Str $string,
