@@ -17,6 +17,7 @@ use Innmind\Immutable\{
 
 /**
  * @psalm-immutable
+ * @internal
  */
 final class Label implements Expression
 {

@@ -13,6 +13,7 @@ use Innmind\Immutable\{
 
 /**
  * @psalm-immutable
+ * @internal
  */
 final class Level3 implements Expression
 {

@@ -16,6 +16,7 @@ use Innmind\Immutable\{
 
 /**
  * @psalm-immutable
+ * @internal
  */
 final class Level4 implements Expression
 {

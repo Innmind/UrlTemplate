@@ -13,10 +13,14 @@ use Innmind\Immutable\{
     Maybe,
 };
 
+/**
+ * @internal
+ */
 final class Parse
 {
     /**
      * @psalm-pure
+     * @internal
      *
      * @param pure-callable(Name): Expression $standard
      * @param pure-callable(Name): Expression $explode

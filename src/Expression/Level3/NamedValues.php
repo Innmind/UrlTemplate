@@ -18,6 +18,7 @@ use Innmind\Immutable\{
 
 /**
  * @psalm-immutable
+ * @internal
  */
 final class NamedValues implements Expression
 {

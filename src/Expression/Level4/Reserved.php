@@ -19,6 +19,7 @@ use Innmind\Immutable\{
 
 /**
  * @psalm-immutable
+ * @internal
  */
 final class Reserved implements Expression
 {

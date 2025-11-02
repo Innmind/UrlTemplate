@@ -20,6 +20,7 @@ use Innmind\Immutable\{
 
 /**
  * @psalm-immutable
+ * @internal
  */
 final class Parameters implements Expression
 {
