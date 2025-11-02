@@ -210,7 +210,7 @@ final class QueryContinuation implements Expression
                     $value[1],
                 ],
             })
-            ->map(static fn($pair) => Level3\QueryContinuation::named($pair[0])->expand( // todo simplify
+            ->map(static fn($pair) => Level3\QueryContinuation::named($pair[0])->expand(
                 Map::of([$pair[0]->toString(), $pair[1]]),
                 Map::of(),
                 Map::of(),
