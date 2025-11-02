@@ -36,8 +36,7 @@ final class Level1 implements Expression
     public static function of(Str $string): Attempt
     {
         return Name::one($string, Expansion::simple)
-            ->map(static fn($name) => new self($name))
-            ->attempt(static fn() => new \LogicException('Cannot parse level 1'));
+            ->map(static fn($name) => new self($name));
     }
 
     /**

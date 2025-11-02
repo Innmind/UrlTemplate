@@ -10,7 +10,6 @@ use Innmind\UrlTemplate\{
 };
 use Innmind\Immutable\{
     Str,
-    Maybe,
     Attempt,
 };
 
@@ -39,9 +38,8 @@ final class Parse
     ): Attempt {
         return Name::one($string, $expansion)
             ->map($standard)
-            ->otherwise(static fn() => self::explode($string, $explode, $expansion))
-            ->otherwise(static fn() => self::limit($string, $limit, $expansion))
-            ->attempt(static fn() => new \LogicException('Cannot parse level 4'));
+            ->recover(static fn() => self::explode($string, $explode, $expansion))
+            ->recover(static fn() => self::limit($string, $limit, $expansion));
     }
 
     /**
@@ -50,13 +48,13 @@ final class Parse
      *
      * @param pure-callable(Name): T $explode
      *
-     * @return Maybe<T>
+     * @return Attempt<T>
      */
     private static function explode(
         Str $string,
         callable $explode,
         Expansion $expansion,
-    ): Maybe {
+    ): Attempt {
         return Name::explode($string, $expansion)->map($explode);
     }
 
@@ -66,13 +64,13 @@ final class Parse
      *
      * @param pure-callable(Name, positive-int): T $limit
      *
-     * @return Maybe<T>
+     * @return Attempt<T>
      */
     private static function limit(
         Str $string,
         callable $limit,
         Expansion $expansion,
-    ): Maybe {
+    ): Attempt {
         return Name::limit($string, $expansion)->map(
             static fn($tuple) => $limit($tuple[0], $tuple[1]),
         );

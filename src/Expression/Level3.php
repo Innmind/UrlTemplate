@@ -39,8 +39,7 @@ final class Level3 implements Expression
     public static function of(Str $string): Attempt
     {
         return Name::many($string, Expansion::simple)
-            ->map(static fn($names) => new self($names))
-            ->attempt(static fn() => new \LogicException('Cannot parse level 3'));
+            ->map(static fn($names) => new self($names));
     }
 
     #[\Override]

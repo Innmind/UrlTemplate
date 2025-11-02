@@ -38,8 +38,7 @@ final class Reserved implements Expression
     public static function of(Str $string): Attempt
     {
         return Name::one($string, Expansion::reserved)
-            ->map(static fn($name) => new self($name))
-            ->attempt(static fn() => new \LogicException('Cannot parse level 2'));
+            ->map(static fn($name) => new self($name));
     }
 
     /**
