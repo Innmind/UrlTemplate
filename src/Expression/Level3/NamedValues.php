@@ -59,11 +59,6 @@ final class NamedValues
         return $self;
     }
 
-    public function expansion(): Expansion
-    {
-        return $this->expansion;
-    }
-
     /**
      * @param Map<non-empty-string, string> $values
      * @param Map<non-empty-string, list<string>> $lists
