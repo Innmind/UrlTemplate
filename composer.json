@@ -15,7 +15,7 @@
         "issues": "http://github.com/Innmind/UrlTemplate/issues"
     },
     "require": {
-        "php": "~8.2",
+        "php": "~8.4",
         "innmind/url": "~4.1",
         "innmind/immutable": "~5.18"
     },
