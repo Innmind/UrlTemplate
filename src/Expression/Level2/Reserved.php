@@ -66,6 +66,11 @@ final class Reserved implements Expression
             );
     }
 
+    public function encode(string $string): string
+    {
+        return ($this->encode)($string);
+    }
+
     #[\Override]
     public function regex(): string
     {

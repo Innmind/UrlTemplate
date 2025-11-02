@@ -140,13 +140,9 @@ final class Level4 implements Expression
 
         if ($this->mustLimit()) {
             $value = Str::of($variable)->take($this->limit);
-            $value = $this->expression->expand(
-                Map::of([$this->name->toString(), $value->toString()]),
-                Map::of(),
-                Map::of(),
-            );
+            $value = $this->expression->encode($value->toString());
         } else {
-            $value = $this->expression->expand($values, $lists, $keys);
+            $value = $this->expression->encode($variable);
         }
 
         return "{$this->expansion->toString()}$value";
@@ -219,16 +215,10 @@ final class Level4 implements Expression
             },
         );
 
+        // here we use the level1 expression to transform the variable to
+        // be expanded to its string representation
         $expanded = $flattenedVariables->map(
-            function($variableToExpand): string {
-                // here we use the level1 expression to transform the variable to
-                // be expanded to its string representation
-                return $this->expression->expand(
-                    Map::of([$this->name->toString(), $variableToExpand]),
-                    Map::of(),
-                    Map::of(),
-                );
-            },
+            $this->expression->encode(...),
         );
 
         return $this->separator()
@@ -244,18 +234,10 @@ final class Level4 implements Expression
     {
         $expanded = Sequence::of(...$variablesToExpand)
             ->map(fn($value) => match (true) {
-                \is_string($value) => $this->expression->expand(
-                    Map::of([$this->name->toString(), $value]),
-                    Map::of(),
-                    Map::of(),
-                ),
+                \is_string($value) => $this->expression->encode($value),
                 default => [
                     $value[0],
-                    $this->expression->expand(
-                        Map::of([$this->name->toString(), $value[1]]),
-                        Map::of(),
-                        Map::of(),
-                    ),
+                    $this->expression->encode($value[1]),
                 ],
             })
             ->map(static fn($value) => match (true) {

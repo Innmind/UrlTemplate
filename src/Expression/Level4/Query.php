@@ -110,11 +110,7 @@ final class Query implements Expression
             return $this->explodeList([$variable]);
         }
 
-        $value = Str::of($this->expression->expand(
-            $values,
-            Map::of(),
-            Map::of(),
-        ));
+        $value = Str::of($this->expression->encode($variable));
 
         if ($this->mustLimit()) {
             return "?{$this->name->toString()}={$value->take($this->limit)->toString()}";
@@ -189,15 +185,11 @@ final class Query implements Expression
                 return Sequence::of($variableToExpand);
             },
         );
-        $expanded = $flattenedVariables->map(function($variableToExpand): string {
-            // here we use the level1 expression to transform the variable to
-            // be expanded to its string representation
-            return $this->expression->expand(
-                Map::of([$this->name->toString(), $variableToExpand]),
-                Map::of(),
-                Map::of(),
-            );
-        });
+        // here we use the level1 expression to transform the variable to
+        // be expanded to its string representation
+        $expanded = $flattenedVariables->map(
+            $this->expression->encode(...),
+        );
 
         return Str::of(',')
             ->join($expanded)
