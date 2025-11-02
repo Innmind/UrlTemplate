@@ -232,30 +232,26 @@ final class Level4 implements Expression
      */
     private function explodeList(Map $variables, array $variablesToExpand): string
     {
-        $expanded = Sequence::of(...$variablesToExpand)->map(
-            function($variableToExpand) use ($variables): string {
-                if (\is_array($variableToExpand)) {
-                    [$name, $value] = $variableToExpand;
-                    $variableToExpand = $value;
-                }
-
-                $variables = ($variables)($this->name->toString(), $variableToExpand);
-
-                $value = $this->expression->expand($variables);
-
-                if (isset($name)) {
-                    /** @psalm-suppress MixedArgument */
-                    $name = Name::of($name);
-                    $value = \sprintf(
-                        '%s=%s',
-                        $name->toString(),
-                        $value,
-                    );
-                }
-
-                return $value;
-            },
-        );
+        $expanded = Sequence::of(...$variablesToExpand)
+            ->map(fn($value) => match (true) {
+                \is_string($value) => $this->expression->expand(
+                    ($variables)($this->name->toString(), $value),
+                ),
+                default => [
+                    $value[0],
+                    $this->expression->expand(
+                        ($variables)($this->name->toString(), $value[1]),
+                    ),
+                ],
+            })
+            ->map(static fn($value) => match (true) {
+                \is_string($value) => $value,
+                default => \sprintf(
+                    '%s=%s',
+                    Name::of($value[0])->toString(), // todo move verification earlier on
+                    $value[1],
+                ),
+            });
 
         return $this->separator()
             ->join($expanded)

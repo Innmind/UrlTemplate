@@ -200,21 +200,21 @@ final class Parameters implements Expression
      */
     private function explodeList(Map $variables, array $variablesToExpand): string
     {
-        $expanded = Sequence::of(...$variablesToExpand)->map(
-            function($variableToExpand) use ($variables): string {
-                $name = $this->name;
-
-                if (\is_array($variableToExpand)) {
-                    [$name, $value] = $variableToExpand;
-                    $name = Name::of($name);
-                    $variableToExpand = $value;
-                }
-
-                $variables = ($variables)($name->toString(), $variableToExpand);
-
-                return Level3\Parameters::named($name)->expand($variables);
-            },
-        );
+        $expanded = Sequence::of(...$variablesToExpand)
+            ->map(fn($value) => match (true) {
+                \is_string($value) => [$this->name, $value],
+                default => [
+                    Name::of($value[0]), // todo move wrapping earlier on
+                    $value[1],
+                ],
+            })
+            ->map(static fn($pair) => [
+                $pair[0],
+                ($variables)($pair[0]->toString(), $pair[1]),
+            ])
+            ->map(static fn($pair) => Level3\Parameters::named($pair[0])->expand(
+                $pair[1],
+            ));
 
         return Str::of('')->join($expanded)->toString();
     }
