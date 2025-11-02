@@ -113,39 +113,33 @@ final class Level4 implements Expression
     #[\Override]
     public function expand(Map $values, Map $lists, Map $keys): string
     {
-        // todo break up
-        /**
-         * @psalm-suppress InvalidArgument
-         * @var Map<non-empty-string, string|list<string>|list<array{string, string}>>
-         */
-        $variables = $values
-            ->merge($lists)
-            ->merge($keys);
-        $variable = $variables->get($this->name->toString())->match(
-            static fn($variable) => $variable,
-            static fn() => null,
-        );
+        $name = $this->name->toString();
 
-        if (\is_null($variable)) {
-            return '';
-        }
+        return $lists
+            ->get($name)
+            ->otherwise(static fn() => $keys->get($name))
+            ->map($this->expandList(...))
+            ->otherwise(
+                fn() => $values
+                    ->get($name)
+                    ->map(function($value) {
+                        if ($this->explode) {
+                            return $this->explodeList([$value]);
+                        }
 
-        if (\is_array($variable)) {
-            return $this->expandList($variable);
-        }
+                        if ($this->mustLimit()) {
+                            $value = Str::of($value)->take($this->limit)->toString();
+                        }
 
-        if ($this->explode) {
-            return $this->explodeList([$variable]);
-        }
+                        $value = Str::of($this->expression->encode($value));
 
-        if ($this->mustLimit()) {
-            $value = Str::of($variable)->take($this->limit);
-            $value = $this->expression->encode($value->toString());
-        } else {
-            $value = $this->expression->encode($variable);
-        }
-
-        return "{$this->expansion->toString()}$value";
+                        return "{$this->expansion->toString()}$value";
+                    }),
+            )
+            ->match(
+                static fn($value) => $value,
+                static fn() => '',
+            );
     }
 
     #[\Override]

@@ -85,38 +85,41 @@ final class QueryContinuation implements Expression
     #[\Override]
     public function expand(Map $values, Map $lists, Map $keys): string
     {
-        // todo break up
-        /**
-         * @psalm-suppress InvalidArgument
-         * @var Map<non-empty-string, string|list<string>|list<array{string, string}>>
-         */
-        $variables = $values
-            ->merge($lists)
-            ->merge($keys);
-        $variable = $variables->get($this->name->toString())->match(
-            static fn($variable) => $variable,
-            static fn() => null,
-        );
+        $name = $this->name->toString();
 
-        if (\is_null($variable)) {
-            return '';
-        }
+        return $lists
+            ->get($name)
+            ->otherwise(static fn() => $keys->get($name))
+            ->map($this->expandList(...))
+            ->otherwise(
+                fn() => $values
+                    ->get($name)
+                    ->map(function($value) {
+                        if ($this->explode) {
+                            return $this->explodeList([$value]);
+                        }
 
-        if (\is_array($variable)) {
-            return $this->expandList($variable);
-        }
+                        $value = Str::of($this->expression->encode($value));
 
-        if ($this->explode) {
-            return $this->explodeList([$variable]);
-        }
+                        if ($this->mustLimit()) {
+                            return \sprintf(
+                                '&%s=%s',
+                                $this->name->toString(),
+                                $value->take($this->limit)->toString(),
+                            );
+                        }
 
-        $value = Str::of($this->expression->encode($variable));
-
-        if ($this->mustLimit()) {
-            return "&{$this->name->toString()}={$value->take($this->limit)->toString()}";
-        }
-
-        return "&{$this->name->toString()}={$value->toString()}";
+                        return \sprintf(
+                            '&%s=%s',
+                            $this->name->toString(),
+                            $value->toString(),
+                        );
+                    }),
+            )
+            ->match(
+                static fn($value) => $value,
+                static fn() => '',
+            );
     }
 
     #[\Override]
