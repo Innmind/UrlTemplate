@@ -70,20 +70,9 @@ final class Template
         return self::attempt($template)->maybe();
     }
 
-    /**
-     * @param Map<non-empty-string, string|list<string>|list<array{string, string}>> $variables
-     */
-    public function expand(Map $variables): Url
+    public function expansion(): Expansion
     {
-        $url = $this->expressions->reduce(
-            $this->template,
-            static fn(Str $template, $expression) => $template->replace(
-                $expression->toString(),
-                $expression->expand($variables),
-            ),
-        );
-
-        return Url::of($url->toString());
+        return Expansion::of($this->template, $this->expressions);
     }
 
     /**

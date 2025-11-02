@@ -32,22 +32,22 @@ class TemplateTest extends TestCase
     #[DataProvider('cases')]
     public function testExpand($pattern, $expected)
     {
-        $variables = Map::of()
-            ('var', 'value')
-            ('hello', 'Hello World!')
-            ('path', '/foo/bar')
-            ('list', ['red', 'green', 'blue'])
-            ('keys', [['semi', ';'], ['dot', '.'], ['comma', ',']])
-            ('username', 'fred')
-            ('term', 'dog')
-            ('q', 'chien')
-            ('lang', 'fr')
-            ('x', '1024')
-            ('y', '768');
-
         $template = Template::of($pattern);
 
-        $url = $template->expand($variables);
+        $url = $template
+            ->expansion()
+            ->with('var', 'value')
+            ->with('hello', 'Hello World!')
+            ->with('path', '/foo/bar')
+            ->with('list', ['red', 'green', 'blue'])
+            ->with('keys', [['semi', ';'], ['dot', '.'], ['comma', ',']])
+            ->with('username', 'fred')
+            ->with('term', 'dog')
+            ->with('q', 'chien')
+            ->with('lang', 'fr')
+            ->with('x', '1024')
+            ->with('y', '768')
+            ->expand();
 
         $this->assertInstanceOf(Url::class, $url);
         $this->assertSame($expected, $url->toString());
