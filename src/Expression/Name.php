@@ -90,7 +90,7 @@ final class Name
     /**
      * @psalm-pure
      *
-     * @return Attempt<array{self, positive-int}>
+     * @return Attempt<array{self, int<1, max>}>
      */
     public static function limit(
         Str $value,
@@ -98,7 +98,7 @@ final class Name
     ): Attempt {
         /**
          * @psalm-suppress ArgumentTypeCoercion Because of the non-empty-string
-         * @var Attempt<array{self, positive-int}>
+         * @var Attempt<array{self, int<1, max>}>
          */
         return Maybe::just($value)
             ->filter($expansion->matchesLimit(...))

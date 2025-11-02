@@ -22,7 +22,7 @@ final class Level4 implements Expression
 {
     private Name $name;
     private Level1|Level2\Reserved $expression;
-    /** @var ?positive-int */
+    /** @var ?int<1, max> */
     private ?int $limit = null;
     private bool $explode = false;
     private Expansion $expansion;
@@ -53,7 +53,7 @@ final class Level4 implements Expression
     /**
      * @psalm-pure
      *
-     * @param positive-int $limit
+     * @param int<1, max> $limit
      */
     public static function limit(Name $name, int $limit): self
     {
@@ -187,7 +187,7 @@ final class Level4 implements Expression
     }
 
     /**
-     * @psalm-assert-if-true positive-int $this->limit
+     * @psalm-assert-if-true int<1, max> $this->limit
      */
     private function mustLimit(): bool
     {

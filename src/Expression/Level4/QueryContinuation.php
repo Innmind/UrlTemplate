@@ -25,7 +25,7 @@ use Innmind\Immutable\{
 final class QueryContinuation implements Expression
 {
     private Name $name;
-    /** @var ?positive-int */
+    /** @var ?int<1, max> */
     private ?int $limit = null;
     private bool $explode = false;
     private Level1 $expression;
@@ -55,7 +55,7 @@ final class QueryContinuation implements Expression
     /**
      * @psalm-pure
      *
-     * @param positive-int $limit
+     * @param int<1, max> $limit
      */
     public static function limit(Name $name, int $limit): self
     {
@@ -158,7 +158,7 @@ final class QueryContinuation implements Expression
     }
 
     /**
-     * @psalm-assert-if-true positive-int $this->limit
+     * @psalm-assert-if-true int<1, max> $this->limit
      */
     private function mustLimit(): bool
     {

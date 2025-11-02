@@ -25,7 +25,7 @@ final class Parse
      *
      * @param pure-callable(Name): T $standard
      * @param pure-callable(Name): T $explode
-     * @param pure-callable(Name, positive-int): T $limit
+     * @param pure-callable(Name, int<1, max>): T $limit
      *
      * @return Attempt<T>
      */
@@ -62,7 +62,7 @@ final class Parse
      * @psalm-pure
      * @template T of Expression
      *
-     * @param pure-callable(Name, positive-int): T $limit
+     * @param pure-callable(Name, int<1, max>): T $limit
      *
      * @return Attempt<T>
      */
