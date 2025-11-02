@@ -67,11 +67,11 @@ final class NamedValues implements Expression
     }
 
     #[\Override]
-    public function expand(Map $variables): string
+    public function expand(Map $values, Map $lists, Map $keys): string
     {
         $expanded = $this
             ->expressions
-            ->map(static fn($_, $expression) => $expression->expand($variables))
+            ->map(static fn($_, $expression) => $expression->expand($values, $lists, $keys))
             ->map(static fn($_, $expression) => Str::of($expression))
             ->toSequence()
             ->map(fn($pair) => match ([$pair->value()->empty(), $this->keyOnlyWhenEmpty]) {

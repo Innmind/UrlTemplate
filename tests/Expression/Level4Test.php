@@ -86,59 +86,61 @@ class Level4Test extends TestCase
 
     public function testExpand()
     {
-        $variables = Map::of()
+        $values = Map::of()
             ('var', 'value')
             ('hello', 'Hello World!')
-            ('path', '/foo/bar')
-            ('list', ['red', 'green', 'blue'])
+            ('path', '/foo/bar');
+        $lists = Map::of()
+            ('list', ['red', 'green', 'blue']);
+        $keys = Map::of()
             ('keys', [['semi', ';'], ['dot', '.'], ['comma', ',']]);
 
         $this->assertSame(
             'val',
             Level4::of(Str::of('{var:3}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             'value',
             Level4::of(Str::of('{var:30}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             '%2Ffoo',
             Level4::of(Str::of('{path:4}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             'red,green,blue',
             Level4::of(Str::of('{list}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             'red,green,blue',
             Level4::of(Str::of('{list*}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             'semi,%3B,dot,.,comma,%2C',
             Level4::of(Str::of('{keys}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             'semi=%3B,dot=.,comma=%2C',
             Level4::of(Str::of('{keys*}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );

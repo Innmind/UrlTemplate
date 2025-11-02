@@ -50,14 +50,14 @@ class ParametersTest extends TestCase
         $this->assertSame(
             ';x=1024;y=768',
             Parameters::of(Str::of('{;x,y}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($variables, Map::of(), Map::of()),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             ';x=1024;y=768;empty',
             Parameters::of(Str::of('{;x,y,empty}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($variables, Map::of(), Map::of()),
                 static fn() => null,
             ),
         );

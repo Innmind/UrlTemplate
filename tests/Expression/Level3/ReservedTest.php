@@ -50,14 +50,14 @@ class ReservedTest extends TestCase
         $this->assertSame(
             '1024,Hello%20World!,768',
             Reserved::of(Str::of('{+x,hello,y}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($variables, Map::of(), Map::of()),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             '/foo/bar,1024',
             Reserved::of(Str::of('{+path,x}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($variables, Map::of(), Map::of()),
                 static fn() => null,
             ),
         );

@@ -14,9 +14,11 @@ interface Expression
     public function expansion(): Expression\Expansion;
 
     /**
-     * @param Map<non-empty-string, string|list<string>|list<array{string, string}>> $variables
+     * @param Map<non-empty-string, string> $values
+     * @param Map<non-empty-string, list<string>> $lists
+     * @param Map<non-empty-string, list<array{string, string}>> $keys
      */
-    public function expand(Map $variables): string;
+    public function expand(Map $values, Map $lists, Map $keys): string;
     public function regex(): string;
     public function toString(): string;
 }

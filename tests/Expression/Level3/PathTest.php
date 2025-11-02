@@ -50,14 +50,14 @@ class PathTest extends TestCase
         $this->assertSame(
             '/value',
             Path::of(Str::of('{/var}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($variables, Map::of(), Map::of()),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             '/value/1024',
             Path::of(Str::of('{/var,x}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($variables, Map::of(), Map::of()),
                 static fn() => null,
             ),
         );

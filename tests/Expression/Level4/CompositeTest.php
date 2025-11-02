@@ -47,24 +47,26 @@ class CompositeTest extends TestCase
 
     public function testExpand()
     {
-        $variables = Map::of()
+        $values = Map::of()
             ('var', 'value')
             ('hello', 'Hello World!')
-            ('path', '/foo/bar')
-            ('list', ['red', 'green', 'blue'])
+            ('path', '/foo/bar');
+        $lists = Map::of()
+            ('list', ['red', 'green', 'blue']);
+        $keys = Map::of()
             ('keys', [['semi', ';'], ['dot', '.'], ['comma', ',']]);
 
         $this->assertSame(
             '/v/value',
             Composite::of(Str::of('{/var:1,var}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             '/red/green/blue/%2Ffoo',
             Composite::of(Str::of('{/list*,path:4}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );
@@ -73,11 +75,13 @@ class CompositeTest extends TestCase
     #[DataProvider('cases')]
     public function testOf($pattern, $expected)
     {
-        $variables = Map::of()
+        $values = Map::of()
             ('var', 'value')
             ('hello', 'Hello World!')
-            ('path', '/foo/bar')
-            ('list', ['red', 'green', 'blue'])
+            ('path', '/foo/bar');
+        $lists = Map::of()
+            ('list', ['red', 'green', 'blue']);
+        $keys = Map::of()
             ('keys', [['semi', ';'], ['dot', '.'], ['comma', ',']]);
 
         $expression = Composite::of(Str::of($pattern))->match(
@@ -86,7 +90,7 @@ class CompositeTest extends TestCase
         );
 
         $this->assertSame($pattern, $expression->toString());
-        $this->assertSame($expected, $expression->expand($variables));
+        $this->assertSame($expected, $expression->expand($values, $lists, $keys));
     }
 
     public function testReturnNothingWhenInvalidPattern()

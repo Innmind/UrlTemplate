@@ -86,45 +86,47 @@ class QueryTest extends TestCase
 
     public function testExpand()
     {
-        $variables = Map::of()
+        $values = Map::of()
             ('var', 'value')
             ('hello', 'Hello World!')
-            ('path', '/foo/bar')
-            ('list', ['red', 'green', 'blue'])
+            ('path', '/foo/bar');
+        $lists = Map::of()
+            ('list', ['red', 'green', 'blue']);
+        $keys = Map::of()
             ('keys', [['semi', ';'], ['dot', '.'], ['comma', ',']]);
 
         $this->assertSame(
             '?var=val',
             Query::of(Str::of('{?var:3}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             '?list=red,green,blue',
             Query::of(Str::of('{?list}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             '?list=red&list=green&list=blue',
             Query::of(Str::of('{?list*}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             '?keys=semi,%3B,dot,.,comma,%2C',
             Query::of(Str::of('{?keys}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             '?semi=%3B&dot=.&comma=%2C',
             Query::of(Str::of('{?keys*}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );

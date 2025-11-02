@@ -83,8 +83,16 @@ final class Query implements Expression
     }
 
     #[\Override]
-    public function expand(Map $variables): string
+    public function expand(Map $values, Map $lists, Map $keys): string
     {
+        // todo break up
+        /**
+         * @psalm-suppress InvalidArgument
+         * @var Map<non-empty-string, string|list<string>|list<array{string, string}>>
+         */
+        $variables = $values
+            ->merge($lists)
+            ->merge($keys);
         $variable = $variables->get($this->name->toString())->match(
             static fn($variable) => $variable,
             static fn() => null,
@@ -95,14 +103,14 @@ final class Query implements Expression
         }
 
         if (\is_array($variable)) {
-            return $this->expandList($variables, $variable);
+            return $this->expandList($values, $lists, $keys, $variable);
         }
 
         if ($this->explode) {
-            return $this->explodeList($variables, [$variable]);
+            return $this->explodeList($values, $lists, $keys, [$variable]);
         }
 
-        $value = Str::of($this->expression->expand($variables));
+        $value = Str::of($this->expression->expand($values, $lists, $keys));
 
         if ($this->mustLimit()) {
             return "?{$this->name->toString()}={$value->take($this->limit)->toString()}";
@@ -158,13 +166,19 @@ final class Query implements Expression
     }
 
     /**
-     * @param Map<non-empty-string, string|list<string>|list<array{string, string}>> $variables
+     * @param Map<non-empty-string, string> $values
+     * @param Map<non-empty-string, list<string>> $lists
+     * @param Map<non-empty-string, list<array{string, string}>> $keys
      * @param list<string>|list<array{string, string}> $variablesToExpand
      */
-    private function expandList(Map $variables, array $variablesToExpand): string
-    {
+    private function expandList(
+        Map $values,
+        Map $lists,
+        Map $keys,
+        array $variablesToExpand,
+    ): string {
         if ($this->explode) {
-            return $this->explodeList($variables, $variablesToExpand);
+            return $this->explodeList($values, $lists, $keys, $variablesToExpand);
         }
 
         $flattenedVariables = Sequence::of(...$variablesToExpand)->flatMap(
@@ -178,13 +192,13 @@ final class Query implements Expression
                 return Sequence::of($variableToExpand);
             },
         );
-        $expanded = $flattenedVariables->map(function($variableToExpand) use ($variables): string {
+        $expanded = $flattenedVariables->map(function($variableToExpand) use ($values, $lists, $keys): string {
             // here we use the level1 expression to transform the variable to
             // be expanded to its string representation
 
-            $variables = ($variables)($this->name->toString(), $variableToExpand);
+            $values = ($values)($this->name->toString(), $variableToExpand);
 
-            return $this->expression->expand($variables);
+            return $this->expression->expand($values, $lists, $keys);
         });
 
         return Str::of(',')
@@ -194,11 +208,17 @@ final class Query implements Expression
     }
 
     /**
-     * @param Map<non-empty-string, string|list<string>|list<array{string, string}>> $variables
+     * @param Map<non-empty-string, string> $values
+     * @param Map<non-empty-string, list<string>> $lists
+     * @param Map<non-empty-string, list<array{string, string}>> $keys
      * @param list<string>|list<array{string, string}> $variablesToExpand
      */
-    private function explodeList(Map $variables, array $variablesToExpand): string
-    {
+    private function explodeList(
+        Map $values,
+        Map $lists,
+        Map $keys,
+        array $variablesToExpand,
+    ): string {
         $expanded = Sequence::of(...$variablesToExpand)
             ->map(fn($value) => match (true) {
                 \is_string($value) => [$this->name, $value],
@@ -209,10 +229,12 @@ final class Query implements Expression
             })
             ->map(static fn($pair) => [
                 $pair[0],
-                ($variables)($pair[0]->toString(), $pair[1]),
+                ($values)($pair[0]->toString(), $pair[1]),
             ])
             ->map(static fn($pair) => Level3\Query::named($pair[0])->expand(
                 $pair[1],
+                $lists,
+                $keys,
             ))
             ->map(Str::of(...))
             ->map(static fn($value) => $value->drop(1)->toString()); // to remove the '?' as it should be a '&' done below in the join

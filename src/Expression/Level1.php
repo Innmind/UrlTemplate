@@ -54,14 +54,12 @@ final class Level1 implements Expression
     }
 
     #[\Override]
-    public function expand(Map $variables): string
+    public function expand(Map $values, Map $lists, Map $keys): string
     {
-        /** @psalm-suppress InvalidArgument Because of the filter */
-        return $variables
+        return $values
             ->get($this->name->toString())
-            ->filter(\is_string(...))
             ->match(
-                fn(string $variable) => ($this->encode)($variable),
+                $this->encode,
                 static fn() => '',
             );
     }

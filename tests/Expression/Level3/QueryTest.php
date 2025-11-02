@@ -50,14 +50,14 @@ class QueryTest extends TestCase
         $this->assertSame(
             '?x=1024&y=768',
             Query::of(Str::of('{?x,y}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($variables, Map::of(), Map::of()),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             '?x=1024&y=768&empty=',
             Query::of(Str::of('{?x,y,empty}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($variables, Map::of(), Map::of()),
                 static fn() => null,
             ),
         );

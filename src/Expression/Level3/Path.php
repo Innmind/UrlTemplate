@@ -55,11 +55,11 @@ final class Path implements Expression
     }
 
     #[\Override]
-    public function expand(Map $variables): string
+    public function expand(Map $values, Map $lists, Map $keys): string
     {
         return Str::of('/')
             ->join($this->expressions->map(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
             ))
             ->prepend('/')
             ->toString();

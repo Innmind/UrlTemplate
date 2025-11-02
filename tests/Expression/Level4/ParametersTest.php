@@ -86,45 +86,47 @@ class ParametersTest extends TestCase
 
     public function testExpand()
     {
-        $variables = Map::of()
+        $values = Map::of()
             ('var', 'value')
             ('hello', 'Hello World!')
-            ('path', '/foo/bar')
-            ('list', ['red', 'green', 'blue'])
+            ('path', '/foo/bar');
+        $lists = Map::of()
+            ('list', ['red', 'green', 'blue']);
+        $keys = Map::of()
             ('keys', [['semi', ';'], ['dot', '.'], ['comma', ',']]);
 
         $this->assertSame(
             ';hello=Hello',
             Parameters::of(Str::of('{;hello:5}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             ';list=red,green,blue',
             Parameters::of(Str::of('{;list}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             ';list=red;list=green;list=blue',
             Parameters::of(Str::of('{;list*}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             ';keys=semi,%3B,dot,.,comma,%2C',
             Parameters::of(Str::of('{;keys}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             ';semi=%3B;dot=.;comma=%2C',
             Parameters::of(Str::of('{;keys*}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );

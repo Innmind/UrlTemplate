@@ -52,12 +52,30 @@ final class Expansion
 
     public function expand(): Url
     {
-        $variables = $this->variables;
+        /** @var Map<non-empty-string, string> */
+        $values = $this->variables->filter(
+            static fn($_, $value) => \is_string($value),
+        );
+        /** @var Map<non-empty-string, list<string>> */
+        $lists = $this->variables->filter(
+            static fn($_, $value) => \is_array($value) && \array_all(
+                $value,
+                static fn($value) => \is_string($value),
+            ),
+        );
+        /** @var Map<non-empty-string, list<array{string, string}>> */
+        $keys = $this->variables->filter(
+            static fn($_, $value) => \is_array($value) && \array_all(
+                $value,
+                static fn($value) => \is_array($value),
+            ),
+        );
+
         $url = $this->expressions->reduce(
             $this->template,
             static fn(Str $template, $expression) => $template->replace(
                 $expression->toString(),
-                $expression->expand($variables),
+                $expression->expand($values, $lists, $keys),
             ),
         );
 

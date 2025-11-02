@@ -88,9 +88,9 @@ final class Fragment implements Expression
     }
 
     #[\Override]
-    public function expand(Map $variables): string
+    public function expand(Map $values, Map $lists, Map $keys): string
     {
-        return $this->expression->expand($variables);
+        return $this->expression->expand($values, $lists, $keys);
     }
 
     #[\Override]

@@ -46,11 +46,17 @@ class Level1Test extends TestCase
 
         $this->assertSame('value', $expression->expand(
             Map::of(['foo', 'value']),
+            Map::of(),
+            Map::of(),
         ));
         $this->assertSame('Hello%20World%21', $expression->expand(
             Map::of(['foo', 'Hello World!']),
+            Map::of(),
+            Map::of(),
         ));
         $this->assertSame('', $expression->expand(
+            Map::of(),
+            Map::of(),
             Map::of(),
         ));
     }
@@ -94,7 +100,9 @@ class Level1Test extends TestCase
         );
 
         $this->assertSame('', $expression->expand(
+            Map::of(),
             Map::of(['foo', ['value']]),
+            Map::of(),
         ));
     }
 }

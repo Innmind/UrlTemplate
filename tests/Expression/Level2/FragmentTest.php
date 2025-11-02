@@ -46,14 +46,22 @@ class FragmentTest extends TestCase
 
         $this->assertSame('#value', $expression->expand(
             Map::of(['foo', 'value']),
+            Map::of(),
+            Map::of(),
         ));
         $this->assertSame('#Hello%20World!', $expression->expand(
             Map::of(['foo', 'Hello World!']),
+            Map::of(),
+            Map::of(),
         ));
         $this->assertSame('#/foo/bar', $expression->expand(
             Map::of(['foo', '/foo/bar']),
+            Map::of(),
+            Map::of(),
         ));
         $this->assertSame('', $expression->expand(
+            Map::of(),
+            Map::of(),
             Map::of(),
         ));
     }
@@ -97,7 +105,9 @@ class FragmentTest extends TestCase
         );
 
         $this->assertSame('', $expression->expand(
+            Map::of(),
             Map::of(['foo', ['value']]),
+            Map::of(),
         ));
     }
 }

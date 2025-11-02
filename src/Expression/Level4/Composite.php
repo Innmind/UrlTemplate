@@ -70,10 +70,10 @@ final class Composite implements Expression
     }
 
     #[\Override]
-    public function expand(Map $variables): string
+    public function expand(Map $values, Map $lists, Map $keys): string
     {
         $expanded = $this->expressions->map(
-            static fn($expression) => $expression->expand($variables),
+            static fn($expression) => $expression->expand($values, $lists, $keys),
         );
 
         //potentially remove the lead characters from the expressions except for
