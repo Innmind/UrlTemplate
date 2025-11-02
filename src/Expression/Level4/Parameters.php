@@ -103,14 +103,18 @@ final class Parameters implements Expression
         }
 
         if (\is_array($variable)) {
-            return $this->expandList($values, $lists, $keys, $variable);
+            return $this->expandList($variable);
         }
 
         if ($this->explode) {
-            return $this->explodeList($values, $lists, $keys, [$variable]);
+            return $this->explodeList([$variable]);
         }
 
-        $value = Str::of($this->expression->expand($values, $lists, $keys));
+        $value = Str::of($this->expression->expand(
+            $values,
+            Map::of(),
+            Map::of(),
+        ));
 
         if ($this->mustLimit()) {
             return ";{$this->name->toString()}={$value->take($this->limit)->toString()}";
@@ -166,19 +170,12 @@ final class Parameters implements Expression
     }
 
     /**
-     * @param Map<non-empty-string, string> $values
-     * @param Map<non-empty-string, list<string>> $lists
-     * @param Map<non-empty-string, list<array{string, string}>> $keys
      * @param list<string>|list<array{string, string}> $variablesToExpand
      */
-    private function expandList(
-        Map $values,
-        Map $lists,
-        Map $keys,
-        array $variablesToExpand,
-    ): string {
+    private function expandList(array $variablesToExpand): string
+    {
         if ($this->explode) {
-            return $this->explodeList($values, $lists, $keys, $variablesToExpand);
+            return $this->explodeList($variablesToExpand);
         }
 
         $flattenedVariables = Sequence::of(...$variablesToExpand)->flatMap(
@@ -193,12 +190,14 @@ final class Parameters implements Expression
             },
         );
         $expanded = $flattenedVariables->map(
-            function($variableToExpand) use ($values, $lists, $keys): string {
+            function($variableToExpand): string {
                 // here we use the level1 expression to transform the variable to
                 // be expanded to its string representation
-                $values = ($values)($this->name->toString(), $variableToExpand);
-
-                return $this->expression->expand($values, $lists, $keys);
+                return $this->expression->expand(
+                    Map::of([$this->name->toString(), $variableToExpand]),
+                    Map::of(),
+                    Map::of(),
+                );
             },
         );
 
@@ -209,17 +208,10 @@ final class Parameters implements Expression
     }
 
     /**
-     * @param Map<non-empty-string, string> $values
-     * @param Map<non-empty-string, list<string>> $lists
-     * @param Map<non-empty-string, list<array{string, string}>> $keys
      * @param list<string>|list<array{string, string}> $variablesToExpand
      */
-    private function explodeList(
-        Map $values,
-        Map $lists,
-        Map $keys,
-        array $variablesToExpand,
-    ): string {
+    private function explodeList(array $variablesToExpand): string
+    {
         $expanded = Sequence::of(...$variablesToExpand)
             ->map(fn($value) => match (true) {
                 \is_string($value) => [$this->name, $value],
@@ -228,14 +220,10 @@ final class Parameters implements Expression
                     $value[1],
                 ],
             })
-            ->map(static fn($pair) => [
-                $pair[0],
-                ($values)($pair[0]->toString(), $pair[1]),
-            ])
             ->map(static fn($pair) => Level3\Parameters::named($pair[0])->expand(
-                $pair[1],
-                $lists,
-                $keys,
+                Map::of([$pair[0]->toString(), $pair[1]]),
+                Map::of(),
+                Map::of(),
             ));
 
         return Str::of('')->join($expanded)->toString();
