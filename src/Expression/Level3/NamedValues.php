@@ -23,8 +23,8 @@ final class NamedValues
     private Expansion $expansion;
     /** @var Sequence<Name> */
     private Sequence $names;
-    /** @var Map<string, Level1> */
-    private Map $expressions;
+    /** @var Sequence<Level1> */
+    private Sequence $expressions;
     private bool $keyOnlyWhenEmpty = false;
 
     /**
@@ -34,16 +34,7 @@ final class NamedValues
     {
         $this->expansion = $expansion;
         $this->names = $names;
-        /** @var Map<string, Level1> */
-        $this->expressions = Map::of(
-            ...$this
-                ->names
-                ->map(static fn($name) => [
-                    $name->toString(),
-                    Level1::named($name),
-                ])
-                ->toList(),
-        );
+        $this->expressions = $names->map(Level1::named(...));
     }
 
     /**
@@ -68,15 +59,16 @@ final class NamedValues
     {
         $expanded = $this
             ->expressions
-            ->map(static fn($_, $expression) => $expression->expand($values, $lists, $keys))
-            ->map(static fn($_, $expression) => Str::of($expression))
-            ->toSequence()
-            ->map(fn($pair) => match ([$pair->value()->empty(), $this->keyOnlyWhenEmpty]) {
-                [true, true] => $pair->key(),
+            ->map(static fn($expression) => [
+                $expression->name()->toString(),
+                Str::of($expression->expand($values, $lists, $keys)),
+            ])
+            ->map(fn($pair) => match ([$pair[1]->empty(), $this->keyOnlyWhenEmpty]) {
+                [true, true] => $pair[0],
                 default => \sprintf(
                     '%s=%s',
-                    $pair->key(),
-                    $pair->value()->toString(),
+                    $pair[0],
+                    $pair[1]->toString(),
                 ),
             });
 

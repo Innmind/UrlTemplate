@@ -47,6 +47,11 @@ final class Level1 implements Expression
         return new self($name);
     }
 
+    public function name(): Name
+    {
+        return $this->name;
+    }
+
     #[\Override]
     public function expansion(): Expansion
     {
