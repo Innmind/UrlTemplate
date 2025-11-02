@@ -13,7 +13,7 @@ use Innmind\UrlTemplate\{
 use Innmind\Immutable\{
     Map,
     Str,
-    Maybe,
+    Attempt,
 };
 
 /**
@@ -34,9 +34,9 @@ final class Fragment implements Expression
     /**
      * @psalm-pure
      *
-     * @return Maybe<self>
+     * @return Attempt<self>
      */
-    public static function of(Str $string): Maybe
+    public static function of(Str $string): Attempt
     {
         return Parse::of(
             $string,

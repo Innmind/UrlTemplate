@@ -8,7 +8,7 @@ use Innmind\Immutable\{
     Map,
     Sequence,
     Str,
-    Maybe,
+    Attempt,
 };
 
 /**
@@ -34,13 +34,13 @@ final class Level3 implements Expression
     /**
      * @psalm-pure
      *
-     * @return Maybe<self>
+     * @return Attempt<self>
      */
-    public static function of(Str $string): Maybe
+    public static function of(Str $string): Attempt
     {
-        return Name::many($string, Expansion::simple)->map(
-            static fn($names) => new self($names),
-        );
+        return Name::many($string, Expansion::simple)
+            ->map(static fn($names) => new self($names))
+            ->attempt(static fn() => new \LogicException('Cannot parse level 3'));
     }
 
     #[\Override]

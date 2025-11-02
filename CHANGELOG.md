@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `Innmind\UrlTemplate\Template::attempt()`
+
 ### Changed
 
 - Requires `innmind/immutable:~5.18`

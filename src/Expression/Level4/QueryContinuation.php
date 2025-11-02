@@ -15,7 +15,7 @@ use Innmind\Immutable\{
     Map,
     Str,
     Sequence,
-    Maybe,
+    Attempt,
 };
 
 /**
@@ -39,9 +39,9 @@ final class QueryContinuation implements Expression
     /**
      * @psalm-pure
      *
-     * @return Maybe<self>
+     * @return Attempt<self>
      */
-    public static function of(Str $string): Maybe
+    public static function of(Str $string): Attempt
     {
         return Parse::of(
             $string,

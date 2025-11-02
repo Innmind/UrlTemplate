@@ -13,6 +13,7 @@ use Innmind\Immutable\{
     Sequence,
     Str,
     Maybe,
+    Attempt,
 };
 
 /**
@@ -42,9 +43,20 @@ final class Template
      */
     public static function of(string $template): self
     {
-        return self::maybe($template)->match(
-            static fn($self) => $self,
-            static fn() => throw new DomainException($template),
+        return self::attempt($template)->unwrap();
+    }
+
+    /**
+     * @psalm-pure
+     *
+     *  @return Attempt<self>
+     */
+    public static function attempt(string $template): Attempt
+    {
+        $template = Str::of($template);
+
+        return self::parse($template)->map(
+            static fn($expressions) => new self($template, $expressions),
         );
     }
 
@@ -55,11 +67,7 @@ final class Template
      */
     public static function maybe(string $template): Maybe
     {
-        $template = Str::of($template);
-
-        return self::parse($template)->map(
-            static fn($expressions) => new self($template, $expressions),
-        );
+        return self::attempt($template)->maybe();
     }
 
     /**
@@ -143,9 +151,9 @@ final class Template
      * Recursively find the expressions as Str::capture doesnt capture all of
      * them at the same time
      *
-     * @return Maybe<Sequence<Expression>>
+     * @return Attempt<Sequence<Expression>>
      */
-    private static function parse(Str $template): Maybe
+    private static function parse(Str $template): Attempt
     {
         /** @var Sequence<Str> */
         $expressions = Sequence::of();
@@ -164,14 +172,12 @@ final class Template
                 );
         } while (!$captured->empty());
 
-        /** @var Maybe<Sequence<Expression>> */
+        /** @var Sequence<Expression> */
+        $parsed = Sequence::of();
+
         return $expressions
             ->map(Expressions::of(...))
-            ->match(
-                static fn($first, $rest) => Maybe::all($first, ...$rest->toList())->map(
-                    Sequence::of(...),
-                ),
-                static fn() => Maybe::just(Sequence::of()),
-            );
+            ->sink($parsed)
+            ->attempt(static fn($expressions, $expression) => $expression->map($expressions));
     }
 }

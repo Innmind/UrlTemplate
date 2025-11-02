@@ -6,7 +6,7 @@ namespace Innmind\UrlTemplate;
 use Innmind\Immutable\{
     Sequence,
     Str,
-    Maybe,
+    Attempt,
 };
 
 /**
@@ -18,24 +18,27 @@ final class Expressions
     /**
      * @psalm-pure
      *
-     * @return Maybe<Expression>
+     * @return Attempt<Expression>
      */
-    public static function of(Str $string): Maybe
+    public static function of(Str $string): Attempt
     {
         return self::expressions()
             ->lookup()
             ->first()
-            ->maybe(static fn($expression) => $expression($string));
+            ->attempt(
+                new \LogicException('Failed to parse template'),
+                static fn($expression) => $expression($string),
+            );
     }
 
     /**
      * @psalm-pure
      *
-     * @return Sequence<callable(Str): Maybe<Expression>>
+     * @return Sequence<callable(Str): Attempt<Expression>>
      */
     private static function expressions(): Sequence
     {
-        /** @var Sequence<callable(Str): Maybe<Expression>> */
+        /** @var Sequence<callable(Str): Attempt<Expression>> */
         return Sequence::of(
             Expression\Level4::of(...),
             Expression\Level4\Reserved::of(...),

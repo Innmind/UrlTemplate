@@ -11,7 +11,7 @@ use Innmind\Immutable\{
     Map,
     Str,
     Sequence,
-    Maybe,
+    Attempt,
 };
 
 /**
@@ -37,9 +37,9 @@ final class Level4 implements Expression
     /**
      * @psalm-pure
      *
-     * @return Maybe<self>
+     * @return Attempt<self>
      */
-    public static function of(Str $string): Maybe
+    public static function of(Str $string): Attempt
     {
         return Level4\Parse::of(
             $string,

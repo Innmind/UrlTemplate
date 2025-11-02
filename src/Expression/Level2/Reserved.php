@@ -12,7 +12,7 @@ use Innmind\UrlTemplate\{
 use Innmind\Immutable\{
     Map,
     Str,
-    Maybe,
+    Attempt,
 };
 
 /**
@@ -33,13 +33,13 @@ final class Reserved implements Expression
     /**
      * @psalm-pure
      *
-     * @return Maybe<self>
+     * @return Attempt<self>
      */
-    public static function of(Str $string): Maybe
+    public static function of(Str $string): Attempt
     {
-        return Name::one($string, Expansion::reserved)->map(
-            static fn($name) => new self($name),
-        );
+        return Name::one($string, Expansion::reserved)
+            ->map(static fn($name) => new self($name))
+            ->attempt(static fn() => new \LogicException('Cannot parse level 2'));
     }
 
     /**

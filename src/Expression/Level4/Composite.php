@@ -13,6 +13,7 @@ use Innmind\Immutable\{
     Sequence,
     Str,
     Maybe,
+    Attempt,
 };
 
 /**
@@ -37,18 +38,20 @@ final class Composite implements Expression
     /**
      * @psalm-pure
      *
-     * @return Maybe<self>
+     * @return Attempt<self>
      */
-    public static function of(Str $string): Maybe
+    public static function of(Str $string): Attempt
     {
         return Maybe::just($string)
             ->filter(Expansion::matchesLevel4(...))
             ->map(Expansion::simple->clean(...))
             ->map(static fn($string) => $string->split(','))
+            ->attempt(static fn() => new \LogicException('Cannot parse level 4 composite'))
             ->flatMap(
                 static fn($expressions) => $expressions
                     ->first()
                     ->map(static fn($first) => $first->prepend('{')->append('}'))
+                    ->attempt(static fn() => new \LogicException('First expression not found'))
                     ->flatMap(Expressions::of(...))
                     ->flatMap(
                         static fn($first) => self::parse($first, $expressions->drop(1))
@@ -149,20 +152,18 @@ final class Composite implements Expression
      *
      * @param Sequence<Str> $expressions
      *
-     * @return Maybe<Sequence<Expression>>
+     * @return Attempt<Sequence<Expression>>
      */
-    private static function parse(Expression $first, Sequence $expressions): Maybe
+    private static function parse(Expression $first, Sequence $expressions): Attempt
     {
-        /** @var Maybe<Sequence<Expression>> */
-        return Maybe::all(
-            Maybe::just($first),
-            ...$expressions
-                ->map(static fn($expression) => $expression->prepend($first->expansion()->continuation()->toString()))
-                ->map(static fn($expression) => $expression->prepend('{')->append('}'))
-                ->map(Expressions::of(...))
-                ->toList(),
-        )
-            ->map(Sequence::of(...));
+        return $expressions
+            ->map(static fn($expression) => $expression->prepend(
+                $first->expansion()->continuation()->toString(),
+            ))
+            ->map(static fn($expression) => $expression->prepend('{')->append('}'))
+            ->map(Expressions::of(...))
+            ->sink(Sequence::of($first))
+            ->attempt(static fn($expressions, $expression) => $expression->map($expressions));
     }
 
     private function removeLead(): bool
