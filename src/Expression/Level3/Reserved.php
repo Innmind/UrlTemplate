@@ -24,7 +24,7 @@ final class Reserved implements Expression
 {
     /** @var Sequence<Name> */
     private Sequence $names;
-    /** @var Sequence<Expression> */
+    /** @var Sequence<Level2\Reserved> */
     private Sequence $expressions;
 
     /**
@@ -33,7 +33,7 @@ final class Reserved implements Expression
     private function __construct(Sequence $names)
     {
         $this->names = $names;
-        /** @var Sequence<Expression> */
+        /** @var Sequence<Level2\Reserved> */
         $this->expressions = $this->names->map(Level2\Reserved::named(...));
     }
 

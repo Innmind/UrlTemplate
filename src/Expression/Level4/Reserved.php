@@ -27,7 +27,7 @@ final class Reserved implements Expression
     /** @var ?positive-int */
     private ?int $limit = null;
     private bool $explode = false;
-    private Expression $expression;
+    private Level4 $expression;
 
     private function __construct(Name $name)
     {

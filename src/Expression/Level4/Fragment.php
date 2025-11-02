@@ -22,7 +22,7 @@ use Innmind\Immutable\{
  */
 final class Fragment implements Expression
 {
-    private Expression $expression;
+    private Level4 $expression;
 
     private function __construct(Name $name)
     {

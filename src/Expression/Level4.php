@@ -21,7 +21,7 @@ use Innmind\Immutable\{
 final class Level4 implements Expression
 {
     private Name $name;
-    private Expression $expression;
+    private Level1|Level2\Reserved $expression;
     /** @var ?positive-int */
     private ?int $limit = null;
     private bool $explode = false;
@@ -100,7 +100,7 @@ final class Level4 implements Expression
      * Not ideal technic but didn't find a better to reduce duplicated code
      * @internal
      *
-     * @param pure-callable(Name): Expression $expression
+     * @param pure-callable(Name): Level2\Reserved $expression
      */
     public function withExpression(callable $expression): self
     {

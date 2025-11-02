@@ -21,7 +21,7 @@ use Innmind\Immutable\{
  */
 final class Parameters implements Expression
 {
-    private Expression $expression;
+    private NamedValues $expression;
 
     /**
      * @param Sequence<Name> $names

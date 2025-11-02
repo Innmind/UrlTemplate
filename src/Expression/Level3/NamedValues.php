@@ -24,7 +24,7 @@ final class NamedValues implements Expression
     private Expansion $expansion;
     /** @var Sequence<Name> */
     private Sequence $names;
-    /** @var Map<string, Expression> */
+    /** @var Map<string, Level1> */
     private Map $expressions;
     private bool $keyOnlyWhenEmpty = false;
 
@@ -35,7 +35,7 @@ final class NamedValues implements Expression
     {
         $this->expansion = $expansion;
         $this->names = $names;
-        /** @var Map<string, Expression> */
+        /** @var Map<string, Level1> */
         $this->expressions = Map::of(
             ...$this
                 ->names

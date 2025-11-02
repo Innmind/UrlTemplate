@@ -24,7 +24,7 @@ final class Label implements Expression
 {
     /** @var Sequence<Name> */
     private Sequence $names;
-    /** @var Sequence<Expression> */
+    /** @var Sequence<Level1> */
     private Sequence $expressions;
 
     /**
@@ -33,7 +33,7 @@ final class Label implements Expression
     private function __construct(Sequence $names)
     {
         $this->names = $names;
-        /** @var Sequence<Expression> */
+        /** @var Sequence<Level1> */
         $this->expressions = $this->names->map(Level1::named(...));
     }
 

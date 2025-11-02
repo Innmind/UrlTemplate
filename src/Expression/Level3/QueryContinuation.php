@@ -21,7 +21,7 @@ use Innmind\Immutable\{
  */
 final class QueryContinuation implements Expression
 {
-    private Expression $expression;
+    private NamedValues $expression;
 
     /**
      * @param Sequence<Name> $names
