@@ -22,16 +22,10 @@ final class Expressions
      */
     public static function of(Str $string): Maybe
     {
-        /**
-         * @psalm-suppress MixedReturnTypeCoercion
-         * @var Maybe<Expression>
-         */
-        return self::expressions()->reduce(
-            Maybe::nothing(),
-            static fn(Maybe $expression, $attempt) => $expression->otherwise(
-                static fn() => $attempt($string),
-            ),
-        );
+        return self::expressions()
+            ->lookup()
+            ->first()
+            ->maybe(static fn($expression) => $expression($string));
     }
 
     /**

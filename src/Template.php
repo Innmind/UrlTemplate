@@ -69,12 +69,10 @@ final class Template
     {
         $url = $this->expressions->reduce(
             $this->template,
-            static function(Str $template, Expression $expression) use ($variables): Str {
-                return $template->replace(
-                    $expression->toString(),
-                    $expression->expand($variables),
-                );
-            },
+            static fn(Str $template, $expression) => $template->replace(
+                $expression->toString(),
+                $expression->expand($variables),
+            ),
         );
 
         return Url::of($url->toString());

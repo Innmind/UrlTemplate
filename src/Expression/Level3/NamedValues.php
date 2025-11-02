@@ -69,19 +69,19 @@ final class NamedValues implements Expression
     #[\Override]
     public function expand(Map $variables): string
     {
-        /** @var Sequence<string> */
-        $expanded = $this->expressions->reduce(
-            Sequence::strings(),
-            function(Sequence $expanded, string $name, Expression $expression) use ($variables): Sequence {
-                $value = Str::of($expression->expand($variables));
-
-                if ($value->empty() && $this->keyOnlyWhenEmpty) {
-                    return ($expanded)($name);
-                }
-
-                return ($expanded)("$name={$value->toString()}");
-            },
-        );
+        $expanded = $this
+            ->expressions
+            ->map(static fn($_, $expression) => $expression->expand($variables))
+            ->map(static fn($_, $expression) => Str::of($expression))
+            ->toSequence()
+            ->map(fn($pair) => match ([$pair->value()->empty(), $this->keyOnlyWhenEmpty]) {
+                [true, true] => $pair->key(),
+                default => \sprintf(
+                    '%s=%s',
+                    $pair->key(),
+                    $pair->value()->toString(),
+                ),
+            });
 
         return Str::of($this->expansion->continuation()->toString())
             ->join($expanded)
