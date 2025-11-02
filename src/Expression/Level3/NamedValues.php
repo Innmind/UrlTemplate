@@ -3,11 +3,10 @@ declare(strict_types = 1);
 
 namespace Innmind\UrlTemplate\Expression\Level3;
 
-use Innmind\UrlTemplate\{
-    Expression,
-    Expression\Name,
-    Expression\Expansion,
-    Expression\Level1,
+use Innmind\UrlTemplate\Expression\{
+    Name,
+    Expansion,
+    Level1,
 };
 use Innmind\Immutable\{
     Map,
@@ -19,7 +18,7 @@ use Innmind\Immutable\{
  * @psalm-immutable
  * @internal
  */
-final class NamedValues implements Expression
+final class NamedValues
 {
     private Expansion $expansion;
     /** @var Sequence<Name> */
@@ -60,13 +59,16 @@ final class NamedValues implements Expression
         return $self;
     }
 
-    #[\Override]
     public function expansion(): Expansion
     {
         return $this->expansion;
     }
 
-    #[\Override]
+    /**
+     * @param Map<non-empty-string, string> $values
+     * @param Map<non-empty-string, list<string>> $lists
+     * @param Map<non-empty-string, list<array{string, string}>> $keys
+     */
     public function expand(Map $values, Map $lists, Map $keys): string
     {
         $expanded = $this
@@ -89,7 +91,6 @@ final class NamedValues implements Expression
             ->toString();
     }
 
-    #[\Override]
     public function regex(): string
     {
         return Str::of($this->expansion->continuation()->regex())
@@ -105,7 +106,6 @@ final class NamedValues implements Expression
             ->toString();
     }
 
-    #[\Override]
     public function toString(): string
     {
         /** @psalm-suppress InvalidArgument */
