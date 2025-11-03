@@ -53,7 +53,7 @@ final class NamedValues
     /**
      * @param Map<non-empty-string, string> $values
      * @param Map<non-empty-string, list<string>> $lists
-     * @param Map<non-empty-string, list<array{string, string}>> $keys
+     * @param Map<non-empty-string, list<array{Name, string}>> $keys
      */
     public function expand(Map $values, Map $lists, Map $keys): string
     {

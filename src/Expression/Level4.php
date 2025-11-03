@@ -189,7 +189,7 @@ final class Level4 implements Expression
     }
 
     /**
-     * @param list<string>|list<array{string, string}> $variablesToExpand
+     * @param list<string>|list<array{Name, string}> $variablesToExpand
      */
     private function expandList(array $variablesToExpand): string
     {
@@ -202,7 +202,7 @@ final class Level4 implements Expression
                 if (\is_array($variableToExpand)) {
                     [$name, $variableToExpand] = $variableToExpand;
 
-                    return Sequence::of($name, $variableToExpand);
+                    return Sequence::of($name->toString(), $variableToExpand);
                 }
 
                 return Sequence::of($variableToExpand);
@@ -222,7 +222,7 @@ final class Level4 implements Expression
     }
 
     /**
-     * @param list<string>|list<array{string, string}> $variablesToExpand
+     * @param list<string>|list<array{Name, string}> $variablesToExpand
      */
     private function explodeList(array $variablesToExpand): string
     {
@@ -238,7 +238,7 @@ final class Level4 implements Expression
                 \is_string($value) => $value,
                 default => \sprintf(
                     '%s=%s',
-                    Name::of($value[0])->toString(), // todo move verification earlier on
+                    $value[0]->toString(),
                     $value[1],
                 ),
             });

@@ -3,6 +3,7 @@ declare(strict_types = 1);
 
 namespace Innmind\UrlTemplate;
 
+use Innmind\UrlTemplate\Expression\Name;
 use Innmind\Url\Url;
 use Innmind\Immutable\{
     Sequence,
@@ -63,13 +64,17 @@ final class Expansion
                 static fn($value) => \is_string($value),
             ),
         );
-        /** @var Map<non-empty-string, list<array{string, string}>> */
-        $keys = $this->variables->filter(
-            static fn($_, $value) => \is_array($value) && \array_all(
+        /** @var Map<non-empty-string, list<array{Name, string}>> */
+        $keys = $this
+            ->variables
+            ->filter(static fn($_, $value) => \is_array($value) && \array_all(
                 $value,
                 static fn($value) => \is_array($value),
-            ),
-        );
+            ))
+            ->map(static fn($_, $keys) => \array_map(
+                static fn($pair) => [Name::of($pair[0]), $pair[1]],
+                $keys,
+            ));
 
         $url = $this->expressions->reduce(
             $this->template,

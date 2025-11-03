@@ -169,7 +169,7 @@ final class QueryContinuation implements Expression
     }
 
     /**
-     * @param list<string>|list<array{string, string}> $variablesToExpand
+     * @param list<string>|list<array{Name, string}> $variablesToExpand
      */
     private function expandList(array $variablesToExpand): string
     {
@@ -182,7 +182,7 @@ final class QueryContinuation implements Expression
                 if (\is_array($variableToExpand)) {
                     [$name, $variableToExpand] = $variableToExpand;
 
-                    return Sequence::of($name, $variableToExpand);
+                    return Sequence::of($name->toString(), $variableToExpand);
                 }
 
                 return Sequence::of($variableToExpand);
@@ -201,17 +201,14 @@ final class QueryContinuation implements Expression
     }
 
     /**
-     * @param list<string>|list<array{string, string}> $variablesToExpand
+     * @param list<string>|list<array{Name, string}> $variablesToExpand
      */
     private function explodeList(array $variablesToExpand): string
     {
         $expanded = Sequence::of(...$variablesToExpand)
             ->map(fn($value) => match (true) {
                 \is_string($value) => [$this->name, $value],
-                default => [
-                    Name::of($value[0]), // todo move wrapping earlier on
-                    $value[1],
-                ],
+                default => $value,
             })
             ->map(static fn($pair) => Level3\QueryContinuation::named($pair[0])->expand(
                 Map::of([$pair[0]->toString(), $pair[1]]),

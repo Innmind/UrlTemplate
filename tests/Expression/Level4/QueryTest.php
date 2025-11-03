@@ -5,6 +5,7 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level4;
 
 use Innmind\UrlTemplate\{
     Expression\Level4\Query,
+    Expression\Name,
     Expression,
     Exception\LogicException,
 };
@@ -93,7 +94,11 @@ class QueryTest extends TestCase
         $lists = Map::of()
             ('list', ['red', 'green', 'blue']);
         $keys = Map::of()
-            ('keys', [['semi', ';'], ['dot', '.'], ['comma', ',']]);
+            ('keys', [
+                [Name::of('semi'), ';'],
+                [Name::of('dot'), '.'],
+                [Name::of('comma'), ','],
+            ]);
 
         $this->assertSame(
             '?var=val',
