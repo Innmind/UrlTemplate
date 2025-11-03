@@ -178,7 +178,7 @@ class FragmentTest extends TestCase
         $this->expectException(LogicException::class);
 
         Fragment::of(Str::of('{#foo*}'))->match(
-            static fn($expression) => $expression->regex(),
+            static fn($expression) => $expression->regex()->unwrap(),
             static fn() => null,
         );
     }
@@ -188,14 +188,14 @@ class FragmentTest extends TestCase
         $this->assertSame(
             '\#(?<foo>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]*)',
             Fragment::of(Str::of('{#foo}'))->match(
-                static fn($expression) => $expression->regex(),
+                static fn($expression) => $expression->regex()->unwrap(),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             '\#(?<foo>[a-zA-Z0-9\%:/\?#\[\]@!$&\'\(\)\*\+,;=\-\.\_\~]{2})',
             Fragment::of(Str::of('{#foo:2}'))->match(
-                static fn($expression) => $expression->regex(),
+                static fn($expression) => $expression->regex()->unwrap(),
                 static fn() => null,
             ),
         );

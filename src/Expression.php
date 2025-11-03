@@ -4,7 +4,10 @@ declare(strict_types = 1);
 namespace Innmind\UrlTemplate;
 
 use Innmind\UrlTemplate\Expression\Name;
-use Innmind\Immutable\Map;
+use Innmind\Immutable\{
+    Map,
+    Attempt,
+};
 
 /**
  * @psalm-immutable
@@ -20,6 +23,10 @@ interface Expression
      * @param Map<non-empty-string, list<array{Name, string}>> $keys
      */
     public function expand(Map $values, Map $lists, Map $keys): string;
-    public function regex(): string;
+
+    /**
+     * @return Attempt<string>
+     */
+    public function regex(): Attempt;
     public function toString(): string;
 }

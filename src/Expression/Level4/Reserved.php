@@ -96,14 +96,14 @@ final class Reserved implements Expression
     }
 
     #[\Override]
-    public function regex(): string
+    public function regex(): Attempt
     {
         if ($this->explode) {
-            throw new ExplodeExpressionCantBeMatched;
+            return Attempt::error(new ExplodeExpressionCantBeMatched);
         }
 
         if (\is_int($this->limit)) {
-            return "(?<{$this->name->toString()}>[a-zA-Z0-9\%:/\?#\[\]@!\$&'\(\)\*\+,;=\-\.\_\~]{{$this->limit}})";
+            return Attempt::result("(?<{$this->name->toString()}>[a-zA-Z0-9\%:/\?#\[\]@!\$&'\(\)\*\+,;=\-\.\_\~]{{$this->limit}})");
         }
 
         return $this->expression->regex();

@@ -75,9 +75,9 @@ final class Level1 implements Expression
     }
 
     #[\Override]
-    public function regex(): string
+    public function regex(): Attempt
     {
-        return "(?<{$this->name->toString()}>[a-zA-Z0-9\%\-\.\_\~]*)";
+        return Attempt::result("(?<{$this->name->toString()}>[a-zA-Z0-9\%\-\.\_\~]*)");
     }
 
     #[\Override]

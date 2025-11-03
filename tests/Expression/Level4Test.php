@@ -192,7 +192,7 @@ class Level4Test extends TestCase
         $this->expectException(LogicException::class);
 
         Level4::of(Str::of('{foo*}'))->match(
-            static fn($expression) => $expression->regex(),
+            static fn($expression) => $expression->regex()->unwrap(),
             static fn() => null,
         );
     }
@@ -202,14 +202,14 @@ class Level4Test extends TestCase
         $this->assertSame(
             '(?<foo>[a-zA-Z0-9\%\-\.\_\~]*)',
             Level4::of(Str::of('{foo}'))->match(
-                static fn($expression) => $expression->regex(),
+                static fn($expression) => $expression->regex()->unwrap(),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             '(?<foo>[a-zA-Z0-9\%\-\.\_\~]{2})',
             Level4::of(Str::of('{foo:2}'))->match(
-                static fn($expression) => $expression->regex(),
+                static fn($expression) => $expression->regex()->unwrap(),
                 static fn() => null,
             ),
         );

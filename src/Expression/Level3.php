@@ -59,14 +59,16 @@ final class Level3 implements Expression
     }
 
     #[\Override]
-    public function regex(): string
+    public function regex(): Attempt
     {
         /** @psalm-suppress InvalidArgument */
-        return Str::of(',')
-            ->join($this->names->map(
-                static fn(Name $name) => "(?<{$name->toString()}>[a-zA-Z0-9\%\-\.\_\~]*)",
-            ))
-            ->toString();
+        return Attempt::result(
+            Str::of(',')
+                ->join($this->names->map(
+                    static fn(Name $name) => "(?<{$name->toString()}>[a-zA-Z0-9\%\-\.\_\~]*)",
+                ))
+                ->toString(),
+        );
     }
 
     #[\Override]

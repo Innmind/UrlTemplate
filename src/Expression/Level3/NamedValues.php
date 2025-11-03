@@ -12,6 +12,7 @@ use Innmind\Immutable\{
     Map,
     Sequence,
     Str,
+    Attempt,
 };
 
 /**
@@ -78,19 +79,25 @@ final class NamedValues
             ->toString();
     }
 
-    public function regex(): string
+    /**
+     * @return Attempt<string>
+     */
+    public function regex(): Attempt
     {
-        return Str::of($this->expansion->continuation()->regex())
-            ->join($this->names->map(
-                fn($name) => \sprintf(
+        return $this
+            ->names
+            ->map(fn($name) => Level1::named($name)->regex()->map(
+                fn($regex) => \sprintf(
                     '%s=%s%s',
                     $name->toString(),
                     $this->keyOnlyWhenEmpty ? '?' : '',
-                    Level1::named($name)->regex(),
+                    $regex,
                 ),
             ))
-            ->prepend($this->expansion->regex())
-            ->toString();
+            ->sink(Sequence::strings())
+            ->attempt(static fn($regexes, $regex) => $regex->map($regexes))
+            ->map(Str::of($this->expansion->continuation()->regex())->join(...))
+            ->map(fn($regex) => $regex->prepend($this->expansion->regex())->toString());
     }
 
     public function toString(): string

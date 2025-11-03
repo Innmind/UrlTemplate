@@ -113,33 +113,36 @@ final class Template
      */
     private function regex(): Attempt
     {
-        return Attempt::of(function() {
-            $template = $this
-                ->expressions
-                ->reduce(
-                    $this->template->replace('~', '\~'),
-                    static fn(Str $template, $expression) => $template->replace(
-                        $expression->toString(),
-                        \sprintf(
-                            '__innmind_expression_%s__',
-                            \spl_object_hash($expression),
-                        ),
-                    ),
-                )
-                ->pregQuote();
-            $template = $this->expressions->reduce(
-                $template,
+        $template = $this
+            ->expressions
+            ->reduce(
+                $this->template->replace('~', '\~'),
                 static fn(Str $template, $expression) => $template->replace(
+                    $expression->toString(),
                     \sprintf(
                         '__innmind_expression_%s__',
                         \spl_object_hash($expression),
                     ),
-                    $expression->regex(),
                 ),
-            );
+            )
+            ->pregQuote();
 
-            return $template->prepend('~^')->append('$~')->toString();
-        });
+        return $this
+            ->expressions
+            ->sink($template)
+            ->attempt(
+                static fn($template, $expression) => $expression
+                    ->regex()
+                    ->map(static fn($regex) => $template->replace(
+                        \sprintf(
+                            '__innmind_expression_%s__',
+                            \spl_object_hash($expression),
+                        ),
+                        $regex,
+                    )),
+            )
+            ->map(static fn($regex) => $regex->prepend('~^')->append('$~'))
+            ->map(static fn($regex) => $regex->toString());
     }
 
     /**

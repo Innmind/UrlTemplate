@@ -123,27 +123,33 @@ final class QueryContinuation implements Expression
     }
 
     #[\Override]
-    public function regex(): string
+    public function regex(): Attempt
     {
         if ($this->explode) {
-            throw new ExplodeExpressionCantBeMatched;
+            return Attempt::error(new ExplodeExpressionCantBeMatched);
         }
 
         if ($this->mustLimit()) {
             // replace '*' match by the actual limit
-            $regex = Str::of($this->expression->regex())
-                ->dropEnd(2)
-                ->append("{{$this->limit}})")
-                ->toString();
+            $regex = $this
+                ->expression
+                ->regex()
+                ->map(Str::of(...))
+                ->map(
+                    fn($regex) => $regex
+                        ->dropEnd(2)
+                        ->append("{{$this->limit}})")
+                        ->toString(),
+                );
         } else {
             $regex = $this->expression->regex();
         }
 
-        return \sprintf(
+        return $regex->map(fn($regex) => \sprintf(
             '\&%s=%s',
             $this->name->toString(),
             $regex,
-        );
+        ));
     }
 
     #[\Override]

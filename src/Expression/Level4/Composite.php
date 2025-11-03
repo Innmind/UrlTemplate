@@ -95,28 +95,34 @@ final class Composite implements Expression
     }
 
     #[\Override]
-    public function regex(): string
+    public function regex(): Attempt
     {
         $remaining = $this
             ->expressions
             ->drop(1)
-            ->map(function(Expression $expression): string {
+            ->map(function($expression) {
                 if ($this->removeLead()) {
-                    return Str::of($expression->regex())->drop(2)->toString();
+                    return $expression
+                        ->regex()
+                        ->map(Str::of(...))
+                        ->map(static fn($regex) => $regex->drop(2)->toString());
                 }
 
                 return $expression->regex();
             });
 
-        return Str::of($this->expansion()->separatorRegex())
-            ->join(
-                $this
-                    ->expressions
-                    ->take(1)
-                    ->map(static fn($expression) => $expression->regex())
-                    ->append($remaining),
-            )
-            ->toString();
+        return $this
+            ->expressions
+            ->take(1)
+            ->map(static fn($expression) => $expression->regex())
+            ->append($remaining)
+            ->sink(Sequence::strings())
+            ->attempt(static fn($regexes, $regex) => $regex->map($regexes))
+            ->map(
+                fn($regexes) => Str::of($this->expansion()->separatorRegex())
+                    ->join($regexes)
+                    ->toString(),
+            );
     }
 
     #[\Override]

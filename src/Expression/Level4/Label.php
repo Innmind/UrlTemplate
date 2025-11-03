@@ -82,7 +82,7 @@ final class Label implements Expression
     }
 
     #[\Override]
-    public function regex(): string
+    public function regex(): Attempt
     {
         return $this->expression->regex();
     }

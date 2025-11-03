@@ -65,13 +65,15 @@ final class Reserved implements Expression
     }
 
     #[\Override]
-    public function regex(): string
+    public function regex(): Attempt
     {
-        return Str::of(',')
-            ->join($this->expressions->map(
-                static fn($expression) => $expression->regex(),
-            ))
-            ->toString();
+        return $this
+            ->expressions
+            ->map(static fn($expression) => $expression->regex())
+            ->sink(Sequence::strings())
+            ->attempt(static fn($regexes, $regex) => $regex->map($regexes))
+            ->map(Str::of(',')->join(...))
+            ->map(static fn($regex) => $regex->toString());
     }
 
     #[\Override]
