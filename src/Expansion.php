@@ -18,12 +18,16 @@ final class Expansion
 {
     /**
      * @param Sequence<Expression> $expressions
-     * @param Map<non-empty-string, string|list<string>|list<array{string, string}>> $variables
+     * @param Map<non-empty-string, string> $values
+     * @param Map<non-empty-string, list<string>> $lists
+     * @param Map<non-empty-string, list<array{Name, string}>> $keys
      */
     private function __construct(
         private Str $template,
         private Sequence $expressions,
-        private Map $variables,
+        private Map $values,
+        private Map $lists,
+        private Map $keys,
     ) {
     }
 
@@ -35,52 +39,72 @@ final class Expansion
      */
     public static function of(Str $template, Sequence $expressions): self
     {
-        return new self($template, $expressions, Map::of());
+        return new self(
+            $template,
+            $expressions,
+            Map::of(),
+            Map::of(),
+            Map::of(),
+        );
     }
 
     /**
+     * @no-named-arguments
+     *
      * @param non-empty-string $name Todo use literal strings
-     * @param string|list<string>|list<array{string, string}> $value
      */
-    public function with(string $name, string|array $value): self
+    public function with(string $name, string ...$values): self
+    {
+        if (\count($values) === 1) {
+            return new self(
+                $this->template,
+                $this->expressions,
+                ($this->values)($name, $values[0]),
+                $this->lists->remove($name),
+                $this->keys->remove($name),
+            );
+        }
+
+        return new self(
+            $this->template,
+            $this->expressions,
+            $this->values->remove($name),
+            ($this->lists)($name, $values),
+            $this->keys->remove($name),
+        );
+    }
+
+    /**
+     * @no-named-arguments
+     *
+     * @param non-empty-string $name Todo use literal strings
+     * @param array{string, string} ...$keys
+     */
+    public function withKeys(string $name, array ...$keys): self
     {
         return new self(
             $this->template,
             $this->expressions,
-            ($this->variables)($name, $value),
+            $this->values->remove($name),
+            $this->lists->remove($name),
+            ($this->keys)($name, \array_map(
+                static fn($pair) => [Name::of($pair[0]), $pair[1]],
+                $keys,
+            )),
         );
     }
 
     public function expand(): Url
     {
-        /** @var Map<non-empty-string, string> */
-        $values = $this->variables->filter(
-            static fn($_, $value) => \is_string($value),
-        );
-        /** @var Map<non-empty-string, list<string>> */
-        $lists = $this->variables->filter(
-            static fn($_, $value) => \is_array($value) && \array_all(
-                $value,
-                static fn($value) => \is_string($value),
-            ),
-        );
-        /** @var Map<non-empty-string, list<array{Name, string}>> */
-        $keys = $this
-            ->variables
-            ->filter(static fn($_, $value) => \is_array($value) && \array_all(
-                $value,
-                static fn($value) => \is_array($value),
-            ))
-            ->map(static fn($_, $keys) => \array_map(
-                static fn($pair) => [Name::of($pair[0]), $pair[1]],
-                $keys,
-            ));
-
         $url = $this->expressions->reduce(
             $this->template,
-            static fn(Str $template, $expression) => $template->replace(
+            fn(Str $template, $expression) => $template->replace(
                 $expression->toString(),
-                $expression->expand($values, $lists, $keys),
+                $expression->expand(
+                    $this->values,
+                    $this->lists,
+                    $this->keys,
+                ),
             ),
         );
 
