@@ -46,6 +46,11 @@ final class Reserved implements Expression
         return new self($name, UrlEncode::allowReservedCharacters);
     }
 
+    public function name(): Name
+    {
+        return $this->name;
+    }
+
     #[\Override]
     public function expansion(): Expansion
     {

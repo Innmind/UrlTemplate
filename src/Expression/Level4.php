@@ -21,7 +21,6 @@ final class Level4 implements Expression
      * @param ?int<1, max> $limit
      */
     private function __construct(
-        private Name $name,
         private Level1|Level2\Reserved $expression,
         private ?int $limit,
         private bool $explode,
@@ -53,7 +52,6 @@ final class Level4 implements Expression
     public static function limit(Name $name, int $limit): self
     {
         return new self(
-            $name,
             Level1::named($name),
             $limit,
             false,
@@ -67,7 +65,6 @@ final class Level4 implements Expression
     public static function explode(Name $name): self
     {
         return new self(
-            $name,
             Level1::named($name),
             null,
             true,
@@ -81,12 +78,16 @@ final class Level4 implements Expression
     public static function named(Name $name): self
     {
         return new self(
-            $name,
             Level1::named($name),
             null,
             false,
             Expansion::simple,
         );
+    }
+
+    public function name(): Name
+    {
+        return $this->expression->name();
     }
 
     #[\Override]
@@ -98,7 +99,6 @@ final class Level4 implements Expression
     public function withExpansion(Expansion $expansion): self
     {
         return new self(
-            $this->name,
             $this->expression,
             $this->limit,
             $this->explode,
@@ -115,8 +115,7 @@ final class Level4 implements Expression
     public function withExpression(callable $expression): self
     {
         return new self(
-            $this->name,
-            $expression($this->name),
+            $expression($this->name()),
             $this->limit,
             $this->explode,
             $this->expansion,
@@ -126,7 +125,7 @@ final class Level4 implements Expression
     #[\Override]
     public function expand(Map $values, Map $lists, Map $keys): string
     {
-        $name = $this->name->toString();
+        $name = $this->name()->toString();
 
         return $lists
             ->get($name)
@@ -189,14 +188,14 @@ final class Level4 implements Expression
     public function toString(): string
     {
         if ($this->mustLimit()) {
-            return "{{$this->expansion->toString()}{$this->name->toString()}:{$this->limit}}";
+            return "{{$this->expansion->toString()}{$this->name()->toString()}:{$this->limit}}";
         }
 
         if ($this->explode) {
-            return "{{$this->expansion->toString()}{$this->name->toString()}*}";
+            return "{{$this->expansion->toString()}{$this->name()->toString()}*}";
         }
 
-        return "{{$this->expansion->toString()}{$this->name->toString()}}";
+        return "{{$this->expansion->toString()}{$this->name()->toString()}}";
     }
 
     /**
