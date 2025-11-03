@@ -21,21 +21,14 @@ use Innmind\Immutable\{
  */
 final class NamedValues
 {
-    private Expansion $expansion;
-    /** @var Sequence<Name> */
-    private Sequence $names;
-    /** @var Sequence<Level1> */
-    private Sequence $expressions;
-    private bool $keyOnlyWhenEmpty = false;
-
     /**
      * @param Sequence<Name> $names
      */
-    public function __construct(Expansion $expansion, Sequence $names)
-    {
-        $this->expansion = $expansion;
-        $this->names = $names;
-        $this->expressions = $names->map(Level1::named(...));
+    private function __construct(
+        private Expansion $expansion,
+        private Sequence $names,
+        private bool $keyOnlyWhenEmpty = false,
+    ) {
     }
 
     /**
@@ -43,12 +36,29 @@ final class NamedValues
      *
      * @param Sequence<Name> $names
      */
-    public static function keyOnlyWhenEmpty(Expansion $expansion, Sequence $names): self
+    public static function parameters(Sequence $names): self
     {
-        $self = new self($expansion, $names);
-        $self->keyOnlyWhenEmpty = true;
+        return new self(Expansion::parameter, $names, true);
+    }
 
-        return $self;
+    /**
+     * @psalm-pure
+     *
+     * @param Sequence<Name> $names
+     */
+    public static function query(Sequence $names): self
+    {
+        return new self(Expansion::query, $names, false);
+    }
+
+    /**
+     * @psalm-pure
+     *
+     * @param Sequence<Name> $names
+     */
+    public static function queryContinuation(Sequence $names): self
+    {
+        return new self(Expansion::queryContinuation, $names, false);
     }
 
     /**
@@ -59,7 +69,8 @@ final class NamedValues
     public function expand(Map $values, Map $lists, Map $keys): string
     {
         $expanded = $this
-            ->expressions
+            ->names
+            ->map(Level1::named(...))
             ->map(static fn($expression) => [
                 $expression->name()->toString(),
                 Str::of($expression->expand($values, $lists, $keys)),

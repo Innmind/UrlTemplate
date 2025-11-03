@@ -21,14 +21,9 @@ use Innmind\Immutable\{
  */
 final class Parameters implements Expression
 {
-    private NamedValues $expression;
-
-    /**
-     * @param Sequence<Name> $names
-     */
-    private function __construct(Sequence $names)
-    {
-        $this->expression = NamedValues::keyOnlyWhenEmpty(Expansion::parameter, $names);
+    private function __construct(
+        private NamedValues $expression,
+    ) {
     }
 
     /**
@@ -39,6 +34,7 @@ final class Parameters implements Expression
     public static function of(Str $string): Attempt
     {
         return Name::many($string, Expansion::parameter)
+            ->map(NamedValues::parameters(...))
             ->map(static fn($names) => new self($names));
     }
 
@@ -47,7 +43,7 @@ final class Parameters implements Expression
      */
     public static function named(Name $name): self
     {
-        return new self(Sequence::of($name));
+        return new self(NamedValues::parameters(Sequence::of($name)));
     }
 
     #[\Override]

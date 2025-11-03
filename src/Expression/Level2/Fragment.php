@@ -21,13 +21,10 @@ use Innmind\Immutable\{
  */
 final class Fragment implements Expression
 {
-    private Name $name;
-    private UrlEncode $encode;
-
-    private function __construct(Name $name)
-    {
-        $this->name = $name;
-        $this->encode = UrlEncode::allowReservedCharacters;
+    private function __construct(
+        private Name $name,
+        private UrlEncode $encode,
+    ) {
     }
 
     /**
@@ -38,7 +35,10 @@ final class Fragment implements Expression
     public static function of(Str $string): Attempt
     {
         return Name::one($string, Expansion::fragment)
-            ->map(static fn($name) => new self($name));
+            ->map(static fn($name) => new self(
+                $name,
+                UrlEncode::allowReservedCharacters,
+            ));
     }
 
     #[\Override]

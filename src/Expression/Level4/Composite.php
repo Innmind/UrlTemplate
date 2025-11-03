@@ -22,17 +22,13 @@ use Innmind\Immutable\{
  */
 final class Composite implements Expression
 {
-    private Expansion $expansion;
-    /** @var Sequence<Expression> */
-    private Sequence $expressions;
-
     /**
      * @param Sequence<Expression> $expressions
      */
-    private function __construct(Expansion $expansion, Sequence $expressions)
-    {
-        $this->expansion = $expansion;
-        $this->expressions = $expressions;
+    private function __construct(
+        private Expansion $expansion,
+        private Sequence $expressions,
+    ) {
     }
 
     /**

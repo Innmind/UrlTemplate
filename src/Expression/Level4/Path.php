@@ -21,11 +21,9 @@ use Innmind\Immutable\{
  */
 final class Path implements Expression
 {
-    private Level4 $expression;
-
-    private function __construct(Name $name)
-    {
-        $this->expression = Level4::named($name)->withExpansion(Expansion::path);
+    private function __construct(
+        private Level4 $expression,
+    ) {
     }
 
     /**
@@ -37,7 +35,9 @@ final class Path implements Expression
     {
         return Parse::of(
             $string,
-            static fn(Name $name) => new self($name),
+            static fn(Name $name) => new self(
+                Level4::named($name)->withExpansion(Expansion::path),
+            ),
             self::explode(...),
             self::limit(...),
             Expansion::path,
@@ -51,10 +51,9 @@ final class Path implements Expression
      */
     public static function limit(Name $name, int $limit): self
     {
-        $self = new self($name);
-        $self->expression = Level4::limit($name, $limit)->withExpansion(Expansion::path);
-
-        return $self;
+        return new self(
+            Level4::limit($name, $limit)->withExpansion(Expansion::path),
+        );
     }
 
     /**
@@ -62,11 +61,9 @@ final class Path implements Expression
      */
     public static function explode(Name $name): self
     {
-        $self = new self($name);
-        $self->expression = Level4::explode($name)
-            ->withExpansion(Expansion::path);
-
-        return $self;
+        return new self(
+            Level4::explode($name)->withExpansion(Expansion::path),
+        );
     }
 
     #[\Override]

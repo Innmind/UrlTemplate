@@ -16,15 +16,11 @@ use Innmind\Immutable\{
  */
 final class Name
 {
-    /** @var non-empty-string */
-    private string $value;
-
     /**
      * @param non-empty-string $value
      */
-    private function __construct(string $value)
+    private function __construct(private string $value)
     {
-        $this->value = $value;
     }
 
     /**

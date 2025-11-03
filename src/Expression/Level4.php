@@ -17,18 +17,16 @@ use Innmind\Immutable\{
  */
 final class Level4 implements Expression
 {
-    private Name $name;
-    private Level1|Level2\Reserved $expression;
-    /** @var ?int<1, max> */
-    private ?int $limit = null;
-    private bool $explode = false;
-    private Expansion $expansion;
-
-    private function __construct(Name $name)
-    {
-        $this->name = $name;
-        $this->expression = Level1::named($name);
-        $this->expansion = Expansion::simple;
+    /**
+     * @param ?int<1, max> $limit
+     */
+    private function __construct(
+        private Name $name,
+        private Level1|Level2\Reserved $expression,
+        private ?int $limit,
+        private bool $explode,
+        private Expansion $expansion,
+    ) {
     }
 
     /**
@@ -40,7 +38,7 @@ final class Level4 implements Expression
     {
         return Level4\Parse::of(
             $string,
-            static fn(Name $name) => new self($name),
+            self::named(...),
             self::explode(...),
             self::limit(...),
             Expansion::simple,
@@ -54,10 +52,13 @@ final class Level4 implements Expression
      */
     public static function limit(Name $name, int $limit): self
     {
-        $self = new self($name);
-        $self->limit = $limit;
-
-        return $self;
+        return new self(
+            $name,
+            Level1::named($name),
+            $limit,
+            false,
+            Expansion::simple,
+        );
     }
 
     /**
@@ -65,10 +66,13 @@ final class Level4 implements Expression
      */
     public static function explode(Name $name): self
     {
-        $self = new self($name);
-        $self->explode = true;
-
-        return $self;
+        return new self(
+            $name,
+            Level1::named($name),
+            null,
+            true,
+            Expansion::simple,
+        );
     }
 
     /**
@@ -76,7 +80,13 @@ final class Level4 implements Expression
      */
     public static function named(Name $name): self
     {
-        return new self($name);
+        return new self(
+            $name,
+            Level1::named($name),
+            null,
+            false,
+            Expansion::simple,
+        );
     }
 
     #[\Override]
@@ -87,10 +97,13 @@ final class Level4 implements Expression
 
     public function withExpansion(Expansion $expansion): self
     {
-        $self = clone $this;
-        $self->expansion = $expansion;
-
-        return $self;
+        return new self(
+            $this->name,
+            $this->expression,
+            $this->limit,
+            $this->explode,
+            $expansion,
+        );
     }
 
     /**
@@ -101,10 +114,13 @@ final class Level4 implements Expression
      */
     public function withExpression(callable $expression): self
     {
-        $self = clone $this;
-        $self->expression = $expression($self->name);
-
-        return $self;
+        return new self(
+            $this->name,
+            $expression($this->name),
+            $this->limit,
+            $this->explode,
+            $this->expansion,
+        );
     }
 
     #[\Override]

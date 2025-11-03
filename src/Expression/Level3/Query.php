@@ -21,14 +21,9 @@ use Innmind\Immutable\{
  */
 final class Query implements Expression
 {
-    private NamedValues $expression;
-
-    /**
-     * @param Sequence<Name> $names
-     */
-    private function __construct(Sequence $names)
-    {
-        $this->expression = new NamedValues(Expansion::query, $names);
+    private function __construct(
+        private NamedValues $expression,
+    ) {
     }
 
     /**
@@ -39,7 +34,8 @@ final class Query implements Expression
     public static function of(Str $string): Attempt
     {
         return Name::many($string, Expansion::query)
-            ->map(static fn($names) => new self($names));
+            ->map(NamedValues::query(...))
+            ->map(static fn($expression) => new self($expression));
     }
 
     /**
@@ -47,7 +43,7 @@ final class Query implements Expression
      */
     public static function named(Name $name): self
     {
-        return new self(Sequence::of($name));
+        return new self(NamedValues::query(Sequence::of($name)));
     }
 
     #[\Override]

@@ -22,18 +22,15 @@ use Innmind\Immutable\{
  */
 final class Reserved implements Expression
 {
-    private Name $name;
-    /** @var ?int<1, max> */
-    private ?int $limit = null;
-    private bool $explode = false;
-    private Level4 $expression;
-
-    private function __construct(Name $name)
-    {
-        $this->name = $name;
-        $this->expression = Level4::named($name)->withExpression(
-            Level2\Reserved::named(...),
-        );
+    /**
+     * @param ?int<1, max> $limit
+     */
+    private function __construct(
+        private Name $name,
+        private ?int $limit,
+        private bool $explode,
+        private Level4 $expression,
+    ) {
     }
 
     /**
@@ -45,7 +42,14 @@ final class Reserved implements Expression
     {
         return Parse::of(
             $string,
-            static fn(Name $name) => new self($name),
+            static fn(Name $name) => new self(
+                $name,
+                null,
+                false,
+                Level4::named($name)->withExpression(
+                    Level2\Reserved::named(...),
+                ),
+            ),
             self::explode(...),
             self::limit(...),
             Expansion::reserved,
@@ -59,13 +63,14 @@ final class Reserved implements Expression
      */
     public static function limit(Name $name, int $limit): self
     {
-        $self = new self($name);
-        $self->limit = $limit;
-        $self->expression = Level4::limit($name, $limit)->withExpression(
-            Level2\Reserved::named(...),
+        return new self(
+            $name,
+            $limit,
+            false,
+            Level4::limit($name, $limit)->withExpression(
+                Level2\Reserved::named(...),
+            ),
         );
-
-        return $self;
     }
 
     /**
@@ -73,13 +78,14 @@ final class Reserved implements Expression
      */
     public static function explode(Name $name): self
     {
-        $self = new self($name);
-        $self->explode = true;
-        $self->expression = Level4::explode($name)->withExpression(
-            Level2\Reserved::named(...),
+        return new self(
+            $name,
+            null,
+            true,
+            Level4::explode($name)->withExpression(
+                Level2\Reserved::named(...),
+            ),
         );
-
-        return $self;
     }
 
     #[\Override]

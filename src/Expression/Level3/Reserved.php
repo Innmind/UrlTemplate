@@ -22,19 +22,11 @@ use Innmind\Immutable\{
  */
 final class Reserved implements Expression
 {
-    /** @var Sequence<Name> */
-    private Sequence $names;
-    /** @var Sequence<Level2\Reserved> */
-    private Sequence $expressions;
-
     /**
      * @param Sequence<Name> $names
      */
-    private function __construct(Sequence $names)
+    private function __construct(private Sequence $names)
     {
-        $this->names = $names;
-        /** @var Sequence<Level2\Reserved> */
-        $this->expressions = $this->names->map(Level2\Reserved::named(...));
     }
 
     /**
@@ -57,9 +49,10 @@ final class Reserved implements Expression
     #[\Override]
     public function expand(Map $values, Map $lists, Map $keys): string
     {
-        $expanded = $this->expressions->map(
-            static fn($expression) => $expression->expand($values, $lists, $keys),
-        );
+        $expanded = $this
+            ->names
+            ->map(Level2\Reserved::named(...))
+            ->map(static fn($expression) => $expression->expand($values, $lists, $keys));
 
         return Str::of(',')->join($expanded)->toString();
     }
@@ -68,7 +61,8 @@ final class Reserved implements Expression
     public function regex(): Attempt
     {
         return $this
-            ->expressions
+            ->names
+            ->map(Level2\Reserved::named(...))
             ->map(static fn($expression) => $expression->regex())
             ->sink(Sequence::strings())
             ->attempt(static fn($regexes, $regex) => $regex->map($regexes))

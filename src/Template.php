@@ -17,17 +17,13 @@ use Innmind\Immutable\{
  */
 final class Template
 {
-    private Str $template;
-    /** @var Sequence<Expression> */
-    private Sequence $expressions;
-
     /**
      * @param Sequence<Expression> $expressions
      */
-    private function __construct(Str $template, Sequence $expressions)
-    {
-        $this->template = $template;
-        $this->expressions = $expressions;
+    private function __construct(
+        private Str $template,
+        private Sequence $expressions,
+    ) {
     }
 
     /**

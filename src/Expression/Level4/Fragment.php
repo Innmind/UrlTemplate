@@ -22,13 +22,9 @@ use Innmind\Immutable\{
  */
 final class Fragment implements Expression
 {
-    private Level4 $expression;
-
-    private function __construct(Name $name)
-    {
-        $this->expression = Level4::named($name)
-            ->withExpansion(Expansion::fragment)
-            ->withExpression(Level2\Reserved::named(...));
+    private function __construct(
+        private Level4 $expression,
+    ) {
     }
 
     /**
@@ -40,7 +36,11 @@ final class Fragment implements Expression
     {
         return Parse::of(
             $string,
-            static fn(Name $name) => new self($name),
+            static fn(Name $name) => new self(
+                Level4::named($name)
+                    ->withExpansion(Expansion::fragment)
+                    ->withExpression(Level2\Reserved::named(...)),
+            ),
             self::explode(...),
             self::limit(...),
             Expansion::fragment,
@@ -54,12 +54,11 @@ final class Fragment implements Expression
      */
     public static function limit(Name $name, int $limit): self
     {
-        $self = new self($name);
-        $self->expression = Level4::limit($name, $limit)
-            ->withExpansion(Expansion::fragment)
-            ->withExpression(Level2\Reserved::named(...));
-
-        return $self;
+        return new self(
+            Level4::limit($name, $limit)
+                ->withExpansion(Expansion::fragment)
+                ->withExpression(Level2\Reserved::named(...)),
+        );
     }
 
     /**
@@ -67,12 +66,11 @@ final class Fragment implements Expression
      */
     public static function explode(Name $name): self
     {
-        $self = new self($name);
-        $self->expression = Level4::explode($name)
-            ->withExpansion(Expansion::fragment)
-            ->withExpression(Level2\Reserved::named(...));
-
-        return $self;
+        return new self(
+            Level4::explode($name)
+                ->withExpansion(Expansion::fragment)
+                ->withExpression(Level2\Reserved::named(...)),
+        );
     }
 
     #[\Override]

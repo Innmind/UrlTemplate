@@ -17,18 +17,11 @@ use Innmind\Immutable\{
  */
 final class Level3 implements Expression
 {
-    /** @var Sequence<Name> */
-    private Sequence $names;
-    /** @var Sequence<Level1> */
-    private Sequence $expressions;
-
     /**
      * @param Sequence<Name> $names
      */
-    private function __construct(Sequence $names)
+    private function __construct(private Sequence $names)
     {
-        $this->names = $names;
-        $this->expressions = $this->names->map(Level1::named(...));
     }
 
     /**
@@ -51,9 +44,10 @@ final class Level3 implements Expression
     #[\Override]
     public function expand(Map $values, Map $lists, Map $keys): string
     {
-        $expanded = $this->expressions->map(
-            static fn($expression) => $expression->expand($values, $lists, $keys),
-        );
+        $expanded = $this
+            ->names
+            ->map(Level1::named(...))
+            ->map(static fn($expression) => $expression->expand($values, $lists, $keys));
 
         return Str::of(',')->join($expanded)->toString();
     }

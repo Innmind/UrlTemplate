@@ -23,16 +23,14 @@ use Innmind\Immutable\{
  */
 final class QueryContinuation implements Expression
 {
-    private Name $name;
-    /** @var ?int<1, max> */
-    private ?int $limit = null;
-    private bool $explode = false;
-    private Level1 $expression;
-
-    private function __construct(Name $name)
-    {
-        $this->name = $name;
-        $this->expression = Level1::named($name);
+    /**
+     * @param ?int<1, max> $limit
+     */
+    private function __construct(
+        private Name $name,
+        private ?int $limit,
+        private bool $explode,
+    ) {
     }
 
     /**
@@ -44,7 +42,7 @@ final class QueryContinuation implements Expression
     {
         return Parse::of(
             $string,
-            static fn(Name $name) => new self($name),
+            static fn(Name $name) => new self($name, null, false),
             self::explode(...),
             self::limit(...),
             Expansion::queryContinuation,
@@ -58,10 +56,7 @@ final class QueryContinuation implements Expression
      */
     public static function limit(Name $name, int $limit): self
     {
-        $self = new self($name);
-        $self->limit = $limit;
-
-        return $self;
+        return new self($name, $limit, false);
     }
 
     /**
@@ -69,10 +64,7 @@ final class QueryContinuation implements Expression
      */
     public static function explode(Name $name): self
     {
-        $self = new self($name);
-        $self->explode = true;
-
-        return $self;
+        return new self($name, null, true);
     }
 
     #[\Override]
@@ -98,7 +90,7 @@ final class QueryContinuation implements Expression
                             return $this->explodeList([$value]);
                         }
 
-                        $value = Str::of($this->expression->encode($value));
+                        $value = Str::of(Level1::named($this->name)->encode($value));
 
                         if ($this->mustLimit()) {
                             return \sprintf(
@@ -130,8 +122,7 @@ final class QueryContinuation implements Expression
 
         if ($this->mustLimit()) {
             // replace '*' match by the actual limit
-            $regex = $this
-                ->expression
+            $regex = Level1::named($this->name)
                 ->regex()
                 ->map(Str::of(...))
                 ->map(
@@ -141,7 +132,7 @@ final class QueryContinuation implements Expression
                         ->toString(),
                 );
         } else {
-            $regex = $this->expression->regex();
+            $regex = Level1::named($this->name)->regex();
         }
 
         return $regex->map(fn($regex) => \sprintf(
@@ -196,7 +187,7 @@ final class QueryContinuation implements Expression
         // here we use the level1 expression to transform the variable to
         // be expanded to its string representation
         $expanded = $flattenedVariables->map(
-            $this->expression->encode(...),
+            Level1::named($this->name)->encode(...),
         );
 
         return Str::of(',')

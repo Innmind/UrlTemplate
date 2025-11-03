@@ -19,13 +19,10 @@ use Innmind\Immutable\{
  */
 final class Level1 implements Expression
 {
-    private Name $name;
-    private UrlEncode $encode;
-
-    private function __construct(Name $name)
-    {
-        $this->name = $name;
-        $this->encode = UrlEncode::everything;
+    private function __construct(
+        private Name $name,
+        private UrlEncode $encode,
+    ) {
     }
 
     /**
@@ -36,7 +33,7 @@ final class Level1 implements Expression
     public static function of(Str $string): Attempt
     {
         return Name::one($string, Expansion::simple)
-            ->map(static fn($name) => new self($name));
+            ->map(self::named(...));
     }
 
     /**
@@ -44,7 +41,7 @@ final class Level1 implements Expression
      */
     public static function named(Name $name): self
     {
-        return new self($name);
+        return new self($name, UrlEncode::everything);
     }
 
     public function name(): Name

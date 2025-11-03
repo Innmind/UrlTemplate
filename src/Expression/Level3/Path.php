@@ -22,19 +22,11 @@ use Innmind\Immutable\{
  */
 final class Path implements Expression
 {
-    /** @var Sequence<Name> */
-    private Sequence $names;
-    /** @var Sequence<Level1> */
-    private Sequence $expressions;
-
     /**
      * @param Sequence<Name> $names
      */
-    private function __construct(Sequence $names)
+    private function __construct(private Sequence $names)
     {
-        $this->names = $names;
-        /** @var Sequence<Level1> */
-        $this->expressions = $this->names->map(Level1::named(...));
     }
 
     /**
@@ -58,9 +50,12 @@ final class Path implements Expression
     public function expand(Map $values, Map $lists, Map $keys): string
     {
         return Str::of('/')
-            ->join($this->expressions->map(
-                static fn($expression) => $expression->expand($values, $lists, $keys),
-            ))
+            ->join(
+                $this
+                    ->names
+                    ->map(Level1::named(...))
+                    ->map(static fn($expression) => $expression->expand($values, $lists, $keys)),
+            )
             ->prepend('/')
             ->toString();
     }
@@ -69,7 +64,8 @@ final class Path implements Expression
     public function regex(): Attempt
     {
         return $this
-            ->expressions
+            ->names
+            ->map(Level1::named(...))
             ->map(static fn($expression) => $expression->regex())
             ->sink(Sequence::strings())
             ->attempt(static fn($regexes, $regex) => $regex->map($regexes))

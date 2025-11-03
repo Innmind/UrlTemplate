@@ -21,13 +21,10 @@ use Innmind\Immutable\{
  */
 final class Reserved implements Expression
 {
-    private Name $name;
-    private UrlEncode $encode;
-
-    private function __construct(Name $name)
-    {
-        $this->name = $name;
-        $this->encode = UrlEncode::allowReservedCharacters;
+    private function __construct(
+        private Name $name,
+        private UrlEncode $encode,
+    ) {
     }
 
     /**
@@ -38,7 +35,7 @@ final class Reserved implements Expression
     public static function of(Str $string): Attempt
     {
         return Name::one($string, Expansion::reserved)
-            ->map(static fn($name) => new self($name));
+            ->map(self::named(...));
     }
 
     /**
@@ -46,7 +43,7 @@ final class Reserved implements Expression
      */
     public static function named(Name $name): self
     {
-        return new self($name);
+        return new self($name, UrlEncode::allowReservedCharacters);
     }
 
     #[\Override]
