@@ -3,10 +3,7 @@ declare(strict_types = 1);
 
 namespace Innmind\UrlTemplate;
 
-use Innmind\UrlTemplate\Exception\{
-    ExplodeExpressionCantBeMatched,
-    DomainException,
-};
+use Innmind\UrlTemplate\Exception\ExplodeExpressionCantBeMatched;
 use Innmind\Url\Url;
 use Innmind\Immutable\{
     Map,
@@ -39,7 +36,7 @@ final class Template
      *
      * @param literal-string $template
      *
-     * @throws DomainException
+     * @throws \Exception
      */
     public static function of(string $template): self
     {
