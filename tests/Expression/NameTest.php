@@ -3,10 +3,7 @@ declare(strict_types = 1);
 
 namespace Tests\Innmind\UrlTemplate\Expression;
 
-use Innmind\UrlTemplate\{
-    Expression\Name,
-    Exception\DomainException,
-};
+use Innmind\UrlTemplate\Expression\Name;
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
     PHPUnit\Framework\TestCase,
@@ -44,7 +41,7 @@ class NameTest extends TestCase
                 }),
             )
             ->prove(function(string $string): void {
-                $this->expectException(DomainException::class);
+                $this->expectException(\DomainException::class);
                 $this->expectExceptionMessage($string);
 
                 Name::of($string);

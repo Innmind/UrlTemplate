@@ -3,10 +3,7 @@ declare(strict_types = 1);
 
 namespace Innmind\UrlTemplate\Expression;
 
-use Innmind\UrlTemplate\{
-    Expression,
-    Exception\ExplodeExpressionCantBeMatched,
-};
+use Innmind\UrlTemplate\Expression;
 use Innmind\Immutable\{
     Map,
     Str,
@@ -146,7 +143,7 @@ final class Level4 implements Expression
     public function regex(): Attempt
     {
         if ($this->explode) {
-            return Attempt::error(new ExplodeExpressionCantBeMatched);
+            return Attempt::error(new \LogicException('Explode expression cant be matched'));
         }
 
         if ($this->mustLimit()) {

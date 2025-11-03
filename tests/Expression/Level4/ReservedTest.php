@@ -7,7 +7,6 @@ use Innmind\UrlTemplate\{
     Expression\Level4\Reserved,
     Expression\Name,
     Expression,
-    Exception\LogicException,
 };
 use Innmind\Immutable\{
     Map,
@@ -175,7 +174,7 @@ class ReservedTest extends TestCase
 
     public function testThrowExplodeRegex()
     {
-        $this->expectException(LogicException::class);
+        $this->expectException(\LogicException::class);
 
         Reserved::of(Str::of('{+foo*}'))->match(
             static fn($expression) => $expression->regex()->unwrap(),

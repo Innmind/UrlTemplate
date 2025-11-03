@@ -9,7 +9,6 @@ use Innmind\UrlTemplate\{
     Expression\Expansion,
     Expression\Level1,
     Expression\Level3,
-    Exception\ExplodeExpressionCantBeMatched,
 };
 use Innmind\Immutable\{
     Map,
@@ -126,7 +125,7 @@ final class Query implements Expression
     public function regex(): Attempt
     {
         if ($this->explode) {
-            return Attempt::error(new ExplodeExpressionCantBeMatched);
+            return Attempt::error(new \LogicException('Explode expression cant be matched'));
         }
 
         if ($this->mustLimit()) {

@@ -3,7 +3,6 @@ declare(strict_types = 1);
 
 namespace Innmind\UrlTemplate\Expression;
 
-use Innmind\UrlTemplate\Exception\DomainException;
 use Innmind\Immutable\{
     Str,
     Maybe,
@@ -30,13 +29,15 @@ final class Name
 
     /**
      * @psalm-pure
+     *
+     * @throws \DomainException
      */
     public static function of(string $value): self
     {
         $characters = self::characters();
 
         if (!Str::of($value)->matches("~^{$characters}\$~")) {
-            throw new DomainException($value);
+            throw new \DomainException($value);
         }
 
         /** @psalm-suppress ArgumentTypeCoercion Because of the non-empty-string */

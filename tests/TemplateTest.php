@@ -3,10 +3,7 @@ declare(strict_types = 1);
 
 namespace Tests\Innmind\UrlTemplate;
 
-use Innmind\UrlTemplate\{
-    Template,
-    Exception\ExplodeExpressionCantBeMatched,
-};
+use Innmind\UrlTemplate\Template;
 use Innmind\Url\Url;
 use Innmind\Immutable\Map;
 use Innmind\BlackBox\PHPUnit\Framework\TestCase;
@@ -451,7 +448,7 @@ class TemplateTest extends TestCase
 
     public function testThrowWhenExtractionNotSupportedForTemplate()
     {
-        $this->expectException(ExplodeExpressionCantBeMatched::class);
+        $this->expectException(\LogicException::class);
 
         Template::of('{foo*}')
             ->extract(Url::of('foo,bar,baz'))

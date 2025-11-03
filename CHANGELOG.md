@@ -17,6 +17,10 @@
 ### Removed
 
 - `Innmind\UrlTemplate\Template::expand()`, use `::expansion()` instead
+- `Innmind\UrlTemplate\Exception\Exception`
+- `Innmind\UrlTemplate\Exception\LogicException`
+- `Innmind\UrlTemplate\Exception\DomainException`
+- `Innmind\UrlTemplate\Exception\ExplodeExpressionCantBeMatched`
 
 ## 3.1.0 - 2023-09-16
 

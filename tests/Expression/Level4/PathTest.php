@@ -7,7 +7,6 @@ use Innmind\UrlTemplate\{
     Expression\Level4\Path,
     Expression\Name,
     Expression,
-    Exception\LogicException,
 };
 use Innmind\Immutable\{
     Map,
@@ -168,7 +167,7 @@ class PathTest extends TestCase
 
     public function testThrowExplodeRegex()
     {
-        $this->expectException(LogicException::class);
+        $this->expectException(\LogicException::class);
 
         Path::of(Str::of('{/foo*}'))->match(
             static fn($expression) => $expression->regex()->unwrap(),

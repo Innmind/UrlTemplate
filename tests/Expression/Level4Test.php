@@ -7,7 +7,6 @@ use Innmind\UrlTemplate\{
     Expression\Level4,
     Expression\Name,
     Expression,
-    Exception\LogicException,
 };
 use Innmind\Immutable\{
     Map,
@@ -189,7 +188,7 @@ class Level4Test extends TestCase
 
     public function testThrowExplodeRegex()
     {
-        $this->expectException(LogicException::class);
+        $this->expectException(\LogicException::class);
 
         Level4::of(Str::of('{foo*}'))->match(
             static fn($expression) => $expression->regex()->unwrap(),

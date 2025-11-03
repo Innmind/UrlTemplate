@@ -9,7 +9,6 @@ use Innmind\UrlTemplate\{
     Expression\Expansion,
     Expression\Level2,
     Expression\Level4,
-    Exception\ExplodeExpressionCantBeMatched,
 };
 use Innmind\Immutable\{
     Map,
@@ -99,7 +98,7 @@ final class Reserved implements Expression
     public function regex(): Attempt
     {
         if ($this->explode) {
-            return Attempt::error(new ExplodeExpressionCantBeMatched);
+            return Attempt::error(new \LogicException('Explode expression cant be matched'));
         }
 
         if (\is_int($this->limit)) {
