@@ -27,7 +27,7 @@ final class Fragment implements Expression
     private function __construct(Name $name)
     {
         $this->name = $name;
-        $this->encode = UrlEncode::allowReservedCharacters();
+        $this->encode = UrlEncode::allowReservedCharacters;
     }
 
     /**
@@ -52,7 +52,7 @@ final class Fragment implements Expression
     {
         return $values
             ->get($this->name->toString())
-            ->map($this->encode)
+            ->map($this->encode->encode(...))
             ->match(
                 static fn(string $variable) => '#'.$variable,
                 static fn() => '',

@@ -5,7 +5,6 @@ namespace Innmind\UrlTemplate;
 
 use Innmind\Immutable\{
     Str,
-    Sequence,
     Monoid\Concat,
 };
 
@@ -13,26 +12,21 @@ use Innmind\Immutable\{
  * @psalm-immutable
  * @internal
  */
-final class UrlEncode
+enum UrlEncode
 {
-    /** @var Sequence<string> */
-    private Sequence $safeCharacters;
+    case everything;
+    case allowReservedCharacters;
 
-    public function __construct()
+    public function encode(string $string): string
     {
-        $this->safeCharacters = Sequence::strings();
-    }
-
-    public function __invoke(string $string): string
-    {
-        if ($this->safeCharacters->empty()) {
+        if ($this === self::everything) {
             return \rawurlencode($string);
         }
 
         return Str::of($string)
             ->split()
             ->map(static fn($char) => $char->toString())
-            ->map($this->encode(...))
+            ->map(self::map(...))
             ->map(Str::of(...))
             ->fold(new Concat)
             ->toString();
@@ -41,10 +35,9 @@ final class UrlEncode
     /**
      * @psalm-pure
      */
-    public static function allowReservedCharacters(): self
+    private static function map(string $char): string
     {
-        $self = new self;
-        $self->safeCharacters = Sequence::strings(
+        $allowed = [
             ':',
             '/',
             '?',
@@ -63,16 +56,12 @@ final class UrlEncode
             ',',
             ';',
             '=',
-        );
+        ];
 
-        return $self;
-    }
+        if (\in_array($char, $allowed, true)) {
+            return $char;
+        }
 
-    private function encode(string $char): string
-    {
-        return match ($this->safeCharacters->contains($char)) {
-            true => $char,
-            false => \rawurlencode($char),
-        };
+        return \rawurlencode($char);
     }
 }

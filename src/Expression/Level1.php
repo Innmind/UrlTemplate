@@ -25,7 +25,7 @@ final class Level1 implements Expression
     private function __construct(Name $name)
     {
         $this->name = $name;
-        $this->encode = new UrlEncode;
+        $this->encode = UrlEncode::everything;
     }
 
     /**
@@ -64,14 +64,14 @@ final class Level1 implements Expression
         return $values
             ->get($this->name->toString())
             ->match(
-                $this->encode,
+                $this->encode->encode(...),
                 static fn() => '',
             );
     }
 
     public function encode(string $string): string
     {
-        return ($this->encode)($string);
+        return $this->encode->encode($string);
     }
 
     #[\Override]
