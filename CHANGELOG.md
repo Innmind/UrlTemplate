@@ -11,6 +11,8 @@
 
 - Requires `innmind/immutable:~5.18`
 - Requires PHP `8.4`
+- `Innmind\UrlTemplate\Template::extract()` now returns an `Innmind\Immutable\Attempt`
+- `Innmind\UrlTemplate\Template::matches()` now returns an `Innmind\Immutable\Attempt`
 
 ### Removed
 

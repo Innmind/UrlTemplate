@@ -59,13 +59,16 @@ class TemplateTest extends TestCase
             0,
             Template::of('/{foo}')
                 ->extract(Url::of('/hello%20world%21/foo'))
+                ->unwrap()
                 ->size(),
         );
     }
 
     public function testLevel1Extraction()
     {
-        $variables = Template::of('/{foo}/{bar}')->extract(Url::of('/hello%20world%21/foo'));
+        $variables = Template::of('/{foo}/{bar}')
+            ->extract(Url::of('/hello%20world%21/foo'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(2, $variables->size());
@@ -81,7 +84,9 @@ class TemplateTest extends TestCase
 
     public function testLevel2Extraction()
     {
-        $variables = Template::of('{+path}/here')->extract(Url::of('/foo/bar/here'));
+        $variables = Template::of('{+path}/here')
+            ->extract(Url::of('/foo/bar/here'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(1, $variables->size());
@@ -90,7 +95,9 @@ class TemplateTest extends TestCase
             static fn() => null,
         ));
 
-        $variables = Template::of('X{#hello}')->extract(Url::of('X#Hello%20World!'));
+        $variables = Template::of('X{#hello}')
+            ->extract(Url::of('X#Hello%20World!'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(1, $variables->size());
@@ -102,7 +109,9 @@ class TemplateTest extends TestCase
 
     public function testLevel3Extraction()
     {
-        $variables = Template::of('/map?{x,y}')->extract(Url::of('/map?1024,768'));
+        $variables = Template::of('/map?{x,y}')
+            ->extract(Url::of('/map?1024,768'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(2, $variables->size());
@@ -115,7 +124,9 @@ class TemplateTest extends TestCase
             static fn() => null,
         ));
 
-        $variables = Template::of('/{x,hello,y}')->extract(Url::of('/1024,Hello%20World%21,768'));
+        $variables = Template::of('/{x,hello,y}')
+            ->extract(Url::of('/1024,Hello%20World%21,768'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(3, $variables->size());
@@ -132,7 +143,9 @@ class TemplateTest extends TestCase
             static fn() => null,
         ));
 
-        $variables = Template::of('/{+x,hello,y}')->extract(Url::of('/1024,Hello%20World!,768'));
+        $variables = Template::of('/{+x,hello,y}')
+            ->extract(Url::of('/1024,Hello%20World!,768'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(3, $variables->size());
@@ -149,7 +162,9 @@ class TemplateTest extends TestCase
             static fn() => null,
         ));
 
-        $variables = Template::of('{+path,x}/here')->extract(Url::of('/foo/bar,1024/here'));
+        $variables = Template::of('{+path,x}/here')
+            ->extract(Url::of('/foo/bar,1024/here'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(2, $variables->size());
@@ -162,7 +177,9 @@ class TemplateTest extends TestCase
             static fn() => null,
         ));
 
-        $variables = Template::of('{#x,hello,y}')->extract(Url::of('#1024,Hello%20World!,768'));
+        $variables = Template::of('{#x,hello,y}')
+            ->extract(Url::of('#1024,Hello%20World!,768'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(3, $variables->size());
@@ -179,7 +196,9 @@ class TemplateTest extends TestCase
             static fn() => null,
         ));
 
-        $variables = Template::of('{#path,x}/here')->extract(Url::of('#/foo/bar,1024/here'));
+        $variables = Template::of('{#path,x}/here')
+            ->extract(Url::of('#/foo/bar,1024/here'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(2, $variables->size());
@@ -192,7 +211,9 @@ class TemplateTest extends TestCase
             static fn() => null,
         ));
 
-        $variables = Template::of('{.x,y}')->extract(Url::of('.1024.768'));
+        $variables = Template::of('{.x,y}')
+            ->extract(Url::of('.1024.768'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(2, $variables->size());
@@ -205,7 +226,9 @@ class TemplateTest extends TestCase
             static fn() => null,
         ));
 
-        $variables = Template::of('{/var,x}/here')->extract(Url::of('/value/1024/here'));
+        $variables = Template::of('{/var,x}/here')
+            ->extract(Url::of('/value/1024/here'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(2, $variables->size());
@@ -218,7 +241,9 @@ class TemplateTest extends TestCase
             static fn() => null,
         ));
 
-        $variables = Template::of('{;x,y}')->extract(Url::of(';x=1024;y=768'));
+        $variables = Template::of('{;x,y}')
+            ->extract(Url::of(';x=1024;y=768'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(2, $variables->size());
@@ -231,7 +256,9 @@ class TemplateTest extends TestCase
             static fn() => null,
         ));
 
-        $variables = Template::of('{;x,y,empty}')->extract(Url::of(';x=1024;y=768;empty'));
+        $variables = Template::of('{;x,y,empty}')
+            ->extract(Url::of(';x=1024;y=768;empty'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(3, $variables->size());
@@ -248,7 +275,9 @@ class TemplateTest extends TestCase
             static fn() => null,
         ));
 
-        $variables = Template::of('{?x,y}')->extract(Url::of('?x=1024&y=768'));
+        $variables = Template::of('{?x,y}')
+            ->extract(Url::of('?x=1024&y=768'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(2, $variables->size());
@@ -261,7 +290,9 @@ class TemplateTest extends TestCase
             static fn() => null,
         ));
 
-        $variables = Template::of('{?x,y,empty}')->extract(Url::of('?x=1024&y=768&empty='));
+        $variables = Template::of('{?x,y,empty}')
+            ->extract(Url::of('?x=1024&y=768&empty='))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(3, $variables->size());
@@ -278,7 +309,9 @@ class TemplateTest extends TestCase
             static fn() => null,
         ));
 
-        $variables = Template::of('?fixed=yes{&x}')->extract(Url::of('?fixed=yes&x=1024'));
+        $variables = Template::of('?fixed=yes{&x}')
+            ->extract(Url::of('?fixed=yes&x=1024'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(1, $variables->size());
@@ -287,7 +320,9 @@ class TemplateTest extends TestCase
             static fn() => null,
         ));
 
-        $variables = Template::of('{&x,y,empty}')->extract(Url::of('&x=1024&y=768&empty='));
+        $variables = Template::of('{&x,y,empty}')
+            ->extract(Url::of('&x=1024&y=768&empty='))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(3, $variables->size());
@@ -307,7 +342,9 @@ class TemplateTest extends TestCase
 
     public function testLevel4Extraction()
     {
-        $variables = Template::of('{var:3}')->extract(Url::of('val'));
+        $variables = Template::of('{var:3}')
+            ->extract(Url::of('val'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(1, $variables->size());
@@ -316,7 +353,9 @@ class TemplateTest extends TestCase
             static fn() => null,
         ));
 
-        $variables = Template::of('{+path:6}/here')->extract(Url::of('/foo/b/here'));
+        $variables = Template::of('{+path:6}/here')
+            ->extract(Url::of('/foo/b/here'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(1, $variables->size());
@@ -325,7 +364,9 @@ class TemplateTest extends TestCase
             static fn() => null,
         ));
 
-        $variables = Template::of('{#path:6}/here')->extract(Url::of('#/foo/b/here'));
+        $variables = Template::of('{#path:6}/here')
+            ->extract(Url::of('#/foo/b/here'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(1, $variables->size());
@@ -334,7 +375,9 @@ class TemplateTest extends TestCase
             static fn() => null,
         ));
 
-        $variables = Template::of('{.var:3}')->extract(Url::of('.val'));
+        $variables = Template::of('{.var:3}')
+            ->extract(Url::of('.val'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(1, $variables->size());
@@ -343,7 +386,9 @@ class TemplateTest extends TestCase
             static fn() => null,
         ));
 
-        $variables = Template::of('{/var:1}')->extract(Url::of('/v'));
+        $variables = Template::of('{/var:1}')
+            ->extract(Url::of('/v'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(1, $variables->size());
@@ -352,7 +397,9 @@ class TemplateTest extends TestCase
             static fn() => null,
         ));
 
-        $variables = Template::of('{;var:5}')->extract(Url::of(';var=hello'));
+        $variables = Template::of('{;var:5}')
+            ->extract(Url::of(';var=hello'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(1, $variables->size());
@@ -361,7 +408,9 @@ class TemplateTest extends TestCase
             static fn() => null,
         ));
 
-        $variables = Template::of('{?var:3}')->extract(Url::of('?var=hel'));
+        $variables = Template::of('{?var:3}')
+            ->extract(Url::of('?var=hel'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(1, $variables->size());
@@ -370,7 +419,9 @@ class TemplateTest extends TestCase
             static fn() => null,
         ));
 
-        $variables = Template::of('{&var:3}')->extract(Url::of('&var=hel'));
+        $variables = Template::of('{&var:3}')
+            ->extract(Url::of('&var=hel'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(1, $variables->size());
@@ -383,7 +434,8 @@ class TemplateTest extends TestCase
     public function testExtraction()
     {
         $variables = Template::of('http://example.com/search{?q,lang:2}')
-            ->extract(Url::of('http://example.com/search?q=chien&lang=fr'));
+            ->extract(Url::of('http://example.com/search?q=chien&lang=fr'))
+            ->unwrap();
 
         $this->assertInstanceOf(Map::class, $variables);
         $this->assertSame(2, $variables->size());
@@ -401,23 +453,25 @@ class TemplateTest extends TestCase
     {
         $this->expectException(ExplodeExpressionCantBeMatched::class);
 
-        Template::of('{foo*}')->extract(Url::of('foo,bar,baz'));
+        Template::of('{foo*}')
+            ->extract(Url::of('foo,bar,baz'))
+            ->unwrap();
     }
 
     public function testMatches()
     {
         $template = Template::of('{/foo}');
 
-        $this->assertTrue($template->matches(Url::of('/bar')));
-        $this->assertFalse($template->matches(Url::of('/bar/foo')));
+        $this->assertTrue($template->matches(Url::of('/bar'))->unwrap());
+        $this->assertFalse($template->matches(Url::of('/bar/foo'))->unwrap());
     }
 
     public function testNoNeedToEscapeSpecialRegexCharactersInTheUrl()
     {
         $template = Template::of('/*');
 
-        $this->assertTrue($template->matches(Url::of('/*')));
-        $this->assertFalse($template->matches(Url::of('/f')));
+        $this->assertTrue($template->matches(Url::of('/*'))->unwrap());
+        $this->assertFalse($template->matches(Url::of('/f'))->unwrap());
     }
 
     public static function cases(): array

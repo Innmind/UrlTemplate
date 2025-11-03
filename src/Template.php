@@ -3,7 +3,6 @@ declare(strict_types = 1);
 
 namespace Innmind\UrlTemplate;
 
-use Innmind\UrlTemplate\Exception\ExplodeExpressionCantBeMatched;
 use Innmind\Url\Url;
 use Innmind\Immutable\{
     Map,
@@ -73,25 +72,35 @@ final class Template
     }
 
     /**
-     * @throws ExplodeExpressionCantBeMatched
+     * The attempt will fail when trying to match on a template containing an
+     * explode expression.
      *
-     * @return Map<string, string>
+     * @return Attempt<Map<string, string>>
      */
-    public function extract(Url $url): Map
+    public function extract(Url $url): Attempt
     {
-        /** @var Map<string, string> */
-        return Str::of($url->toString())
-            ->capture($this->regex())
-            ->filter(static fn($key) => \is_string($key))
-            ->map(static fn($_, $variable) => \rawurldecode($variable->toString()));
+        /** @var Attempt<Map<string, string>> */
+        return $this
+            ->regex()
+            ->map(Str::of($url->toString())->capture(...))
+            ->map(
+                static fn($captured) => $captured
+                    ->filter(static fn($key) => \is_string($key))
+                    ->map(static fn($_, $variable) => \rawurldecode($variable->toString())),
+            );
     }
 
     /**
-     * @throws ExplodeExpressionCantBeMatched
+     * The attempt will fail when trying to match on a template containing an
+     * explode expression.
+     *
+     * @return Attempt<bool>
      */
-    public function matches(Url $url): bool
+    public function matches(Url $url): Attempt
     {
-        return Str::of($url->toString())->matches($this->regex());
+        return $this->regex()->map(
+            Str::of($url->toString())->matches(...),
+        );
     }
 
     public function toString(): string
@@ -100,35 +109,37 @@ final class Template
     }
 
     /**
-     * @throws ExplodeExpressionCantBeMatched
+     * @return Attempt<string>
      */
-    private function regex(): string
+    private function regex(): Attempt
     {
-        $template = $this
-            ->expressions
-            ->reduce(
-                $this->template->replace('~', '\~'),
+        return Attempt::of(function() {
+            $template = $this
+                ->expressions
+                ->reduce(
+                    $this->template->replace('~', '\~'),
+                    static fn(Str $template, $expression) => $template->replace(
+                        $expression->toString(),
+                        \sprintf(
+                            '__innmind_expression_%s__',
+                            \spl_object_hash($expression),
+                        ),
+                    ),
+                )
+                ->pregQuote();
+            $template = $this->expressions->reduce(
+                $template,
                 static fn(Str $template, $expression) => $template->replace(
-                    $expression->toString(),
                     \sprintf(
                         '__innmind_expression_%s__',
                         \spl_object_hash($expression),
                     ),
+                    $expression->regex(),
                 ),
-            )
-            ->pregQuote();
-        $template = $this->expressions->reduce(
-            $template,
-            static fn(Str $template, $expression) => $template->replace(
-                \sprintf(
-                    '__innmind_expression_%s__',
-                    \spl_object_hash($expression),
-                ),
-                $expression->regex(),
-            ),
-        );
+            );
 
-        return $template->prepend('~^')->append('$~')->toString();
+            return $template->prepend('~^')->append('$~')->toString();
+        });
     }
 
     /**
