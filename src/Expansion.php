@@ -51,7 +51,7 @@ final class Expansion
     /**
      * @no-named-arguments
      *
-     * @param non-empty-string $name Todo use literal strings
+     * @param non-empty-string $name
      */
     public function with(string $name, string ...$values): self
     {
@@ -77,7 +77,7 @@ final class Expansion
     /**
      * @no-named-arguments
      *
-     * @param non-empty-string $name Todo use literal strings
+     * @param non-empty-string $name
      * @param array{string, string} ...$keys
      */
     public function withKeys(string $name, array ...$keys): self
