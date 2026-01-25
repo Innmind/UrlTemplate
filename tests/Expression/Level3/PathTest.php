@@ -11,7 +11,7 @@ use Innmind\Immutable\{
     Map,
     Str,
 };
-use PHPUnit\Framework\TestCase;
+use Innmind\BlackBox\PHPUnit\Framework\TestCase;
 
 class PathTest extends TestCase
 {
@@ -50,14 +50,14 @@ class PathTest extends TestCase
         $this->assertSame(
             '/value',
             Path::of(Str::of('{/var}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($variables, Map::of(), Map::of()),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             '/value/1024',
             Path::of(Str::of('{/var,x}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($variables, Map::of(), Map::of()),
                 static fn() => null,
             ),
         );
@@ -88,7 +88,7 @@ class PathTest extends TestCase
         $this->assertSame(
             '/(?<foo>[a-zA-Z0-9\%\-\.\_\~]*)/(?<bar>[a-zA-Z0-9\%\-\.\_\~]*)',
             Path::of(Str::of('{/foo,bar}'))->match(
-                static fn($expression) => $expression->regex(),
+                static fn($expression) => $expression->regex()->unwrap(),
                 static fn() => null,
             ),
         );

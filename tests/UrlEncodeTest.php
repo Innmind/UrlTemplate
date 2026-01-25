@@ -4,9 +4,9 @@ declare(strict_types = 1);
 namespace Tests\Innmind\UrlTemplate;
 
 use Innmind\UrlTemplate\UrlEncode;
-use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
+    PHPUnit\Framework\TestCase,
     Set,
 };
 
@@ -14,21 +14,21 @@ class UrlEncodeTest extends TestCase
 {
     use BlackBox;
 
-    public function testStandardEncode()
+    public function testStandardEncode(): BlackBox\Proof
     {
-        $this
-            ->forAll(Set\Strings::any())
-            ->then(function(string $string): void {
-                $encode = new UrlEncode;
+        return $this
+            ->forAll(Set::strings())
+            ->prove(function(string $string): void {
+                $encode = UrlEncode::everything;
 
-                $this->assertSame(\rawurlencode($string), $encode($string));
+                $this->assertSame(\rawurlencode($string), $encode->encode($string));
             });
     }
 
-    public function testSafeCharactersAreNotEncoded()
+    public function testSafeCharactersAreNotEncoded(): BlackBox\Proof
     {
-        $this
-            ->forAll(Set\Elements::of(
+        return $this
+            ->forAll(Set::of(
                 ':',
                 '/',
                 '?',
@@ -48,25 +48,25 @@ class UrlEncodeTest extends TestCase
                 ';',
                 '=',
             ))
-            ->then(function(string $char): void {
-                $encode = UrlEncode::allowReservedCharacters();
+            ->prove(function(string $char): void {
+                $encode = UrlEncode::allowReservedCharacters;
 
-                $this->assertSame($char, $encode($char));
+                $this->assertSame($char, $encode->encode($char));
             });
     }
 
     public function testSafeCharactersAreNotEncodedEvenWhenInMiddleOfString()
     {
-        $encode = UrlEncode::allowReservedCharacters();
+        $encode = UrlEncode::allowReservedCharacters;
 
         $this->assertSame(
             ':%20)',
-            $encode(': )'),
+            $encode->encode(': )'),
         );
     }
 
     public function testDoesNothingOnEmptyString()
     {
-        $this->assertSame('', UrlEncode::allowReservedCharacters()(''));
+        $this->assertSame('', UrlEncode::allowReservedCharacters->encode(''));
     }
 }

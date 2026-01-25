@@ -12,56 +12,60 @@ use Innmind\UrlTemplate\{
 use Innmind\Immutable\{
     Map,
     Str,
-    Maybe,
+    Attempt,
 };
 
 /**
  * @psalm-immutable
+ * @internal
  */
 final class Fragment implements Expression
 {
-    private Name $name;
-    private UrlEncode $encode;
-
-    private function __construct(Name $name)
-    {
-        $this->name = $name;
-        $this->encode = UrlEncode::allowReservedCharacters();
+    private function __construct(
+        private Name $name,
+        private UrlEncode $encode,
+    ) {
     }
 
     /**
      * @psalm-pure
+     *
+     * @return Attempt<self>
      */
-    public static function of(Str $string): Maybe
+    public static function of(Str $string): Attempt
     {
-        /** @var Maybe<Expression> */
-        return Name::one($string, Expansion::fragment)->map(
-            static fn($name) => new self($name),
-        );
+        return Name::one($string, Expansion::fragment)
+            ->map(static fn($name) => new self(
+                $name,
+                UrlEncode::allowReservedCharacters,
+            ));
     }
 
+    #[\Override]
     public function expansion(): Expansion
     {
         return Expansion::fragment;
     }
 
-    public function expand(Map $variables): string
+    #[\Override]
+    public function expand(Map $values, Map $lists, Map $keys): string
     {
-        /** @psalm-suppress InvalidArgument Because of the filter */
-        return $variables
+        return $values
             ->get($this->name->toString())
-            ->filter(\is_string(...))
+            ->map($this->encode->encode(...))
             ->match(
-                fn(string $variable) => '#'.($this->encode)($variable),
+                static fn(string $variable) => '#'.$variable,
                 static fn() => '',
             );
     }
 
-    public function regex(): string
+    #[\Override]
+    public function regex(): Attempt
     {
-        return "\#(?<{$this->name->toString()}>[a-zA-Z0-9\%:/\?#\[\]@!\$&'\(\)\*\+,;=\-\.\_\~]*)";
+        return Attempt::result("\#(?<{$this->name->toString()}>[a-zA-Z0-9\%:/\?#\[\]@!\$&'\(\)\*\+,;=\-\.\_\~]*)");
     }
 
+    #[\Override]
     public function toString(): string
     {
         return "{#{$this->name->toString()}}";

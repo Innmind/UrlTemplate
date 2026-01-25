@@ -7,36 +7,37 @@ use Innmind\UrlTemplate\{
     Expression,
     Expression\Name,
     Expression\Expansion,
-    Expression\Level1,
     Expression\Level4,
-    Exception\DomainException,
 };
 use Innmind\Immutable\{
     Map,
     Str,
-    Maybe,
+    Attempt,
 };
 
 /**
  * @psalm-immutable
+ * @internal
  */
 final class Path implements Expression
 {
-    private Expression $expression;
-
-    private function __construct(Name $name)
-    {
-        $this->expression = Level4::named($name)->withExpansion(Expansion::path);
+    private function __construct(
+        private Level4 $expression,
+    ) {
     }
 
     /**
      * @psalm-pure
+     *
+     * @return Attempt<self>
      */
-    public static function of(Str $string): Maybe
+    public static function of(Str $string): Attempt
     {
         return Parse::of(
             $string,
-            static fn(Name $name) => new self($name),
+            static fn(Name $name) => new self(
+                Level4::named($name)->withExpansion(Expansion::path),
+            ),
             self::explode(...),
             self::limit(...),
             Expansion::path,
@@ -46,14 +47,13 @@ final class Path implements Expression
     /**
      * @psalm-pure
      *
-     * @param positive-int $limit
+     * @param int<1, max> $limit
      */
     public static function limit(Name $name, int $limit): self
     {
-        $self = new self($name);
-        $self->expression = Level4::limit($name, $limit)->withExpansion(Expansion::path);
-
-        return $self;
+        return new self(
+            Level4::limit($name, $limit)->withExpansion(Expansion::path),
+        );
     }
 
     /**
@@ -61,28 +61,30 @@ final class Path implements Expression
      */
     public static function explode(Name $name): self
     {
-        $self = new self($name);
-        $self->expression = Level4::explode($name)
-            ->withExpansion(Expansion::path);
-
-        return $self;
+        return new self(
+            Level4::explode($name)->withExpansion(Expansion::path),
+        );
     }
 
+    #[\Override]
     public function expansion(): Expansion
     {
         return Expansion::path;
     }
 
-    public function expand(Map $variables): string
+    #[\Override]
+    public function expand(Map $values, Map $lists, Map $keys): string
     {
-        return $this->expression->expand($variables);
+        return $this->expression->expand($values, $lists, $keys);
     }
 
-    public function regex(): string
+    #[\Override]
+    public function regex(): Attempt
     {
         return $this->expression->regex();
     }
 
+    #[\Override]
     public function toString(): string
     {
         return $this->expression->toString();

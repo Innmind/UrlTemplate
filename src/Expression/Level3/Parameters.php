@@ -12,33 +12,30 @@ use Innmind\Immutable\{
     Map,
     Sequence,
     Str,
-    Maybe,
+    Attempt,
 };
 
 /**
  * @psalm-immutable
+ * @internal
  */
 final class Parameters implements Expression
 {
-    private Expression $expression;
-
-    /**
-     * @param Sequence<Name> $names
-     */
-    private function __construct(Sequence $names)
-    {
-        $this->expression = NamedValues::keyOnlyWhenEmpty(Expansion::parameter, $names);
+    private function __construct(
+        private NamedValues $expression,
+    ) {
     }
 
     /**
      * @psalm-pure
+     *
+     * @return Attempt<self>
      */
-    public static function of(Str $string): Maybe
+    public static function of(Str $string): Attempt
     {
-        /** @var Maybe<Expression> */
-        return Name::many($string, Expansion::parameter)->map(
-            static fn($names) => new self($names),
-        );
+        return Name::many($string, Expansion::parameter)
+            ->map(NamedValues::parameters(...))
+            ->map(static fn($names) => new self($names));
     }
 
     /**
@@ -46,24 +43,28 @@ final class Parameters implements Expression
      */
     public static function named(Name $name): self
     {
-        return new self(Sequence::of($name));
+        return new self(NamedValues::parameters(Sequence::of($name)));
     }
 
+    #[\Override]
     public function expansion(): Expansion
     {
         return Expansion::parameter;
     }
 
-    public function expand(Map $variables): string
+    #[\Override]
+    public function expand(Map $values, Map $lists, Map $keys): string
     {
-        return $this->expression->expand($variables);
+        return $this->expression->expand($values, $lists, $keys);
     }
 
-    public function regex(): string
+    #[\Override]
+    public function regex(): Attempt
     {
         return $this->expression->regex();
     }
 
+    #[\Override]
     public function toString(): string
     {
         return $this->expression->toString();

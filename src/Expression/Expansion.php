@@ -23,6 +23,7 @@ enum Expansion
     /**
      * @psalm-pure
      */
+    #[\NoDiscard]
     public static function matchesLevel4(Str $value): bool
     {
         return $value->matches(\sprintf(
@@ -32,6 +33,7 @@ enum Expansion
         ));
     }
 
+    #[\NoDiscard]
     public function clean(Str $value): Str
     {
         $drop = match ($this) {
@@ -42,11 +44,13 @@ enum Expansion
         return $value->drop($drop)->dropEnd(1);
     }
 
+    #[\NoDiscard]
     public function cleanExplode(Str $value): Str
     {
         return $this->clean($value)->dropEnd(1);
     }
 
+    #[\NoDiscard]
     public function matches(Str $value): bool
     {
         return $value->matches(\sprintf(
@@ -56,6 +60,7 @@ enum Expansion
         ));
     }
 
+    #[\NoDiscard]
     public function matchesExplode(Str $value): bool
     {
         return $value->matches(\sprintf(
@@ -65,6 +70,7 @@ enum Expansion
         ));
     }
 
+    #[\NoDiscard]
     public function matchesLimit(Str $value): bool
     {
         return $value->matches(\sprintf(
@@ -74,6 +80,7 @@ enum Expansion
         ));
     }
 
+    #[\NoDiscard]
     public function matchesMany(Str $value): bool
     {
         return $value->matches(\sprintf(
@@ -84,6 +91,7 @@ enum Expansion
         ));
     }
 
+    #[\NoDiscard]
     public function continuation(): self
     {
         return match ($this) {
@@ -92,6 +100,7 @@ enum Expansion
         };
     }
 
+    #[\NoDiscard]
     public function separator(): string
     {
         return match ($this) {
@@ -102,6 +111,7 @@ enum Expansion
         };
     }
 
+    #[\NoDiscard]
     public function separatorRegex(): string
     {
         return match ($this->separator()) {
@@ -110,6 +120,7 @@ enum Expansion
         };
     }
 
+    #[\NoDiscard]
     public function explodeSeparator(): string
     {
         return match ($this) {
@@ -119,6 +130,7 @@ enum Expansion
         };
     }
 
+    #[\NoDiscard]
     public function regex(): string
     {
         return match ($this) {
@@ -127,6 +139,7 @@ enum Expansion
         };
     }
 
+    #[\NoDiscard]
     public function toString(): string
     {
         return match ($this) {

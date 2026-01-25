@@ -10,60 +10,68 @@ use Innmind\UrlTemplate\{
 };
 use Innmind\Immutable\{
     Str,
-    Maybe,
+    Attempt,
 };
 
+/**
+ * @internal
+ */
 final class Parse
 {
     /**
      * @psalm-pure
+     * @internal
+     * @template T of Expression
      *
-     * @param pure-callable(Name): Expression $standard
-     * @param pure-callable(Name): Expression $explode
-     * @param pure-callable(Name, positive-int): Expression $limit
+     * @param pure-callable(Name): T $standard
+     * @param pure-callable(Name): T $explode
+     * @param pure-callable(Name, int<1, max>): T $limit
      *
-     * @return Maybe<Expression>
+     * @return Attempt<T>
      */
+    #[\NoDiscard]
     public static function of(
         Str $string,
         callable $standard,
         callable $explode,
         callable $limit,
         Expansion $expansion,
-    ): Maybe {
+    ): Attempt {
         return Name::one($string, $expansion)
             ->map($standard)
-            ->otherwise(static fn() => self::explode($string, $explode, $expansion))
-            ->otherwise(static fn() => self::limit($string, $limit, $expansion));
+            ->recover(static fn() => self::explode($string, $explode, $expansion))
+            ->recover(static fn() => self::limit($string, $limit, $expansion));
     }
 
     /**
      * @psalm-pure
+     * @template T of Expression
      *
-     * @param pure-callable(Name): Expression $explode
+     * @param pure-callable(Name): T $explode
      *
-     * @return Maybe<Expression>
+     * @return Attempt<T>
      */
     private static function explode(
         Str $string,
         callable $explode,
         Expansion $expansion,
-    ): Maybe {
+    ): Attempt {
         return Name::explode($string, $expansion)->map($explode);
     }
 
     /**
      * @psalm-pure
+     * @template T of Expression
      *
-     * @param pure-callable(Name, positive-int): Expression $limit
+     * @param pure-callable(Name, int<1, max>): T $limit
      *
-     * @return Maybe<Expression>
+     * @return Attempt<T>
      */
     private static function limit(
         Str $string,
         callable $limit,
         Expansion $expansion,
-    ): Maybe {
+    ): Attempt {
         return Name::limit($string, $expansion)->map(
             static fn($tuple) => $limit($tuple[0], $tuple[1]),
         );

@@ -11,7 +11,7 @@ use Innmind\Immutable\{
     Map,
     Str,
 };
-use PHPUnit\Framework\TestCase;
+use Innmind\BlackBox\PHPUnit\Framework\TestCase;
 
 class Level1Test extends TestCase
 {
@@ -46,11 +46,17 @@ class Level1Test extends TestCase
 
         $this->assertSame('value', $expression->expand(
             Map::of(['foo', 'value']),
+            Map::of(),
+            Map::of(),
         ));
         $this->assertSame('Hello%20World%21', $expression->expand(
             Map::of(['foo', 'Hello World!']),
+            Map::of(),
+            Map::of(),
         ));
         $this->assertSame('', $expression->expand(
+            Map::of(),
+            Map::of(),
             Map::of(),
         ));
     }
@@ -80,7 +86,7 @@ class Level1Test extends TestCase
         $this->assertSame(
             '(?<foo>[a-zA-Z0-9\%\-\.\_\~]*)',
             Level1::of(Str::of('{foo}'))->match(
-                static fn($expression) => $expression->regex(),
+                static fn($expression) => $expression->regex()->unwrap(),
                 static fn() => null,
             ),
         );
@@ -94,7 +100,9 @@ class Level1Test extends TestCase
         );
 
         $this->assertSame('', $expression->expand(
+            Map::of(),
             Map::of(['foo', ['value']]),
+            Map::of(),
         ));
     }
 }

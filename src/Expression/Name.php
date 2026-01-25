@@ -3,10 +3,10 @@ declare(strict_types = 1);
 
 namespace Innmind\UrlTemplate\Expression;
 
-use Innmind\UrlTemplate\Exception\DomainException;
 use Innmind\Immutable\{
     Str,
     Maybe,
+    Attempt,
     Sequence,
 };
 
@@ -16,26 +16,25 @@ use Innmind\Immutable\{
  */
 final class Name
 {
-    /** @var non-empty-string */
-    private string $value;
-
     /**
      * @param non-empty-string $value
      */
-    private function __construct(string $value)
+    private function __construct(private string $value)
     {
-        $this->value = $value;
     }
 
     /**
      * @psalm-pure
+     *
+     * @throws \DomainException
      */
+    #[\NoDiscard]
     public static function of(string $value): self
     {
         $characters = self::characters();
 
         if (!Str::of($value)->matches("~^{$characters}\$~")) {
-            throw new DomainException($value);
+            throw new \DomainException($value);
         }
 
         /** @psalm-suppress ArgumentTypeCoercion Because of the non-empty-string */
@@ -45,49 +44,62 @@ final class Name
     /**
      * @psalm-pure
      *
-     * @return Maybe<self>
+     * @return Attempt<self>
      */
+    #[\NoDiscard]
     public static function one(
         Str $value,
         Expansion $expansion,
-    ): Maybe {
+    ): Attempt {
         /** @psalm-suppress ArgumentTypeCoercion Because of the non-empty-string */
         return Maybe::just($value)
             ->filter($expansion->matches(...))
             ->map($expansion->clean(...))
             ->map(static fn($value) => $value->toString())
-            ->map(static fn($value) => new self($value));
+            ->map(static fn($value) => new self($value))
+            ->attempt(static fn() => new \LogicException(\sprintf(
+                'Value "%s" does not match %s expansion',
+                $value->toString(),
+                $expansion->name,
+            )));
     }
 
     /**
      * @psalm-pure
      *
-     * @return Maybe<self>
+     * @return Attempt<self>
      */
+    #[\NoDiscard]
     public static function explode(
         Str $value,
         Expansion $expansion,
-    ): Maybe {
+    ): Attempt {
         /** @psalm-suppress ArgumentTypeCoercion Because of the non-empty-string */
         return Maybe::just($value)
             ->filter($expansion->matchesExplode(...))
             ->map($expansion->cleanExplode(...))
             ->map(static fn($value) => $value->toString())
-            ->map(static fn($value) => new self($value));
+            ->map(static fn($value) => new self($value))
+            ->attempt(static fn() => new \LogicException(\sprintf(
+                'Value "%s" does not match exploding %s expansion',
+                $value->toString(),
+                $expansion->name,
+            )));
     }
 
     /**
      * @psalm-pure
      *
-     * @return Maybe<array{self, positive-int}>
+     * @return Attempt<array{self, int<1, max>}>
      */
+    #[\NoDiscard]
     public static function limit(
         Str $value,
         Expansion $expansion,
-    ): Maybe {
+    ): Attempt {
         /**
          * @psalm-suppress ArgumentTypeCoercion Because of the non-empty-string
-         * @var Maybe<array{self, positive-int}>
+         * @var Attempt<array{self, int<1, max>}>
          */
         return Maybe::just($value)
             ->filter($expansion->matchesLimit(...))
@@ -106,18 +118,24 @@ final class Name
                             ->filter(static fn(int $limit) => $limit > 0)
                             ->map(static fn($int) => [$name, $int]),
                     ),
-            );
+            )
+            ->attempt(static fn() => new \LogicException(\sprintf(
+                'Value "%s" does not match limited %s expansion',
+                $value->toString(),
+                $expansion->name,
+            )));
     }
 
     /**
      * @psalm-pure
      *
-     * @return Maybe<Sequence<self>>
+     * @return Attempt<Sequence<self>>
      */
+    #[\NoDiscard]
     public static function many(
         Str $value,
         Expansion $expansion,
-    ): Maybe {
+    ): Attempt {
         /** @psalm-suppress ArgumentTypeCoercion Because of the non-empty-string */
         return Maybe::just($value)
             ->filter($expansion->matchesMany(...))
@@ -127,12 +145,18 @@ final class Name
                     ->split(',')
                     ->map(static fn($value) => $value->toString())
                     ->map(static fn($value) => new self($value)),
-            );
+            )
+            ->attempt(static fn() => new \LogicException(\sprintf(
+                'Value "%s" does not match many %s expansions',
+                $value->toString(),
+                $expansion->name,
+            )));
     }
 
     /**
      * @psalm-pure
      */
+    #[\NoDiscard]
     public static function characters(): string
     {
         return '[a-zA-Z0-9_]+';
@@ -141,6 +165,7 @@ final class Name
     /**
      * @return non-empty-string
      */
+    #[\NoDiscard]
     public function toString(): string
     {
         return $this->value;

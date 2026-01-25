@@ -11,7 +11,7 @@ use Innmind\Immutable\{
     Map,
     Str,
 };
-use PHPUnit\Framework\TestCase;
+use Innmind\BlackBox\PHPUnit\Framework\TestCase;
 
 class ParametersTest extends TestCase
 {
@@ -50,14 +50,14 @@ class ParametersTest extends TestCase
         $this->assertSame(
             ';x=1024;y=768',
             Parameters::of(Str::of('{;x,y}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($variables, Map::of(), Map::of()),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             ';x=1024;y=768;empty',
             Parameters::of(Str::of('{;x,y,empty}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($variables, Map::of(), Map::of()),
                 static fn() => null,
             ),
         );
@@ -88,7 +88,7 @@ class ParametersTest extends TestCase
         $this->assertSame(
             '\;foo=?(?<foo>[a-zA-Z0-9\%\-\.\_\~]*)\;bar=?(?<bar>[a-zA-Z0-9\%\-\.\_\~]*)',
             Parameters::of(Str::of('{;foo,bar}'))->match(
-                static fn($expression) => $expression->regex(),
+                static fn($expression) => $expression->regex()->unwrap(),
                 static fn() => null,
             ),
         );
