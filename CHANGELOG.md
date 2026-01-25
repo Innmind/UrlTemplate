@@ -9,7 +9,8 @@
 
 ### Changed
 
-- Requires `innmind/immutable:~5.18`
+- Requires `innmind/immutable:~6.0`
+- Requires `innmind/url:~5.0`
 - Requires PHP `8.4`
 - `Innmind\UrlTemplate\Template::extract()` now returns an `Innmind\Immutable\Attempt`
 - `Innmind\UrlTemplate\Template::matches()` now returns an `Innmind\Immutable\Attempt`
