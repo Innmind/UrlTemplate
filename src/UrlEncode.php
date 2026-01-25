@@ -28,7 +28,7 @@ enum UrlEncode
             ->map(static fn($char) => $char->toString())
             ->map(self::map(...))
             ->map(Str::of(...))
-            ->fold(new Concat)
+            ->fold(Concat::monoid)
             ->toString();
     }
 
