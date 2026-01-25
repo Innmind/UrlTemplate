@@ -176,7 +176,7 @@ class ReservedTest extends TestCase
     {
         $this->expectException(\LogicException::class);
 
-        Reserved::of(Str::of('{+foo*}'))->match(
+        $_ = Reserved::of(Str::of('{+foo*}'))->match(
             static fn($expression) => $expression->regex()->unwrap(),
             static fn() => null,
         );

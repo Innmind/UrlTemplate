@@ -176,7 +176,7 @@ class QueryContinuationTest extends TestCase
     {
         $this->expectException(\LogicException::class);
 
-        QueryContinuation::of(Str::of('{&foo*}'))->match(
+        $_ = QueryContinuation::of(Str::of('{&foo*}'))->match(
             static fn($expression) => $expression->regex()->unwrap(),
             static fn() => null,
         );

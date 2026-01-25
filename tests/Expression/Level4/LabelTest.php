@@ -176,7 +176,7 @@ class LabelTest extends TestCase
     {
         $this->expectException(\LogicException::class);
 
-        Label::of(Str::of('{.foo*}'))->match(
+        $_ = Label::of(Str::of('{.foo*}'))->match(
             static fn($expression) => $expression->regex()->unwrap(),
             static fn() => null,
         );

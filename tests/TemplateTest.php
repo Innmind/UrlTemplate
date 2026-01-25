@@ -450,7 +450,7 @@ class TemplateTest extends TestCase
     {
         $this->expectException(\LogicException::class);
 
-        Template::of('{foo*}')
+        $_ = Template::of('{foo*}')
             ->extract(Url::of('foo,bar,baz'))
             ->unwrap();
     }

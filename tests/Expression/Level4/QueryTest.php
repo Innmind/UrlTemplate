@@ -176,7 +176,7 @@ class QueryTest extends TestCase
     {
         $this->expectException(\LogicException::class);
 
-        Query::of(Str::of('{?foo*}'))->match(
+        $_ = Query::of(Str::of('{?foo*}'))->match(
             static fn($expression) => $expression->regex()->unwrap(),
             static fn() => null,
         );

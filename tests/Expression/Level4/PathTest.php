@@ -169,7 +169,7 @@ class PathTest extends TestCase
     {
         $this->expectException(\LogicException::class);
 
-        Path::of(Str::of('{/foo*}'))->match(
+        $_ = Path::of(Str::of('{/foo*}'))->match(
             static fn($expression) => $expression->regex()->unwrap(),
             static fn() => null,
         );

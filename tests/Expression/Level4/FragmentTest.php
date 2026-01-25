@@ -176,7 +176,7 @@ class FragmentTest extends TestCase
     {
         $this->expectException(\LogicException::class);
 
-        Fragment::of(Str::of('{#foo*}'))->match(
+        $_ = Fragment::of(Str::of('{#foo*}'))->match(
             static fn($expression) => $expression->regex()->unwrap(),
             static fn() => null,
         );

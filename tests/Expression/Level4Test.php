@@ -190,7 +190,7 @@ class Level4Test extends TestCase
     {
         $this->expectException(\LogicException::class);
 
-        Level4::of(Str::of('{foo*}'))->match(
+        $_ = Level4::of(Str::of('{foo*}'))->match(
             static fn($expression) => $expression->regex()->unwrap(),
             static fn() => null,
         );
