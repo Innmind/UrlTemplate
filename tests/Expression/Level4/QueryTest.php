@@ -5,8 +5,8 @@ namespace Tests\Innmind\UrlTemplate\Expression\Level4;
 
 use Innmind\UrlTemplate\{
     Expression\Level4\Query,
+    Expression\Name,
     Expression,
-    Exception\LogicException,
 };
 use Innmind\Immutable\{
     Map,
@@ -86,45 +86,51 @@ class QueryTest extends TestCase
 
     public function testExpand()
     {
-        $variables = Map::of()
+        $values = Map::of()
             ('var', 'value')
             ('hello', 'Hello World!')
-            ('path', '/foo/bar')
-            ('list', ['red', 'green', 'blue'])
-            ('keys', [['semi', ';'], ['dot', '.'], ['comma', ',']]);
+            ('path', '/foo/bar');
+        $lists = Map::of()
+            ('list', ['red', 'green', 'blue']);
+        $keys = Map::of()
+            ('keys', [
+                [Name::of('semi'), ';'],
+                [Name::of('dot'), '.'],
+                [Name::of('comma'), ','],
+            ]);
 
         $this->assertSame(
             '?var=val',
             Query::of(Str::of('{?var:3}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             '?list=red,green,blue',
             Query::of(Str::of('{?list}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             '?list=red&list=green&list=blue',
             Query::of(Str::of('{?list*}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             '?keys=semi,%3B,dot,.,comma,%2C',
             Query::of(Str::of('{?keys}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             '?semi=%3B&dot=.&comma=%2C',
             Query::of(Str::of('{?keys*}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($values, $lists, $keys),
                 static fn() => null,
             ),
         );
@@ -168,10 +174,10 @@ class QueryTest extends TestCase
 
     public function testThrowExplodeRegex()
     {
-        $this->expectException(LogicException::class);
+        $this->expectException(\LogicException::class);
 
-        Query::of(Str::of('{?foo*}'))->match(
-            static fn($expression) => $expression->regex(),
+        $_ = Query::of(Str::of('{?foo*}'))->match(
+            static fn($expression) => $expression->regex()->unwrap(),
             static fn() => null,
         );
     }
@@ -181,14 +187,14 @@ class QueryTest extends TestCase
         $this->assertSame(
             '\?foo=(?<foo>[a-zA-Z0-9\%\-\.\_\~]*)',
             Query::of(Str::of('{?foo}'))->match(
-                static fn($expression) => $expression->regex(),
+                static fn($expression) => $expression->regex()->unwrap(),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             '\?foo=(?<foo>[a-zA-Z0-9\%\-\.\_\~]{2})',
             Query::of(Str::of('{?foo:2}'))->match(
-                static fn($expression) => $expression->regex(),
+                static fn($expression) => $expression->regex()->unwrap(),
                 static fn() => null,
             ),
         );

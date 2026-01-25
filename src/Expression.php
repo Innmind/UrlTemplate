@@ -3,10 +3,10 @@ declare(strict_types = 1);
 
 namespace Innmind\UrlTemplate;
 
+use Innmind\UrlTemplate\Expression\Name;
 use Innmind\Immutable\{
     Map,
-    Str,
-    Maybe,
+    Attempt,
 };
 
 /**
@@ -15,19 +15,18 @@ use Innmind\Immutable\{
  */
 interface Expression
 {
-    /**
-     * @psalm-pure
-     *
-     * @return Maybe<self>
-     */
-    public static function of(Str $string): Maybe;
-
     public function expansion(): Expression\Expansion;
 
     /**
-     * @param Map<non-empty-string, string|list<string>|list<array{string, string}>> $variables
+     * @param Map<non-empty-string, string> $values
+     * @param Map<non-empty-string, list<string>> $lists
+     * @param Map<non-empty-string, list<array{Name, string}>> $keys
      */
-    public function expand(Map $variables): string;
-    public function regex(): string;
+    public function expand(Map $values, Map $lists, Map $keys): string;
+
+    /**
+     * @return Attempt<string>
+     */
+    public function regex(): Attempt;
     public function toString(): string;
 }

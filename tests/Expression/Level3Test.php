@@ -50,14 +50,14 @@ class Level3Test extends TestCase
         $this->assertSame(
             '1024,768',
             Level3::of(Str::of('{x,y}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($variables, Map::of(), Map::of()),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             '1024,Hello%20World%21,768',
             Level3::of(Str::of('{x,hello,y}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($variables, Map::of(), Map::of()),
                 static fn() => null,
             ),
         );
@@ -88,7 +88,7 @@ class Level3Test extends TestCase
         $this->assertSame(
             '(?<foo>[a-zA-Z0-9\%\-\.\_\~]*),(?<bar>[a-zA-Z0-9\%\-\.\_\~]*)',
             Level3::of(Str::of('{foo,bar}'))->match(
-                static fn($expression) => $expression->regex(),
+                static fn($expression) => $expression->regex()->unwrap(),
                 static fn() => null,
             ),
         );

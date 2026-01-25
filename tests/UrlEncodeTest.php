@@ -19,9 +19,9 @@ class UrlEncodeTest extends TestCase
         return $this
             ->forAll(Set::strings())
             ->prove(function(string $string): void {
-                $encode = new UrlEncode;
+                $encode = UrlEncode::everything;
 
-                $this->assertSame(\rawurlencode($string), $encode($string));
+                $this->assertSame(\rawurlencode($string), $encode->encode($string));
             });
     }
 
@@ -49,24 +49,24 @@ class UrlEncodeTest extends TestCase
                 '=',
             ))
             ->prove(function(string $char): void {
-                $encode = UrlEncode::allowReservedCharacters();
+                $encode = UrlEncode::allowReservedCharacters;
 
-                $this->assertSame($char, $encode($char));
+                $this->assertSame($char, $encode->encode($char));
             });
     }
 
     public function testSafeCharactersAreNotEncodedEvenWhenInMiddleOfString()
     {
-        $encode = UrlEncode::allowReservedCharacters();
+        $encode = UrlEncode::allowReservedCharacters;
 
         $this->assertSame(
             ':%20)',
-            $encode(': )'),
+            $encode->encode(': )'),
         );
     }
 
     public function testDoesNothingOnEmptyString()
     {
-        $this->assertSame('', UrlEncode::allowReservedCharacters()(''));
+        $this->assertSame('', UrlEncode::allowReservedCharacters->encode(''));
     }
 }

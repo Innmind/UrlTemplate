@@ -50,14 +50,14 @@ class LabelTest extends TestCase
         $this->assertSame(
             '.1024.768',
             Label::of(Str::of('{.x,y}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($variables, Map::of(), Map::of()),
                 static fn() => null,
             ),
         );
         $this->assertSame(
             '.value',
             Label::of(Str::of('{.var}'))->match(
-                static fn($expression) => $expression->expand($variables),
+                static fn($expression) => $expression->expand($variables, Map::of(), Map::of()),
                 static fn() => null,
             ),
         );
@@ -88,7 +88,7 @@ class LabelTest extends TestCase
         $this->assertSame(
             '\.(?<foo>[a-zA-Z0-9\%\-\_\~]*).(?<bar>[a-zA-Z0-9\%\-\_\~]*)',
             Label::of(Str::of('{.foo,bar}'))->match(
-                static fn($expression) => $expression->regex(),
+                static fn($expression) => $expression->regex()->unwrap(),
                 static fn() => null,
             ),
         );

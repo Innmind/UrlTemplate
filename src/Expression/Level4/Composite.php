@@ -13,41 +13,41 @@ use Innmind\Immutable\{
     Sequence,
     Str,
     Maybe,
+    Attempt,
 };
 
 /**
  * @psalm-immutable
+ * @internal
  */
 final class Composite implements Expression
 {
-    private Expansion $expansion;
-    /** @var Sequence<Expression> */
-    private Sequence $expressions;
-
     /**
      * @param Sequence<Expression> $expressions
      */
-    private function __construct(Expansion $expansion, Sequence $expressions)
-    {
-        $this->expansion = $expansion;
-        $this->expressions = $expressions;
+    private function __construct(
+        private Expansion $expansion,
+        private Sequence $expressions,
+    ) {
     }
 
     /**
      * @psalm-pure
+     *
+     * @return Attempt<self>
      */
-    #[\Override]
-    public static function of(Str $string): Maybe
+    public static function of(Str $string): Attempt
     {
-        /** @var Maybe<Expression> */
         return Maybe::just($string)
             ->filter(Expansion::matchesLevel4(...))
             ->map(Expansion::simple->clean(...))
             ->map(static fn($string) => $string->split(','))
+            ->attempt(static fn() => new \LogicException('Cannot parse level 4 composite'))
             ->flatMap(
                 static fn($expressions) => $expressions
                     ->first()
                     ->map(static fn($first) => $first->prepend('{')->append('}'))
+                    ->attempt(static fn() => new \LogicException('First expression not found'))
                     ->flatMap(Expressions::of(...))
                     ->flatMap(
                         static fn($first) => self::parse($first, $expressions->drop(1))
@@ -66,10 +66,10 @@ final class Composite implements Expression
     }
 
     #[\Override]
-    public function expand(Map $variables): string
+    public function expand(Map $values, Map $lists, Map $keys): string
     {
         $expanded = $this->expressions->map(
-            static fn($expression) => $expression->expand($variables),
+            static fn($expression) => $expression->expand($values, $lists, $keys),
         );
 
         //potentially remove the lead characters from the expressions except for
@@ -91,28 +91,34 @@ final class Composite implements Expression
     }
 
     #[\Override]
-    public function regex(): string
+    public function regex(): Attempt
     {
         $remaining = $this
             ->expressions
             ->drop(1)
-            ->map(function(Expression $expression): string {
+            ->map(function($expression) {
                 if ($this->removeLead()) {
-                    return Str::of($expression->regex())->drop(2)->toString();
+                    return $expression
+                        ->regex()
+                        ->map(Str::of(...))
+                        ->map(static fn($regex) => $regex->drop(2)->toString());
                 }
 
                 return $expression->regex();
             });
 
-        return Str::of($this->expansion()->separatorRegex())
-            ->join(
-                $this
-                    ->expressions
-                    ->take(1)
-                    ->map(static fn($expression) => $expression->regex())
-                    ->append($remaining),
-            )
-            ->toString();
+        return $this
+            ->expressions
+            ->take(1)
+            ->map(static fn($expression) => $expression->regex())
+            ->append($remaining)
+            ->sink(Sequence::strings())
+            ->attempt(static fn($regexes, $regex) => $regex->map($regexes))
+            ->map(
+                fn($regexes) => Str::of($this->expansion()->separatorRegex())
+                    ->join($regexes)
+                    ->toString(),
+            );
     }
 
     #[\Override]
@@ -148,20 +154,18 @@ final class Composite implements Expression
      *
      * @param Sequence<Str> $expressions
      *
-     * @return Maybe<Sequence<Expression>>
+     * @return Attempt<Sequence<Expression>>
      */
-    private static function parse(Expression $first, Sequence $expressions): Maybe
+    private static function parse(Expression $first, Sequence $expressions): Attempt
     {
-        /** @var Maybe<Sequence<Expression>> */
-        return Maybe::all(
-            Maybe::just($first),
-            ...$expressions
-                ->map(static fn($expression) => $expression->prepend($first->expansion()->continuation()->toString()))
-                ->map(static fn($expression) => $expression->prepend('{')->append('}'))
-                ->map(Expressions::of(...))
-                ->toList(),
-        )
-            ->map(Sequence::of(...));
+        return $expressions
+            ->map(static fn($expression) => $expression->prepend(
+                $first->expansion()->continuation()->toString(),
+            ))
+            ->map(static fn($expression) => $expression->prepend('{')->append('}'))
+            ->map(Expressions::of(...))
+            ->sink(Sequence::of($first))
+            ->attempt(static fn($expressions, $expression) => $expression->map($expressions));
     }
 
     private function removeLead(): bool

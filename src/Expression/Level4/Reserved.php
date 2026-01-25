@@ -9,42 +9,47 @@ use Innmind\UrlTemplate\{
     Expression\Expansion,
     Expression\Level2,
     Expression\Level4,
-    Exception\ExplodeExpressionCantBeMatched,
 };
 use Innmind\Immutable\{
     Map,
     Str,
-    Maybe,
+    Attempt,
 };
 
 /**
  * @psalm-immutable
+ * @internal
  */
 final class Reserved implements Expression
 {
-    private Name $name;
-    /** @var ?positive-int */
-    private ?int $limit = null;
-    private bool $explode = false;
-    private Expression $expression;
-
-    private function __construct(Name $name)
-    {
-        $this->name = $name;
-        $this->expression = Level4::named($name)->withExpression(
-            Level2\Reserved::named(...),
-        );
+    /**
+     * @param ?int<1, max> $limit
+     */
+    private function __construct(
+        private Name $name,
+        private ?int $limit,
+        private bool $explode,
+        private Level4 $expression,
+    ) {
     }
 
     /**
      * @psalm-pure
+     *
+     * @return Attempt<self>
      */
-    #[\Override]
-    public static function of(Str $string): Maybe
+    public static function of(Str $string): Attempt
     {
         return Parse::of(
             $string,
-            static fn(Name $name) => new self($name),
+            static fn(Name $name) => new self(
+                $name,
+                null,
+                false,
+                Level4::named($name)->withExpression(
+                    Level2\Reserved::named(...),
+                ),
+            ),
             self::explode(...),
             self::limit(...),
             Expansion::reserved,
@@ -54,17 +59,18 @@ final class Reserved implements Expression
     /**
      * @psalm-pure
      *
-     * @param positive-int $limit
+     * @param int<1, max> $limit
      */
     public static function limit(Name $name, int $limit): self
     {
-        $self = new self($name);
-        $self->limit = $limit;
-        $self->expression = Level4::limit($name, $limit)->withExpression(
-            Level2\Reserved::named(...),
+        return new self(
+            $name,
+            $limit,
+            false,
+            Level4::limit($name, $limit)->withExpression(
+                Level2\Reserved::named(...),
+            ),
         );
-
-        return $self;
     }
 
     /**
@@ -72,13 +78,14 @@ final class Reserved implements Expression
      */
     public static function explode(Name $name): self
     {
-        $self = new self($name);
-        $self->explode = true;
-        $self->expression = Level4::explode($name)->withExpression(
-            Level2\Reserved::named(...),
+        return new self(
+            $name,
+            null,
+            true,
+            Level4::explode($name)->withExpression(
+                Level2\Reserved::named(...),
+            ),
         );
-
-        return $self;
     }
 
     #[\Override]
@@ -88,20 +95,20 @@ final class Reserved implements Expression
     }
 
     #[\Override]
-    public function expand(Map $variables): string
+    public function expand(Map $values, Map $lists, Map $keys): string
     {
-        return $this->expression->expand($variables);
+        return $this->expression->expand($values, $lists, $keys);
     }
 
     #[\Override]
-    public function regex(): string
+    public function regex(): Attempt
     {
         if ($this->explode) {
-            throw new ExplodeExpressionCantBeMatched;
+            return Attempt::error(new \LogicException('Explode expression cant be matched'));
         }
 
         if (\is_int($this->limit)) {
-            return "(?<{$this->name->toString()}>[a-zA-Z0-9\%:/\?#\[\]@!\$&'\(\)\*\+,;=\-\.\_\~]{{$this->limit}})";
+            return Attempt::result("(?<{$this->name->toString()}>[a-zA-Z0-9\%:/\?#\[\]@!\$&'\(\)\*\+,;=\-\.\_\~]{{$this->limit}})");
         }
 
         return $this->expression->regex();

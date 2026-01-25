@@ -8,38 +8,31 @@ use Innmind\Immutable\{
     Map,
     Sequence,
     Str,
-    Maybe,
+    Attempt,
 };
 
 /**
  * @psalm-immutable
+ * @internal
  */
 final class Level3 implements Expression
 {
-    /** @var Sequence<Name> */
-    private Sequence $names;
-    /** @var Sequence<Level1> */
-    private Sequence $expressions;
-
     /**
      * @param Sequence<Name> $names
      */
-    private function __construct(Sequence $names)
+    private function __construct(private Sequence $names)
     {
-        $this->names = $names;
-        $this->expressions = $this->names->map(Level1::named(...));
     }
 
     /**
      * @psalm-pure
+     *
+     * @return Attempt<self>
      */
-    #[\Override]
-    public static function of(Str $string): Maybe
+    public static function of(Str $string): Attempt
     {
-        /** @var Maybe<Expression> */
-        return Name::many($string, Expansion::simple)->map(
-            static fn($names) => new self($names),
-        );
+        return Name::many($string, Expansion::simple)
+            ->map(static fn($names) => new self($names));
     }
 
     #[\Override]
@@ -49,24 +42,27 @@ final class Level3 implements Expression
     }
 
     #[\Override]
-    public function expand(Map $variables): string
+    public function expand(Map $values, Map $lists, Map $keys): string
     {
-        $expanded = $this->expressions->map(
-            static fn($expression) => $expression->expand($variables),
-        );
+        $expanded = $this
+            ->names
+            ->map(Level1::named(...))
+            ->map(static fn($expression) => $expression->expand($values, $lists, $keys));
 
         return Str::of(',')->join($expanded)->toString();
     }
 
     #[\Override]
-    public function regex(): string
+    public function regex(): Attempt
     {
         /** @psalm-suppress InvalidArgument */
-        return Str::of(',')
-            ->join($this->names->map(
-                static fn(Name $name) => "(?<{$name->toString()}>[a-zA-Z0-9\%\-\.\_\~]*)",
-            ))
-            ->toString();
+        return Attempt::result(
+            Str::of(',')
+                ->join($this->names->map(
+                    static fn(Name $name) => "(?<{$name->toString()}>[a-zA-Z0-9\%\-\.\_\~]*)",
+                ))
+                ->toString(),
+        );
     }
 
     #[\Override]

@@ -10,33 +10,30 @@ use Innmind\UrlTemplate\{
 use Innmind\Immutable\{
     Map,
     Str,
-    Maybe,
+    Attempt,
 };
 
 /**
  * @psalm-immutable
+ * @internal
  */
 final class Level1 implements Expression
 {
-    private Name $name;
-    private UrlEncode $encode;
-
-    private function __construct(Name $name)
-    {
-        $this->name = $name;
-        $this->encode = new UrlEncode;
+    private function __construct(
+        private Name $name,
+        private UrlEncode $encode,
+    ) {
     }
 
     /**
      * @psalm-pure
+     *
+     * @return Attempt<self>
      */
-    #[\Override]
-    public static function of(Str $string): Maybe
+    public static function of(Str $string): Attempt
     {
-        /** @var Maybe<Expression> */
-        return Name::one($string, Expansion::simple)->map(
-            static fn($name) => new self($name),
-        );
+        return Name::one($string, Expansion::simple)
+            ->map(self::named(...));
     }
 
     /**
@@ -44,7 +41,12 @@ final class Level1 implements Expression
      */
     public static function named(Name $name): self
     {
-        return new self($name);
+        return new self($name, UrlEncode::everything);
+    }
+
+    public function name(): Name
+    {
+        return $this->name;
     }
 
     #[\Override]
@@ -54,22 +56,25 @@ final class Level1 implements Expression
     }
 
     #[\Override]
-    public function expand(Map $variables): string
+    public function expand(Map $values, Map $lists, Map $keys): string
     {
-        /** @psalm-suppress InvalidArgument Because of the filter */
-        return $variables
+        return $values
             ->get($this->name->toString())
-            ->filter(\is_string(...))
             ->match(
-                fn(string $variable) => ($this->encode)($variable),
+                $this->encode->encode(...),
                 static fn() => '',
             );
     }
 
-    #[\Override]
-    public function regex(): string
+    public function encode(string $string): string
     {
-        return "(?<{$this->name->toString()}>[a-zA-Z0-9\%\-\.\_\~]*)";
+        return $this->encode->encode($string);
+    }
+
+    #[\Override]
+    public function regex(): Attempt
+    {
+        return Attempt::result("(?<{$this->name->toString()}>[a-zA-Z0-9\%\-\.\_\~]*)");
     }
 
     #[\Override]

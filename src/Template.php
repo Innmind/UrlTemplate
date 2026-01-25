@@ -3,16 +3,13 @@ declare(strict_types = 1);
 
 namespace Innmind\UrlTemplate;
 
-use Innmind\UrlTemplate\Exception\{
-    ExplodeExpressionCantBeMatched,
-    DomainException,
-};
 use Innmind\Url\Url;
 use Innmind\Immutable\{
     Map,
     Sequence,
     Str,
     Maybe,
+    Attempt,
 };
 
 /**
@@ -20,17 +17,13 @@ use Innmind\Immutable\{
  */
 final class Template
 {
-    private Str $template;
-    /** @var Sequence<Expression> */
-    private Sequence $expressions;
-
     /**
      * @param Sequence<Expression> $expressions
      */
-    private function __construct(Str $template, Sequence $expressions)
-    {
-        $this->template = $template;
-        $this->expressions = $expressions;
+    private function __construct(
+        private Str $template,
+        private Sequence $expressions,
+    ) {
     }
 
     /**
@@ -38,13 +31,24 @@ final class Template
      *
      * @param literal-string $template
      *
-     * @throws DomainException
+     * @throws \Exception
      */
     public static function of(string $template): self
     {
-        return self::maybe($template)->match(
-            static fn($self) => $self,
-            static fn() => throw new DomainException($template),
+        return self::attempt($template)->unwrap();
+    }
+
+    /**
+     * @psalm-pure
+     *
+     *  @return Attempt<self>
+     */
+    public static function attempt(string $template): Attempt
+    {
+        $template = Str::of($template);
+
+        return self::parse($template)->map(
+            static fn($expressions) => new self($template, $expressions),
         );
     }
 
@@ -55,51 +59,44 @@ final class Template
      */
     public static function maybe(string $template): Maybe
     {
-        $template = Str::of($template);
-
-        return self::parse($template)->map(
-            static fn($expressions) => new self($template, $expressions),
-        );
+        return self::attempt($template)->maybe();
     }
 
-    /**
-     * @param Map<non-empty-string, string|list<string>|list<array{string, string}>> $variables
-     */
-    public function expand(Map $variables): Url
+    public function expansion(): Expansion
     {
-        $url = $this->expressions->reduce(
-            $this->template,
-            static function(Str $template, Expression $expression) use ($variables): Str {
-                return $template->replace(
-                    $expression->toString(),
-                    $expression->expand($variables),
-                );
-            },
-        );
-
-        return Url::of($url->toString());
+        return Expansion::of($this->template, $this->expressions);
     }
 
     /**
-     * @throws ExplodeExpressionCantBeMatched
+     * The attempt will fail when trying to match on a template containing an
+     * explode expression.
      *
-     * @return Map<string, string>
+     * @return Attempt<Map<string, string>>
      */
-    public function extract(Url $url): Map
+    public function extract(Url $url): Attempt
     {
-        /** @var Map<string, string> */
-        return Str::of($url->toString())
-            ->capture($this->regex())
-            ->filter(static fn($key) => \is_string($key))
-            ->map(static fn($_, $variable) => \rawurldecode($variable->toString()));
+        /** @var Attempt<Map<string, string>> */
+        return $this
+            ->regex()
+            ->map(Str::of($url->toString())->capture(...))
+            ->map(
+                static fn($captured) => $captured
+                    ->filter(static fn($key) => \is_string($key))
+                    ->map(static fn($_, $variable) => \rawurldecode($variable->toString())),
+            );
     }
 
     /**
-     * @throws ExplodeExpressionCantBeMatched
+     * The attempt will fail when trying to match on a template containing an
+     * explode expression.
+     *
+     * @return Attempt<bool>
      */
-    public function matches(Url $url): bool
+    public function matches(Url $url): Attempt
     {
-        return Str::of($url->toString())->matches($this->regex());
+        return $this->regex()->map(
+            Str::of($url->toString())->matches(...),
+        );
     }
 
     public function toString(): string
@@ -108,9 +105,9 @@ final class Template
     }
 
     /**
-     * @throws ExplodeExpressionCantBeMatched
+     * @return Attempt<string>
      */
-    private function regex(): string
+    private function regex(): Attempt
     {
         $template = $this
             ->expressions
@@ -125,18 +122,23 @@ final class Template
                 ),
             )
             ->pregQuote();
-        $template = $this->expressions->reduce(
-            $template,
-            static fn(Str $template, $expression) => $template->replace(
-                \sprintf(
-                    '__innmind_expression_%s__',
-                    \spl_object_hash($expression),
-                ),
-                $expression->regex(),
-            ),
-        );
 
-        return $template->prepend('~^')->append('$~')->toString();
+        return $this
+            ->expressions
+            ->sink($template)
+            ->attempt(
+                static fn($template, $expression) => $expression
+                    ->regex()
+                    ->map(static fn($regex) => $template->replace(
+                        \sprintf(
+                            '__innmind_expression_%s__',
+                            \spl_object_hash($expression),
+                        ),
+                        $regex,
+                    )),
+            )
+            ->map(static fn($regex) => $regex->prepend('~^')->append('$~'))
+            ->map(static fn($regex) => $regex->toString());
     }
 
     /**
@@ -145,9 +147,9 @@ final class Template
      * Recursively find the expressions as Str::capture doesnt capture all of
      * them at the same time
      *
-     * @return Maybe<Sequence<Expression>>
+     * @return Attempt<Sequence<Expression>>
      */
-    private static function parse(Str $template): Maybe
+    private static function parse(Str $template): Attempt
     {
         /** @var Sequence<Str> */
         $expressions = Sequence::of();
@@ -166,14 +168,12 @@ final class Template
                 );
         } while (!$captured->empty());
 
-        /** @var Maybe<Sequence<Expression>> */
+        /** @var Sequence<Expression> */
+        $parsed = Sequence::of();
+
         return $expressions
             ->map(Expressions::of(...))
-            ->match(
-                static fn($first, $rest) => Maybe::all($first, ...$rest->toList())->map(
-                    Sequence::of(...),
-                ),
-                static fn() => Maybe::just(Sequence::of()),
-            );
+            ->sink($parsed)
+            ->attempt(static fn($expressions, $expression) => $expression->map($expressions));
     }
 }

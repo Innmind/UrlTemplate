@@ -9,41 +9,40 @@ use Innmind\UrlTemplate\{
     Expression\Expansion,
     Expression\Level1,
     Expression\Level3,
-    Exception\ExplodeExpressionCantBeMatched,
 };
 use Innmind\Immutable\{
     Map,
     Str,
     Sequence,
-    Maybe,
+    Attempt,
 };
 
 /**
  * @psalm-immutable
+ * @internal
  */
 final class Parameters implements Expression
 {
-    private Name $name;
-    /** @var ?positive-int */
-    private ?int $limit = null;
-    private bool $explode = false;
-    private Expression $expression;
-
-    private function __construct(Name $name)
-    {
-        $this->name = $name;
-        $this->expression = Level1::named($name);
+    /**
+     * @param ?int<1, max> $limit
+     */
+    private function __construct(
+        private Name $name,
+        private ?int $limit,
+        private bool $explode,
+    ) {
     }
 
     /**
      * @psalm-pure
+     *
+     * @return Attempt<self>
      */
-    #[\Override]
-    public static function of(Str $string): Maybe
+    public static function of(Str $string): Attempt
     {
         return Parse::of(
             $string,
-            static fn(Name $name) => new self($name),
+            static fn(Name $name) => new self($name, null, false),
             self::explode(...),
             self::limit(...),
             Expansion::parameter,
@@ -53,14 +52,11 @@ final class Parameters implements Expression
     /**
      * @psalm-pure
      *
-     * @param positive-int $limit
+     * @param int<1, max> $limit
      */
     public static function limit(Name $name, int $limit): self
     {
-        $self = new self($name);
-        $self->limit = $limit;
-
-        return $self;
+        return new self($name, $limit, false);
     }
 
     /**
@@ -68,10 +64,7 @@ final class Parameters implements Expression
      */
     public static function explode(Name $name): self
     {
-        $self = new self($name);
-        $self->explode = true;
-
-        return $self;
+        return new self($name, null, true);
     }
 
     #[\Override]
@@ -81,56 +74,72 @@ final class Parameters implements Expression
     }
 
     #[\Override]
-    public function expand(Map $variables): string
+    public function expand(Map $values, Map $lists, Map $keys): string
     {
-        $variable = $variables->get($this->name->toString())->match(
-            static fn($variable) => $variable,
-            static fn() => null,
-        );
+        $name = $this->name->toString();
 
-        if (\is_null($variable)) {
-            return '';
-        }
+        return $lists
+            ->get($name)
+            ->otherwise(static fn() => $keys->get($name))
+            ->map($this->expandList(...))
+            ->otherwise(
+                fn() => $values
+                    ->get($name)
+                    ->map(function($value) {
+                        if ($this->explode) {
+                            return $this->explodeList([$value]);
+                        }
 
-        if (\is_array($variable)) {
-            return $this->expandList($variables, $variable);
-        }
+                        $value = Str::of(Level1::named($this->name)->encode($value));
 
-        if ($this->explode) {
-            return $this->explodeList($variables, [$variable]);
-        }
+                        if ($this->mustLimit()) {
+                            return \sprintf(
+                                ';%s=%s',
+                                $this->name->toString(),
+                                $value->take($this->limit)->toString(),
+                            );
+                        }
 
-        $value = Str::of($this->expression->expand($variables));
-
-        if ($this->mustLimit()) {
-            return ";{$this->name->toString()}={$value->take($this->limit)->toString()}";
-        }
-
-        return ";{$this->name->toString()}={$value->toString()}";
+                        return \sprintf(
+                            ';%s=%s',
+                            $this->name->toString(),
+                            $value->toString(),
+                        );
+                    }),
+            )
+            ->match(
+                static fn($value) => $value,
+                static fn() => '',
+            );
     }
 
     #[\Override]
-    public function regex(): string
+    public function regex(): Attempt
     {
         if ($this->explode) {
-            throw new ExplodeExpressionCantBeMatched;
+            return Attempt::error(new \LogicException('Explode expression cant be matched'));
         }
 
         if ($this->mustLimit()) {
             // replace '*' match by the actual limit
-            $regex = Str::of($this->expression->regex())
-                ->dropEnd(2)
-                ->append("{{$this->limit}})")
-                ->toString();
+            $regex = Level1::named($this->name)
+                ->regex()
+                ->map(Str::of(...))
+                ->map(
+                    fn($regex) => $regex
+                        ->dropEnd(2)
+                        ->append("{{$this->limit}})")
+                        ->toString(),
+                );
         } else {
-            $regex = $this->expression->regex();
+            $regex = Level1::named($this->name)->regex();
         }
 
-        return \sprintf(
+        return $regex->map(fn($regex) => \sprintf(
             '\;%s=%s',
             $this->name->toString(),
             $regex,
-        );
+        ));
     }
 
     #[\Override]
@@ -148,7 +157,7 @@ final class Parameters implements Expression
     }
 
     /**
-     * @psalm-assert-if-true positive-int $this->limit
+     * @psalm-assert-if-true int<1, max> $this->limit
      */
     private function mustLimit(): bool
     {
@@ -156,13 +165,12 @@ final class Parameters implements Expression
     }
 
     /**
-     * @param Map<non-empty-string, string|list<string>|list<array{string, string}>> $variables
-     * @param list<string>|list<array{string, string}> $variablesToExpand
+     * @param list<string>|list<array{Name, string}> $variablesToExpand
      */
-    private function expandList(Map $variables, array $variablesToExpand): string
+    private function expandList(array $variablesToExpand): string
     {
         if ($this->explode) {
-            return $this->explodeList($variables, $variablesToExpand);
+            return $this->explodeList($variablesToExpand);
         }
 
         $flattenedVariables = Sequence::of(...$variablesToExpand)->flatMap(
@@ -170,20 +178,16 @@ final class Parameters implements Expression
                 if (\is_array($variableToExpand)) {
                     [$name, $variableToExpand] = $variableToExpand;
 
-                    return Sequence::of($name, $variableToExpand);
+                    return Sequence::of($name->toString(), $variableToExpand);
                 }
 
                 return Sequence::of($variableToExpand);
             },
         );
+        // here we use the level1 expression to transform the variable to
+        // be expanded to its string representation
         $expanded = $flattenedVariables->map(
-            function($variableToExpand) use ($variables): string {
-                // here we use the level1 expression to transform the variable to
-                // be expanded to its string representation
-                $variables = ($variables)($this->name->toString(), $variableToExpand);
-
-                return $this->expression->expand($variables);
-            },
+            Level1::named($this->name)->encode(...),
         );
 
         return Str::of(',')
@@ -193,26 +197,20 @@ final class Parameters implements Expression
     }
 
     /**
-     * @param Map<non-empty-string, string|list<string>|list<array{string, string}>> $variables
-     * @param list<string>|list<array{string, string}> $variablesToExpand
+     * @param list<string>|list<array{Name, string}> $variablesToExpand
      */
-    private function explodeList(Map $variables, array $variablesToExpand): string
+    private function explodeList(array $variablesToExpand): string
     {
-        $expanded = Sequence::of(...$variablesToExpand)->map(
-            function($variableToExpand) use ($variables): string {
-                $name = $this->name;
-
-                if (\is_array($variableToExpand)) {
-                    [$name, $value] = $variableToExpand;
-                    $name = Name::of($name);
-                    $variableToExpand = $value;
-                }
-
-                $variables = ($variables)($name->toString(), $variableToExpand);
-
-                return Level3\Parameters::named($name)->expand($variables);
-            },
-        );
+        $expanded = Sequence::of(...$variablesToExpand)
+            ->map(fn($value) => match (true) {
+                \is_string($value) => [$this->name, $value],
+                default => $value,
+            })
+            ->map(static fn($pair) => Level3\Parameters::named($pair[0])->expand(
+                Map::of([$pair[0]->toString(), $pair[1]]),
+                Map::of(),
+                Map::of(),
+            ));
 
         return Str::of('')->join($expanded)->toString();
     }
