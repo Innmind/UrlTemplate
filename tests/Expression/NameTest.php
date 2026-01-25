@@ -44,7 +44,7 @@ class NameTest extends TestCase
                 $this->expectException(\DomainException::class);
                 $this->expectExceptionMessage($string);
 
-                Name::of($string);
+                $_ = Name::of($string);
             });
     }
 }

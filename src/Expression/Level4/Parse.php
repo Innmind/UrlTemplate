@@ -29,6 +29,7 @@ final class Parse
      *
      * @return Attempt<T>
      */
+    #[\NoDiscard]
     public static function of(
         Str $string,
         callable $standard,

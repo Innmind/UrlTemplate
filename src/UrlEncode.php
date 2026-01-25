@@ -17,6 +17,7 @@ enum UrlEncode
     case everything;
     case allowReservedCharacters;
 
+    #[\NoDiscard]
     public function encode(string $string): string
     {
         if ($this === self::everything) {
@@ -35,6 +36,7 @@ enum UrlEncode
     /**
      * @psalm-pure
      */
+    #[\NoDiscard]
     private static function map(string $char): string
     {
         $allowed = [
