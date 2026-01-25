@@ -37,6 +37,7 @@ final class Expansion
      *
      * @param Sequence<Expression> $expressions
      */
+    #[\NoDiscard]
     public static function of(Str $template, Sequence $expressions): self
     {
         return new self(
@@ -53,6 +54,7 @@ final class Expansion
      *
      * @param non-empty-string $name
      */
+    #[\NoDiscard]
     public function with(string $name, string ...$values): self
     {
         if (\count($values) === 1) {
@@ -80,6 +82,7 @@ final class Expansion
      * @param non-empty-string $name
      * @param array{string, string} ...$keys
      */
+    #[\NoDiscard]
     public function withKeys(string $name, array ...$keys): self
     {
         return new self(
@@ -94,6 +97,7 @@ final class Expansion
         );
     }
 
+    #[\NoDiscard]
     public function expand(): Url
     {
         $url = $this->expressions->reduce(

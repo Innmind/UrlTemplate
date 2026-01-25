@@ -33,6 +33,7 @@ final class Template
      *
      * @throws \Exception
      */
+    #[\NoDiscard]
     public static function of(string $template): self
     {
         return self::attempt($template)->unwrap();
@@ -43,6 +44,7 @@ final class Template
      *
      *  @return Attempt<self>
      */
+    #[\NoDiscard]
     public static function attempt(string $template): Attempt
     {
         $template = Str::of($template);
@@ -57,11 +59,13 @@ final class Template
      *
      *  @return Maybe<self>
      */
+    #[\NoDiscard]
     public static function maybe(string $template): Maybe
     {
         return self::attempt($template)->maybe();
     }
 
+    #[\NoDiscard]
     public function expansion(): Expansion
     {
         return Expansion::of($this->template, $this->expressions);
@@ -73,6 +77,7 @@ final class Template
      *
      * @return Attempt<Map<string, string>>
      */
+    #[\NoDiscard]
     public function extract(Url $url): Attempt
     {
         /** @var Attempt<Map<string, string>> */
@@ -92,6 +97,7 @@ final class Template
      *
      * @return Attempt<bool>
      */
+    #[\NoDiscard]
     public function matches(Url $url): Attempt
     {
         return $this->regex()->map(
@@ -99,6 +105,7 @@ final class Template
         );
     }
 
+    #[\NoDiscard]
     public function toString(): string
     {
         return $this->template->toString();

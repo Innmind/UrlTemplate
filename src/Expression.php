@@ -15,6 +15,7 @@ use Innmind\Immutable\{
  */
 interface Expression
 {
+    #[\NoDiscard]
     public function expansion(): Expression\Expansion;
 
     /**
@@ -22,11 +23,15 @@ interface Expression
      * @param Map<non-empty-string, list<string>> $lists
      * @param Map<non-empty-string, list<array{Name, string}>> $keys
      */
+    #[\NoDiscard]
     public function expand(Map $values, Map $lists, Map $keys): string;
 
     /**
      * @return Attempt<string>
      */
+    #[\NoDiscard]
     public function regex(): Attempt;
+
+    #[\NoDiscard]
     public function toString(): string;
 }

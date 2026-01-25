@@ -36,6 +36,7 @@ final class NamedValues
      *
      * @param Sequence<Name> $names
      */
+    #[\NoDiscard]
     public static function parameters(Sequence $names): self
     {
         return new self(Expansion::parameter, $names, true);
@@ -46,6 +47,7 @@ final class NamedValues
      *
      * @param Sequence<Name> $names
      */
+    #[\NoDiscard]
     public static function query(Sequence $names): self
     {
         return new self(Expansion::query, $names, false);
@@ -56,6 +58,7 @@ final class NamedValues
      *
      * @param Sequence<Name> $names
      */
+    #[\NoDiscard]
     public static function queryContinuation(Sequence $names): self
     {
         return new self(Expansion::queryContinuation, $names, false);
@@ -66,6 +69,7 @@ final class NamedValues
      * @param Map<non-empty-string, list<string>> $lists
      * @param Map<non-empty-string, list<array{Name, string}>> $keys
      */
+    #[\NoDiscard]
     public function expand(Map $values, Map $lists, Map $keys): string
     {
         $expanded = $this
@@ -93,6 +97,7 @@ final class NamedValues
     /**
      * @return Attempt<string>
      */
+    #[\NoDiscard]
     public function regex(): Attempt
     {
         return $this
@@ -111,6 +116,7 @@ final class NamedValues
             ->map(fn($regex) => $regex->prepend($this->expansion->regex())->toString());
     }
 
+    #[\NoDiscard]
     public function toString(): string
     {
         /** @psalm-suppress InvalidArgument */

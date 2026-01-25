@@ -20,6 +20,7 @@ final class Expressions
      *
      * @return Attempt<Expression>
      */
+    #[\NoDiscard]
     public static function of(Str $string): Attempt
     {
         return self::expressions()

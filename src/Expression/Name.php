@@ -28,6 +28,7 @@ final class Name
      *
      * @throws \DomainException
      */
+    #[\NoDiscard]
     public static function of(string $value): self
     {
         $characters = self::characters();
@@ -45,6 +46,7 @@ final class Name
      *
      * @return Attempt<self>
      */
+    #[\NoDiscard]
     public static function one(
         Str $value,
         Expansion $expansion,
@@ -67,6 +69,7 @@ final class Name
      *
      * @return Attempt<self>
      */
+    #[\NoDiscard]
     public static function explode(
         Str $value,
         Expansion $expansion,
@@ -89,6 +92,7 @@ final class Name
      *
      * @return Attempt<array{self, int<1, max>}>
      */
+    #[\NoDiscard]
     public static function limit(
         Str $value,
         Expansion $expansion,
@@ -127,6 +131,7 @@ final class Name
      *
      * @return Attempt<Sequence<self>>
      */
+    #[\NoDiscard]
     public static function many(
         Str $value,
         Expansion $expansion,
@@ -151,6 +156,7 @@ final class Name
     /**
      * @psalm-pure
      */
+    #[\NoDiscard]
     public static function characters(): string
     {
         return '[a-zA-Z0-9_]+';
@@ -159,6 +165,7 @@ final class Name
     /**
      * @return non-empty-string
      */
+    #[\NoDiscard]
     public function toString(): string
     {
         return $this->value;
