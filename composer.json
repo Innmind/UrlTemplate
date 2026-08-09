@@ -2,7 +2,10 @@
     "name": "innmind/url-template",
     "type": "library",
     "description": "Url template expansion processor",
-    "keywords": ["url template", "rfc6570"],
+    "keywords": [
+        "url template",
+        "rfc6570"
+    ],
     "homepage": "http://github.com/Innmind/UrlTemplate",
     "license": "MIT",
     "authors": [
